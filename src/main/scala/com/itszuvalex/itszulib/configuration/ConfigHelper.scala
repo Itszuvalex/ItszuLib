@@ -37,8 +37,8 @@ import scala.collection.mutable.ArrayBuffer
 import scala.reflect.runtime.{universe => ru}
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 9/10/14.
- */
+  * Created by Christopher Harris (Itszuvalex) on 9/10/14.
+  */
 object ConfigHelper {
 
   final   val CLASS_CONSTANTS_KEY           = "Class Constants"

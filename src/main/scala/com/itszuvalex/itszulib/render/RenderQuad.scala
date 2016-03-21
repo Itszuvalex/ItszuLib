@@ -36,10 +36,6 @@ class RenderQuad(var a: Point3D,
   def this(a: Point3D, b: Point3D, c: Point3D, d: Point3D, icon: IIcon) =
     this(a, b, c, d, icon, icon.getMinU, icon.getMaxU, icon.getMinV, icon.getMaxV)
 
-  private def this(a: Point3D, b: Point3D, c: Point3D, d: Point3D) =
-    this(a, b, c, d, null)
-
-
   def reverse = {
     var temp = a
     a = d
@@ -133,4 +129,7 @@ class RenderQuad(var a: Point3D,
   }
 
   def getNormal = new Vector3(c, b).cross(new Vector3(a, b)).normalize()
+
+  private def this(a: Point3D, b: Point3D, c: Point3D, d: Point3D) =
+    this(a, b, c, d, null)
 }

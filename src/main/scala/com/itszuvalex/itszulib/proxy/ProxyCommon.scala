@@ -20,7 +20,7 @@
  */
 package com.itszuvalex.itszulib.proxy
 
-import com.itszuvalex.itszulib.testing._
+import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
 import cpw.mods.fml.common.network.IGuiHandler
 import cpw.mods.fml.common.registry.GameRegistry
 import net.minecraft.entity.player.EntityPlayer

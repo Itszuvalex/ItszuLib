@@ -6,8 +6,8 @@ import net.minecraftforge.common.config.Configuration
 import net.minecraftforge.common.config.Configuration._
 
 /**
- * Created by Itszuvalex on 12/31/14.
- */
+  * Created by Itszuvalex on 12/31/14.
+  */
 class AutoGenConfig(val massive: String, val major: String, val minor: String, val build: String) {
   private val CATEGORY = "Configuration Regeneration"
 
@@ -68,14 +68,14 @@ class AutoGenConfig(val massive: String, val major: String, val minor: String, v
 
   def getMajorVersion(file: File) = get(config.getString("Major", CATEGORY + CATEGORY_SPLITTER + file.getName + CATEGORY_SPLITTER + "Version", major, ""))
 
+  def minorVersionChanged(file: File) = !getMinorVersion(file).equalsIgnoreCase(minor)
+
+  def getMinorVersion(file: File) = get(config.getString("Minor", CATEGORY + CATEGORY_SPLITTER + file.getName + CATEGORY_SPLITTER + "Version", minor, ""))
+
   def get[T](value: T): T = {
     if (config.hasChanged) config.save()
     value
   }
-
-  def minorVersionChanged(file: File) = !getMinorVersion(file).equalsIgnoreCase(minor)
-
-  def getMinorVersion(file: File) = get(config.getString("Minor", CATEGORY + CATEGORY_SPLITTER + file.getName + CATEGORY_SPLITTER + "Version", minor, ""))
 
   def buildVersionChanged(file: File) = !getBuildNumber(file).equalsIgnoreCase(build)
 

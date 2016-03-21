@@ -7,8 +7,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 4/6/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 4/6/15.
+  */
 object InterModComms {
   final val KEY_GREETING = "GREETING"
   final val mods         = new mutable.HashSet[String]()

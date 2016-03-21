@@ -1,17 +1,18 @@
 package com.itszuvalex.itszulib.network.messages
 
-import com.itszuvalex.itszulib.core.traits.tile.{TileMultiFluidTank, TileFluidTank}
+import com.itszuvalex.itszulib.core.traits.tile.{TileFluidTank, TileMultiFluidTank}
 import cpw.mods.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
 import io.netty.buffer.ByteBuf
 import net.minecraft.client.Minecraft
 import net.minecraftforge.fluids.{FluidRegistry, FluidStack}
 
 /**
- * Created by Alex on 11.10.2015.
- */
+  * Created by Alex on 11.10.2015.
+  */
 class MessageFluidTankUpdate(var x: Int, var y: Int, var z: Int, var tankID: Int, var fluidID: Int, var amount: Int) extends IMessage with IMessageHandler[MessageFluidTankUpdate, IMessage] {
   def this() = this(0, 0, 0, -1, -1, -1)
-  def this(_x: Int, _y: Int, _z: Int, fID: Int, amt: Int) = this (_x, _y, _z, -1, fID, amt)
+
+  def this(_x: Int, _y: Int, _z: Int, fID: Int, amt: Int) = this(_x, _y, _z, -1, fID, amt)
 
   override def toBytes(buf: ByteBuf): Unit = {
     buf.writeInt(x)

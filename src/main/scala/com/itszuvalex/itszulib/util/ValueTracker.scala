@@ -1,8 +1,8 @@
 package com.itszuvalex.itszulib.util
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 5/6/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 5/6/15.
+  */
 //class ValueTracker[V](size: Int) {
 //  val values = new Array[V](size)
 //

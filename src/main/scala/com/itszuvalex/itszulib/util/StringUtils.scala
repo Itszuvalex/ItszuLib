@@ -9,8 +9,8 @@ import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import org.apache.logging.log4j.Level
 
 /**
- * Created by Chris on 9/15/2014.
- */
+  * Created by Chris on 9/15/2014.
+  */
 object StringUtils {
   val itemModIDGroup     = "modID"
   val itemNameGroup      = "itemName"
@@ -85,24 +85,24 @@ object StringUtils {
   }
 
   /**
-   *
-   * @param input
-   * @return input with first letter capitalized.
-   */
+    *
+    * @param input
+    * @return input with first letter capitalized.
+    */
   def capitalize(input: String) = input.substring(0, 1).toUpperCase + input.substring(1)
 
   /**
-   *
-   * @param i
-   * @return Formats i to a string, with ,'s inserted.
-   */
+    *
+    * @param i
+    * @return Formats i to a string, with ,'s inserted.
+    */
   def formatIntegerToString(i: Int) = formatIntegerString(String.valueOf(i))
 
   /**
-   *
-   * @param number
-   * @return Formats string representation if integer with ,'s.
-   */
+    *
+    * @param number
+    * @return Formats string representation if integer with ,'s.
+    */
   def formatIntegerString(number: String) = {
     val builder = new StringBuilder(number)
     val length: Int = number.length

@@ -30,8 +30,8 @@ import net.minecraft.world.World
 
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 7/26/14.
- */
+  * Created by Christopher Harris (Itszuvalex) on 7/26/14.
+  */
 object FileUtils {
   def savePathMod(world: World, modID: String) = {
     val dir = new File(savePath(world), modID.toLowerCase)
@@ -54,13 +54,13 @@ object FileUtils {
     f
   }
 
-  def customConfigPath(modID: String) = configPath(modID) + "custom/"
-
-  def autogenConfigPath(modID: String) = configPath(modID) + "autogen/"
-
   def configPath(modID: String) = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
     MinecraftServer.getServer.getFile(MinecraftServer.getServer.getFolderName + "/config/" + modID + "/").getPath + "/"
   } else {Minecraft.getMinecraft.mcDataDir + "/config/" + modID + "/"}
+
+  def customConfigPath(modID: String) = configPath(modID) + "custom/"
+
+  def autogenConfigPath(modID: String) = configPath(modID) + "autogen/"
 }
 
 

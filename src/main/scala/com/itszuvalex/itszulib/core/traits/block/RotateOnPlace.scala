@@ -7,12 +7,12 @@ import net.minecraft.util.MathHelper
 import net.minecraft.world.World
 
 /**
- * Created by Itszuvalex on 11/28/14.
- */
+  * Created by Itszuvalex on 11/28/14.
+  */
 trait RotateOnPlace extends Block {
   /**
-   * Called whenever the block is added into the world. Args: world, x, y, z
-   */
+    * Called whenever the block is added into the world. Args: world, x, y, z
+    */
   override def onBlockAdded(world: World, x: Int, y: Int, z: Int) {
     super.onBlockAdded(world, x, y, z)
     setDefaultDirection(world, x, y, z)
@@ -20,8 +20,8 @@ trait RotateOnPlace extends Block {
 
 
   /**
-   * set a blocks direction
-   */
+    * set a blocks direction
+    */
   private def setDefaultDirection(world: World, x: Int, y: Int, z: Int) {
     if (!world.isRemote) {
       val south = world.getBlock(x, y, z - 1)
@@ -46,8 +46,8 @@ trait RotateOnPlace extends Block {
   }
 
   /**
-   * Called when the block is placed in the world.
-   */
+    * Called when the block is placed in the world.
+    */
   override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, itemStack: ItemStack) {
     super.onBlockPlacedBy(world, x, y, z, entity, itemStack)
     val mask = MathHelper.floor_double((entity.rotationYaw * 4.0F / 360.0F).toDouble + 0.5D) & 3

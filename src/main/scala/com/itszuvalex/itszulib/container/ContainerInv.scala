@@ -26,8 +26,8 @@ import net.minecraft.inventory.{IInventory, Slot}
 import net.minecraft.item.ItemStack
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 7/27/14.
- */
+  * Created by Christopher Harris (Itszuvalex) on 7/27/14.
+  */
 abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T, input: Int, output: Int) extends ContainerBase {
   protected final val inventory   : T            = inv
   protected final val player      : EntityPlayer = parPlayer
@@ -35,7 +35,7 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
   protected final val OUTPUT_SLOT : Int          = output
   protected final val INV_SIZE    : Int          = inventory match {
     case inventory1: IInventory => inventory1.getSizeInventory - 1
-    case _                      => OUTPUT_SLOT
+    case _ => OUTPUT_SLOT
   }
   protected final val INV_START   : Int          = INV_SIZE + 1
   protected final val INV_END     : Int          = INV_START + 26
@@ -45,8 +45,8 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
   def canInteractWith(entityplayer: EntityPlayer) = inventory.canPlayerUse(entityplayer)
 
   /**
-   * Called when a player shift-clicks on a slot. You must override this or you will crash when someone does that.
-   */
+    * Called when a player shift-clicks on a slot. You must override this or you will crash when someone does that.
+    */
   override def transferStackInSlot(par1EntityPlayer: EntityPlayer, par2: Int): ItemStack = {
     var itemstack: ItemStack = null
     val slot = this.inventorySlots.get(par2).asInstanceOf[Slot]

@@ -10,8 +10,8 @@ import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.common.util.ForgeDirection
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 8/26/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 8/26/15.
+  */
 @SideOnly(Side.CLIENT)
 class PreviewableRenderHandler {
 
@@ -19,13 +19,13 @@ class PreviewableRenderHandler {
   def render(event: RenderWorldLastEvent): Unit = {
     val player = Minecraft.getMinecraft.thePlayer
     player.getCurrentEquippedItem match {
-      case null                                                                       =>
+      case null =>
       case stack if stack.getItem != null && stack.getItem.isInstanceOf[IPreviewable] =>
         val prev = stack.getItem.asInstanceOf[IPreviewable]
         PreviewableRendererRegistry.getRenderer(prev.renderID) match {
           case Some(renderer) =>
             Minecraft.getMinecraft.objectMouseOver match {
-              case null                                                                =>
+              case null =>
               case vec if vec.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK =>
                 val world = player.getEntityWorld
                 val hitX = vec.blockX
@@ -51,11 +51,11 @@ class PreviewableRenderHandler {
 
                 renderer.renderAtLocation(stack, world, bx, by, bz,
                                           bx - px, by - py, bz - pz)
-              case _                                                                   =>
+              case _ =>
             }
-          case None           =>
+          case None =>
         }
-      case _                                                                          =>
+      case _ =>
     }
   }
 

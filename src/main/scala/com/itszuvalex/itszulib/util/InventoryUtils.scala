@@ -11,19 +11,19 @@ import net.minecraft.world.World
 import net.minecraftforge.oredict.OreDictionary
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 4/6/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 4/6/15.
+  */
 object InventoryUtils {
 
   /**
-   *
-   * This DOES modify slots when attempting to place, regardless of true false.  Thus, passing a copy of the inventory is recommended when testing
-   *
-   * @param item Item used for matching/stacksize.  Does not modify item
-   * @param slots Array of slots to attempt to place item.
-   * @param restrictions Array of slot indexs to skip when placing.
-   * @return True if slots contains room for item.
-   */
+    *
+    * This DOES modify slots when attempting to place, regardless of true false.  Thus, passing a copy of the inventory is recommended when testing
+    *
+    * @param item         Item used for matching/stacksize.  Does not modify item
+    * @param slots        Array of slots to attempt to place item.
+    * @param restrictions Array of slot indexs to skip when placing.
+    * @return True if slots contains room for item.
+    */
   def placeItem(item: ItemStack, slots: Array[ItemStack], restrictions: Array[Int]): Boolean = {
     if (item == null) {
       return true
@@ -59,16 +59,45 @@ object InventoryUtils {
     false
   }
 
+  def compareItem(cur: ItemStack, in: ItemStack): Int = {
+    if (cur == null && in != null) {
+      return -1
+    }
+    if (cur != null && in == null) {
+      return 1
+    }
+    if (cur == null && in == null) {
+      return 0
+    }
+    if (cur.getItem.itemID < in.getItem.itemID) {
+      return -1
+    }
+    if (cur.getItem.itemID > in.getItem.itemID) {
+      return 1
+    }
+    val damage = cur.getItemDamage
+    val indamage = in.getItemDamage
+    if (damage == OreDictionary.WILDCARD_VALUE) return 0
+    if (indamage == OreDictionary.WILDCARD_VALUE) return 0
+    if (damage < indamage) {
+      return -1
+    }
+    if (damage > indamage) {
+      return 1
+    }
+    0
+  }
+
   /**
-   * Drops the item in the world.
-   *
-   * @param item
-   * @param world
-   * @param x
-   * @param y
-   * @param z
-   * @param rand
-   */
+    * Drops the item in the world.
+    *
+    * @param item
+    * @param world
+    * @param x
+    * @param y
+    * @param z
+    * @param rand
+    */
   def dropItem(item: ItemStack, world: World, x: Int, y: Int, z: Int, rand: Random): Unit = {
     if (item == null) return
 
@@ -98,14 +127,14 @@ object InventoryUtils {
   }
 
   /**
-   *
-   * This DOES modify slots when attempting to place, regardless of output.  Thus, it is recommended to pass a copy when testing.
-   *
-   * @param item Item used to attempt to place.  This is NOT modified.
-   * @param slots
-   * @param restrictions
-   * @return
-   */
+    *
+    * This DOES modify slots when attempting to place, regardless of output.  Thus, it is recommended to pass a copy when testing.
+    *
+    * @param item Item used to attempt to place.  This is NOT modified.
+    * @param slots
+    * @param restrictions
+    * @return
+    */
   def removeItem(item: ItemStack, slots: Array[ItemStack], restrictions: Array[Int]): Boolean = {
     if (item == null) {
       return true
@@ -134,35 +163,6 @@ object InventoryUtils {
       }
     }
     false
-  }
-
-  def compareItem(cur: ItemStack, in: ItemStack): Int = {
-    if (cur == null && in != null) {
-      return -1
-    }
-    if (cur != null && in == null) {
-      return 1
-    }
-    if (cur == null && in == null) {
-      return 0
-    }
-    if (cur.getItem.itemID < in.getItem.itemID) {
-      return -1
-    }
-    if (cur.getItem.itemID > in.getItem.itemID) {
-      return 1
-    }
-    val damage = cur.getItemDamage
-    val indamage = in.getItemDamage
-    if (damage == OreDictionary.WILDCARD_VALUE) return 0
-    if (indamage == OreDictionary.WILDCARD_VALUE) return 0
-    if (damage < indamage) {
-      return -1
-    }
-    if (damage > indamage) {
-      return 1
-    }
-    0
   }
 
 }

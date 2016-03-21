@@ -25,8 +25,8 @@ import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.nbt.NBTTagCompound
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 5/16/14.
- */
+  * Created by Christopher Harris (Itszuvalex) on 5/16/14.
+  */
 case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable var z: Double) extends NBTSerializable {
 
   def this(a: Point3D, b: Point3D) =
@@ -34,8 +34,6 @@ case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable v
 
   def this() =
     this(0, 0, 0)
-
-  def copy() = Vector3(x, y, z)
 
   def +(other: Vector3) = Vector3(x + other.x, y + other.y, z + other.z)
 
@@ -53,17 +51,17 @@ case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable v
     z -= other.z
   }
 
+  def /(other: Float) = this * (1 / other)
+
   def *(other: Float) = Vector3(x * other, y * other, z * other)
+
+  def /=(other: Float) = this *= (1 / other)
 
   def *=(other: Float) = {
     x *= other
     y *= other
     z *= other
   }
-
-  def /(other: Float) = this * (1 / other)
-
-  def /=(other: Float) = this *= (1 / other)
 
   def inversed = copy().inverse()
 
@@ -74,6 +72,10 @@ case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable v
     this
   }
 
+  def normalized = copy().normalize()
+
+  def copy() = Vector3(x, y, z)
+
   def normalize(): Vector3 = {
     val mag = magnitude
     x /= mag
@@ -81,8 +83,6 @@ case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable v
     z /= mag
     this
   }
-
-  def normalized = copy().normalize()
 
   def magnitude = Math.sqrt(magnitudeSquared)
 

@@ -21,8 +21,8 @@
 package com.itszuvalex.itszulib.core
 
 import com.itszuvalex.itszulib.api.core.Loc4
-import com.itszuvalex.itszulib.util.DataUtils
 import com.itszuvalex.itszulib.core.traits.tile.TileDescriptionPacket
+import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
@@ -46,15 +46,15 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
 
 
   /**
-   * Gated update call. This will only be called on the server. This should be used instead of updateEntity() for heavy computation, unless the tile absolutely needs to
-   * update.
-   */
+    * Gated update call. This will only be called on the server. This should be used instead of updateEntity() for heavy computation, unless the tile absolutely needs to
+    * update.
+    */
   def serverUpdate() {
   }
 
   /**
-   * Gated update call.  This will only be called on the client.  This should be used instead of updateEntity() for client-side only things like rendering/sounds.
-   */
+    * Gated update call.  This will only be called on the client.  This should be used instead of updateEntity() for client-side only things like rendering/sounds.
+    */
   def clientUpdate() = {
 
   }
@@ -82,12 +82,12 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
 
   def hasGUI = false
 
-  def getMod: AnyRef
-
   /**
-   * @return GuiID, if GUI handler uses ids and not checking instanceof
-   */
+    * @return GuiID, if GUI handler uses ids and not checking instanceof
+    */
   def getGuiID = -1
+
+  def getMod: AnyRef
 
   def canPlayerUse(player: EntityPlayer) = true
 
@@ -101,5 +101,6 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
 
   def notifyNeighborsOfChange() = if (worldObj != null) worldObj.func_147453_f(xCoord, yCoord, zCoord, getBlockType)
 
+  def onBlockBreak(): Unit = {}
 
 }

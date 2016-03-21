@@ -5,8 +5,8 @@ import java.io.File
 import scala.xml.{PrettyPrinter, XML}
 
 /**
- * Created by Chris on 12/5/2014.
- */
+  * Created by Chris on 12/5/2014.
+  */
 class XMLLoaderWriter(val file: File) {
   val initialized: Boolean = file.exists
   var xml                  = <xml></xml>

@@ -73,11 +73,6 @@ public class DataUtils {
         }
     };
 
-    public static void registerSaveManager(Class<?> saveClass,
-                                           SaveManager saveManager) {
-        managerMap.put(saveClass, saveManager);
-    }
-
     static {
         // int
         registerSaveManager(int.class, new SaveManager() {
@@ -744,7 +739,7 @@ public class DataUtils {
             @Override
             public void saveToNBT(NBTTagCompound compound, Field saveable,
                                   Object obj) throws IllegalArgumentException,
-                    IllegalAccessException {
+                                                     IllegalAccessException {
                 Saveable anno = saveable.getAnnotation(Saveable.class);
                 NBTTagCompound array = new NBTTagCompound();
                 NBTTagList list = new NBTTagList();
@@ -774,7 +769,7 @@ public class DataUtils {
             @Override
             public void readFromNBT(NBTTagCompound compound, Field saveable,
                                     Object obj) throws IllegalArgumentException,
-                    IllegalAccessException {
+                                                       IllegalAccessException {
                 Saveable anno = saveable.getAnnotation(Saveable.class);
                 if (!compound.hasKey(anno.tag().isEmpty() ? saveable.getName() : anno.tag())) {
                     saveable.set(obj, null);
@@ -880,6 +875,11 @@ public class DataUtils {
         // }
         // });
 
+    }
+
+    public static void registerSaveManager(Class<?> saveClass,
+                                           SaveManager saveManager) {
+        managerMap.put(saveClass, saveManager);
     }
 
     public static void saveObjectToNBT(NBTTagCompound compound, Object obj,

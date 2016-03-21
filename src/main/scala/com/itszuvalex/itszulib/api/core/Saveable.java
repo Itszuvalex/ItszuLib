@@ -12,11 +12,11 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Saveable {
-    public String tag() default "";
+    String tag() default "";
 
-    public boolean world() default true;
+    boolean world() default true;
 
-    public boolean desc() default false;
+    boolean desc() default false;
 
-    public boolean item() default false;
+    boolean item() default false;
 }

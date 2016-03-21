@@ -12,8 +12,8 @@ import scala.actors.threadpool.AtomicInteger
 import scala.collection.JavaConverters._
 
 /**
- * Created by Christopher on 4/5/2015.
- */
+  * Created by Christopher on 4/5/2015.
+  */
 object ManagerNetwork {
   val INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(ItszuLib.ID.toLowerCase + "|" + "logistics")
 

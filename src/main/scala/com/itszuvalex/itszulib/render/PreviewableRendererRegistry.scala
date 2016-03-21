@@ -10,16 +10,16 @@ import scala.collection._
   */
 @SideOnly(Side.CLIENT)
 object PreviewableRendererRegistry {
-   private val renderMap = mutable.HashMap[Int, IPreviewableRenderer]()
-   private var lastID    = 0
+  private val renderMap = mutable.HashMap[Int, IPreviewableRenderer]()
+  private var lastID    = 0
 
-   def bindRenderer(renderer: IPreviewableRenderer): Int = {
-     val id = lastID
-     renderMap(id) = renderer
-     lastID += 1
-     id
-   }
+  def bindRenderer(renderer: IPreviewableRenderer): Int = {
+    val id = lastID
+    renderMap(id) = renderer
+    lastID += 1
+    id
+  }
 
-   def getRenderer(id: Int) = renderMap.get(id)
+  def getRenderer(id: Int) = renderMap.get(id)
 
- }
+}

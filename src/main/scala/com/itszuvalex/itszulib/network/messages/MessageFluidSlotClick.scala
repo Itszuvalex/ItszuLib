@@ -10,13 +10,13 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fluids.{FluidContainerRegistry, IFluidContainerItem}
 
 /**
- * Created by Alex on 11.10.2015.
- */
+  * Created by Alex on 11.10.2015.
+  */
 class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int, var button: Int, var manualAccess: Int, var filterFluid: Int) extends IMessage with IMessageHandler[MessageFluidSlotClick, IMessage] {
-  def this() = this(0, 0, 0, -1, -1, 0, -1)
+  var tileSingleTank: TileFluidTank      = null
+  var tileMultiTank : TileMultiFluidTank = null
 
-  var tileSingleTank: TileFluidTank = null
-  var tileMultiTank: TileMultiFluidTank = null
+  def this() = this(0, 0, 0, -1, -1, 0, -1)
 
   override def toBytes(buf: ByteBuf): Unit = {
     buf.writeInt(x)

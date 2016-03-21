@@ -7,8 +7,8 @@ import scala.collection.JavaConversions._
 import scala.collection.TraversableOnce
 
 /**
- * Created by Christopher on 8/17/2015.
- */
+  * Created by Christopher on 8/17/2015.
+  */
 object NBTHelpers {
 
   object NBTLiterals {
@@ -63,21 +63,21 @@ object NBTHelpers {
     implicit class NBTCompoundAdding(compound: NBTTagCompound) {
       def apply(elems: (String, Any)*): NBTTagCompound = {
         elems.foreach { case (key, value) => value match {
-          case null                  =>
-          case b: Boolean            => compound.setBoolean(key, b)
-          case b: Byte               => compound.setByte(key, b)
-          case ba: Array[Byte]       => compound.setByteArray(key, ba)
-          case d: Double             => compound.setDouble(key, d)
-          case f: Float              => compound.setFloat(key, f)
-          case ia: Array[Int]        => compound.setIntArray(key, ia)
-          case i: Int                => compound.setInteger(key, i)
-          case l: Long               => compound.setLong(key, l)
-          case s: Short              => compound.setShort(key, s)
-          case s: String             => compound.setString(key, s)
-          case n: NBTBase            => compound.setTag(key, n)
+          case null =>
+          case b: Boolean => compound.setBoolean(key, b)
+          case b: Byte => compound.setByte(key, b)
+          case ba: Array[Byte] => compound.setByteArray(key, ba)
+          case d: Double => compound.setDouble(key, d)
+          case f: Float => compound.setFloat(key, f)
+          case ia: Array[Int] => compound.setIntArray(key, ia)
+          case i: Int => compound.setInteger(key, i)
+          case l: Long => compound.setLong(key, l)
+          case s: Short => compound.setShort(key, s)
+          case s: String => compound.setString(key, s)
+          case n: NBTBase => compound.setTag(key, n)
           case save: NBTSerializable =>
             compound.setTag(key, NBTLiterals.NBTCompound(save))
-          case _                     =>
+          case _ =>
         }
                       }
         compound
@@ -85,7 +85,7 @@ object NBTHelpers {
 
       def merge(elems: (String, Any)*): NBTTagCompound = {
         elems.foreach { case (key, value) => value match {
-          case null              =>
+          case null =>
           case n: NBTTagCompound =>
             if (compound.hasKey(key)) {
               val nc = compound.getCompoundTag(key)
@@ -94,7 +94,7 @@ object NBTHelpers {
             else {
               compound.setTag(key, n)
             }
-          case _                 => apply((key, value))
+          case _ => apply((key, value))
         }
                       }
         compound

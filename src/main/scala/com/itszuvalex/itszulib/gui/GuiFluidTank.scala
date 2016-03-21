@@ -12,8 +12,8 @@ import net.minecraftforge.fluids._
 import scala.collection.mutable.ListBuffer
 
 /**
- * Created by Alex on 04.10.2015.
- */
+  * Created by Alex on 04.10.2015.
+  */
 object GuiFluidTank {
   val DEFAULT_RAISED_COLOR     = Color(255.toByte, 64, 64, 64).toInt
   val DEFAULT_LOWERED_COLOR    = Color(255.toByte, 15, 15, 15).toInt
@@ -23,17 +23,18 @@ object GuiFluidTank {
 }
 
 /**
- * Fluid display slot that allows manual player interaction if desired.
- * @param anchorX
- * @param anchorY
- * @param gui GuiBase object
- * @param tileSingleTank TileFluidTank TE, only required if tileMultiTank is null.
- * @param tileMultiTank TileMultiFluidTank TE, only required if tileSingleTank is null.
- * @param tankID ID of the tank in tileMultiTank, -1 if tileSingleTank is used instead.
- * @param manualAccess 0 = no access, 1 = input only, 2 = output only, 3 = both
- * @param filterFluid Only this fluid will be accepted, null means any fluid
- * @param drawTank If false, only draws the fluid itself without tank and scale
- */
+  * Fluid display slot that allows manual player interaction if desired.
+  *
+  * @param anchorX
+  * @param anchorY
+  * @param gui            GuiBase object
+  * @param tileSingleTank TileFluidTank TE, only required if tileMultiTank is null.
+  * @param tileMultiTank  TileMultiFluidTank TE, only required if tileSingleTank is null.
+  * @param tankID         ID of the tank in tileMultiTank, -1 if tileSingleTank is used instead.
+  * @param manualAccess   0 = no access, 1 = input only, 2 = output only, 3 = both
+  * @param filterFluid    Only this fluid will be accepted, null means any fluid
+  * @param drawTank       If false, only draws the fluid itself without tank and scale
+  */
 class GuiFluidTank(override var anchorX: Int,
                    override var anchorY: Int,
                    var gui: GuiBase,
@@ -42,28 +43,27 @@ class GuiFluidTank(override var anchorX: Int,
                    var tankID: Int,
                    var manualAccess: Int,
                    var filterFluid: Fluid,
-                   var drawTank: Boolean) extends GuiPanel{
+                   var drawTank: Boolean) extends GuiPanel {
 
-  /**
-   * Constructor that only uses a TileFluidTank. See main constructor for param description.
-   */
-  def this(x: Int, y: Int, guiObj: GuiBase, tile: TileFluidTank, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
-      this(x, y, guiObj, tile, null, -1, manAccess, filtFluid, _drawTank)
-
-  /**
-   * Constructor that only uses a TileMultiFluidTank and Tank ID. See main constructor for param description.
-   */
-  def this(x: Int, y: Int, guiObj: GuiBase, tile: TileMultiFluidTank, _tankID: Int, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
-      this(x, y, guiObj, null, tile, _tankID, manAccess, filtFluid, _drawTank)
-
-  override var panelWidth: Int = 18
-  override var panelHeight: Int = 66
-
-  var colorRaised = GuiFluidTank.DEFAULT_RAISED_COLOR
-  var colorLowered = GuiFluidTank.DEFAULT_LOWERED_COLOR
+  override var _panelWidth : Int = 18
+  override var _panelHeight: Int = 66
+  var colorRaised     = GuiFluidTank.DEFAULT_RAISED_COLOR
+  var colorLowered    = GuiFluidTank.DEFAULT_LOWERED_COLOR
   var colorBackground = GuiFluidTank.DEFAULT_BACKGROUND_COLOR
-  var colorFluidBack = GuiFluidTank.DEFAULT_FLUID_BACK_COLOR
-  var colorScale = GuiFluidTank.DEFAULT_SCALE_COLOR
+  var colorFluidBack  = GuiFluidTank.DEFAULT_FLUID_BACK_COLOR
+  var colorScale      = GuiFluidTank.DEFAULT_SCALE_COLOR
+
+  /**
+    * Constructor that only uses a TileFluidTank. See main constructor for param description.
+    */
+  def this(x: Int, y: Int, guiObj: GuiBase, tile: TileFluidTank, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
+    this(x, y, guiObj, tile, null, -1, manAccess, filtFluid, _drawTank)
+
+  /**
+    * Constructor that only uses a TileMultiFluidTank and Tank ID. See main constructor for param description.
+    */
+  def this(x: Int, y: Int, guiObj: GuiBase, tile: TileMultiFluidTank, _tankID: Int, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
+    this(x, y, guiObj, null, tile, _tankID, manAccess, filtFluid, _drawTank)
 
   override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
     super.addTooltip(mouseX, mouseY, tooltip)

@@ -5,8 +5,8 @@ import io.netty.buffer.ByteBuf
 import net.minecraft.client.Minecraft
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 10/19/14.
- */
+  * Created by Christopher Harris (Itszuvalex) on 10/19/14.
+  */
 class MessageContainerUpdate(private var index: Int, private var value: Int) extends IMessage with IMessageHandler[MessageContainerUpdate, IMessage] {
   def this() = this(0, 0)
 

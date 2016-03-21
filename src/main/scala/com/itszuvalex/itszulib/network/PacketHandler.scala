@@ -6,8 +6,8 @@ import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.relauncher.Side
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 4/6/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 4/6/15.
+  */
 object PacketHandler {
   val INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(ItszuLib.ID.toLowerCase)
 

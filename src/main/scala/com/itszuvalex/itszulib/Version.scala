@@ -1,8 +1,8 @@
 package com.itszuvalex.itszulib
 
 /**
- * Created by Christopher on 4/5/2015.
- */
+  * Created by Christopher on 4/5/2015.
+  */
 object Version {
   final val MASSIVE    = "@MASSIVE@"
   final val MAJOR      = "@MAJOR@"

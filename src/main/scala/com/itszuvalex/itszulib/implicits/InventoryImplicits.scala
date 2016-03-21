@@ -4,8 +4,8 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 
 /**
- * Created by Christopher on 8/21/2015.
- */
+  * Created by Christopher on 8/21/2015.
+  */
 object InventoryImplicits {
 
   implicit class Inventory(list: IInventory) extends Iterable[ItemStack] {

@@ -47,10 +47,9 @@ class RenderModel(var location: Point3D, var center: Point3D) {
 
   def rotatedOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float): RenderModel = copy.rotateOnZAxis(rot, xrotoffset, yrotoffset)
 
-  def rotateOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float) = {
-    faces.foreach(_.rotateOnZAxis(rot, xrotoffset, yrotoffset))
-    this
-  }
+  def rotate(x: Double, y: Double, z: Double) = rotateOnXAxis(x).rotateOnYAxis(y).rotateOnZAxis(z)
+
+  def rotated(x: Double, y: Double, z: Double) = copy.rotateOnXAxis(x).rotateOnYAxis(y).rotateOnZAxis(z)
 
   def copy = {
     val ret = new RenderModel(location.copy, center.copy)
@@ -60,25 +59,26 @@ class RenderModel(var location: Point3D, var center: Point3D) {
 
   def addQuad(quad: RenderQuad) = faces += quad
 
-  def rotate(x: Double, y: Double, z: Double) = rotateOnXAxis(x).rotateOnYAxis(y).rotateOnZAxis(z)
-
   def rotateOnZAxis(rot: Double): RenderModel = rotateOnZAxis(rot, center.x, center.y)
 
-  def rotateOnYAxis(rot: Double): RenderModel = rotateOnYAxis(rot, center.x, center.z)
+  def rotateOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float) = {
+    faces.foreach(_.rotateOnZAxis(rot, xrotoffset, yrotoffset))
+    this
+  }
 
-  def rotateOnXAxis(rot: Double): RenderModel = rotateOnXAxis(rot, center.y, center.z)
+  def rotateOnYAxis(rot: Double): RenderModel = rotateOnYAxis(rot, center.x, center.z)
 
   def rotateOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float) = {
     faces.foreach(_.rotateOnYAxis(rot, xrotoffset, zrotoffset))
     this
   }
 
+  def rotateOnXAxis(rot: Double): RenderModel = rotateOnXAxis(rot, center.y, center.z)
+
   def rotateOnXAxis(rot: Double, yrotoffset: Float, zrotoffset: Float) = {
     faces.foreach(_.rotateOnXAxis(rot, yrotoffset, zrotoffset))
     this
   }
-
-  def rotated(x: Double, y: Double, z: Double) = copy.rotateOnXAxis(x).rotateOnYAxis(y).rotateOnZAxis(z)
 
   def draw() {
     val tes = Tessellator.instance

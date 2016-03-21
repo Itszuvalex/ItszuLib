@@ -7,12 +7,10 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 
 /**
- * Created by Chris on 12/7/2014.
- */
+  * Created by Chris on 12/7/2014.
+  */
 trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
   @Saveable(desc = true) val info = new MultiBlockInfo
-
-  def isValidMultiBlock = info.isValidMultiBlock
 
   def formMultiBlock(world: World, x: Int, y: Int, z: Int): Boolean = {
     val result = info.formMultiBlock(world, x, y, z)
@@ -40,10 +38,12 @@ trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
       Loc4(info.x, info.y, info.z, getWorldObj.provider.dimensionId).getTileEntity(true).orNull match {
         case null =>
         case a: T => return f(a)
-        case _    =>
+        case _ =>
       }
     null.asInstanceOf[B]
   }
+
+  def isValidMultiBlock = info.isValidMultiBlock
 
   def isController = info.isController(xCoord, yCoord, zCoord)
 }

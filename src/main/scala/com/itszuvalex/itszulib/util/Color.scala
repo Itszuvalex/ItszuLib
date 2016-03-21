@@ -1,8 +1,8 @@
 package com.itszuvalex.itszulib.util
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 7/3/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 7/3/15.
+  */
 case class Color(var alpha: Byte, var red: Byte, var green: Byte, var blue: Byte) {
   def this(color: Int) =
     this((((color & (255 << 24)) >> 24) & 255).toByte,

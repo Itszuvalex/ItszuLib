@@ -1,10 +1,8 @@
-package test
-
-
+package com.itszuvalex.itszulib
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 4/11/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 4/11/15.
+  */
 class TestHelloWorld extends TestBase {
 
   "A test" when {

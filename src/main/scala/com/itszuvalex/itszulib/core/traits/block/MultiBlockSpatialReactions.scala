@@ -4,8 +4,8 @@ import com.itszuvalex.itszulib.api.multiblock.IMultiBlockComponent
 import net.minecraft.world.World
 
 /**
- * Created by Itszuvalex on 1/1/15.
- */
+  * Created by Itszuvalex on 1/1/15.
+  */
 trait MultiBlockSpatialReactions extends MultiBlock with SpatialReactions {
   override def onPickup(world: World, x: Int, y: Int, z: Int): Unit = {
     world.getTileEntity(x, y, z) match {

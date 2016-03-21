@@ -1,4 +1,4 @@
 # ItszuLib
 Core Forge Interactions, written with Scala in mind.
 
-[![Circle CI](https://circleci.com/gh/Itszuvalex/ItszuLib/tree/develop.svg?style=svg)](https://circleci.com/gh/Itszuvalex/ItszuLib/tree/develop)
+[![build status](http:/gitlab.itszuvalex.com/ci/projects/1/status.svg?ref=master)](http:/gitlab.itszuvalex.com/ci/projects/1/status.svg?ref=master)

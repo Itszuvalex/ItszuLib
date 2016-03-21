@@ -7,8 +7,8 @@ import net.minecraft.network.{NetworkManager, Packet}
 import net.minecraft.tileentity.TileEntity
 
 /**
- * Created by Christopher on 2/20/2015.
- */
+  * Created by Christopher on 2/20/2015.
+  */
 trait TileDescriptionPacket extends TileEntity {
   override def getDescriptionPacket: Packet = {
     if (!hasDescription) {
@@ -19,11 +19,11 @@ trait TileDescriptionPacket extends TileEntity {
     new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 1, compound)
   }
 
-  def hasDescription: Boolean
-
   def saveToDescriptionCompound(compound: NBTTagCompound) {
     DataUtils.saveObjectToNBT(compound, this, DataUtils.EnumSaveType.DESCRIPTION)
   }
+
+  def hasDescription: Boolean
 
   override def onDataPacket(net: NetworkManager, pkt: S35PacketUpdateTileEntity) {
     super.onDataPacket(net, pkt)

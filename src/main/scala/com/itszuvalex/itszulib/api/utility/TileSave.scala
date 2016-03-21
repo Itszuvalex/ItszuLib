@@ -31,6 +31,10 @@ class TileSave(private var _dimensionID: Int, var x: Int, var y: Int, var z: Int
 
   def world_=(world: World) = _dimensionID = world.provider.dimensionId
 
+  def dimensionID = _dimensionID
+
+  def dimensionID_=(dim: Int) = _dimensionID = dim
+
   def this(dimensionID: Int, x: Int, y: Int, z: Int, block: Block, metadata: Int, te: NBTTagCompound) =
     this(dimensionID,
          x,
@@ -82,10 +86,6 @@ class TileSave(private var _dimensionID: Int, var x: Int, var y: Int, var z: Int
     compound.setInteger("meta", metadata)
     if (te != null) compound.setTag("nbt", te)
   }
-
-  def dimensionID = _dimensionID
-
-  def dimensionID_=(dim: Int) = _dimensionID = dim
 
   /*
     override def loadFromNBT(compound: NBTTagCompound): Unit =  {

@@ -7,8 +7,8 @@ import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 /**
- * Created by Alex on 12.10.2015.
- */
+  * Created by Alex on 12.10.2015.
+  */
 object GuiTankTest {
   val texture = new ResourceLocation("itszulib", "textures/gui/GuiInventoryBase.png")
 }

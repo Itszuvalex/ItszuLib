@@ -4,8 +4,8 @@ import net.minecraft.block.Block
 import net.minecraft.item.{Item, ItemStack}
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 10/19/14.
- */
+  * Created by Christopher Harris (Itszuvalex) on 10/19/14.
+  */
 object IDImplicits {
 
   implicit class ItemIDImplicits(i: Item) {

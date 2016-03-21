@@ -6,8 +6,8 @@ import com.itszuvalex.itszulib.logistics.LocationTracker._
 import scala.collection.mutable
 
 /**
- * Created by Christopher on 7/29/2015.
- */
+  * Created by Christopher on 7/29/2015.
+  */
 object LocationTracker {
   private val CHUNK_SIZE = 16
 }
@@ -22,10 +22,10 @@ class LocationTracker {
 
   def removeLocation(loc: Loc4) = {
     trackerMap.get(loc.dim) match {
-      case None      =>
+      case None =>
       case Some(dim) =>
         dim.get(loc.chunkCoords) match {
-          case None        =>
+          case None =>
           case Some(chunk) =>
             chunk -= loc
             if (chunk.isEmpty) dim -= loc.chunkCoords

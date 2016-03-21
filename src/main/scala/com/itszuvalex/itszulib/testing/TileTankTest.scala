@@ -4,16 +4,13 @@ import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.core.TileEntityBase
 import com.itszuvalex.itszulib.core.traits.tile.TileMultiFluidTank
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.{Fluid, FluidStack, FluidTank}
 
 /**
- * Created by Alex on 12.10.2015.
- */
+  * Created by Alex on 12.10.2015.
+  */
 class TileTankTest extends TileEntityBase with TileMultiFluidTank {
-
-  override def getMod: AnyRef = ItszuLib
 
   override def drain(from: ForgeDirection, resource: FluidStack, doDrain: Boolean): FluidStack = null
 
@@ -33,6 +30,8 @@ class TileTankTest extends TileEntityBase with TileMultiFluidTank {
     player.openGui(getMod, 0, worldObj, xCoord, yCoord, zCoord)
     true
   }
+
+  override def getMod: AnyRef = ItszuLib
 
   override def serverUpdate(): Unit = {
     /*tanks(0).fill(new FluidStack(FluidRegistry.WATER, 5), true)

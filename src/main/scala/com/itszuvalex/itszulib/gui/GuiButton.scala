@@ -11,8 +11,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 9/3/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 9/3/15.
+  */
 object GuiButton {
   val DEFAULT_RAISED_COLOR    = Color(255.toByte, 64, 64, 64).toInt
   val DEFAULT_LOWERED_COLOR   = Color(255.toByte, 15, 15, 15).toInt
@@ -23,8 +23,8 @@ object GuiButton {
 
 class GuiButton(override var anchorX: Int,
                 override var anchorY: Int,
-                override var panelWidth: Int,
-                override var panelHeight: Int,
+                override var _panelWidth: Int,
+                override var _panelHeight: Int,
                 var text: String = "") extends GuiPanel {
   var colorRaised    = GuiButton.DEFAULT_RAISED_COLOR
   var colorLowered   = GuiButton.DEFAULT_LOWERED_COLOR
@@ -33,8 +33,6 @@ class GuiButton(override var anchorX: Int,
   var colorFont      = GuiButton.DEFAULT_FONT_COLOR
 
   var disabled = false
-
-  def isDisabled = disabled
 
   override def onMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean = {
     if (!isDisabled && isLocationInside(mouseX, mouseY)) {
@@ -80,4 +78,6 @@ class GuiButton(override var anchorX: Int,
       yOffset += fr.FONT_HEIGHT
                   }
   }
+
+  def isDisabled = disabled
 }

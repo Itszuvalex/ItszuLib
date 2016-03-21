@@ -1,12 +1,12 @@
-package test.networking
+package com.itszuvalex.itszulib.networking
 
+import com.itszuvalex.itszulib.TestBase
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.logistics.{INetwork, TileNetwork, TileNetworkNode}
-import test.TestBase
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 4/14/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 4/14/15.
+  */
 class TestNetworking extends TestBase {
 
   trait Network {
@@ -273,13 +273,6 @@ class TestNetworking extends TestBase {
   TEST CLASS EXTENSIONS
    */
 
-  object TestNetworkManager {
-    var nextId     = 0
-    val networkMap = scala.collection.mutable.HashMap[Int, TestNetwork]()
-
-    def getID = { nextId += 1; nextId }
-  }
-
   class TestNetwork(_id: Int) extends TileNetwork[TestNode, TestNetwork](_id) {
 
     override def addConnection(a: Loc4, b: Loc4): Unit = {
@@ -291,28 +284,28 @@ class TestNetworking extends TestBase {
     }
 
     /**
-     *
-     * @return Create an empty new network of this type.
-     */
+      *
+      * @return Create an empty new network of this type.
+      */
     override def create() = new TestNetwork(TestNetworkManager.getID)
 
     /**
-     * Called on networks by another network, when that network is incorporating this network.
-     *
-     * @param iNetwork Network that is taking over this network.
-     */
+      * Called on networks by another network, when that network is incorporating this network.
+      *
+      * @param iNetwork Network that is taking over this network.
+      */
     override def onTakeover(iNetwork: INetwork[TestNode, TestNetwork]): Unit = {}
 
     /**
-     * Called on sub networks by a main network, when that network is splitting apart.
-     *
-     * @param iNetwork Network that will split into this sub network.
-     */
+      * Called on sub networks by a main network, when that network is splitting apart.
+      *
+      * @param iNetwork Network that will split into this sub network.
+      */
     override def onSplit(iNetwork: INetwork[TestNode, TestNetwork]): Unit = {}
 
     /**
-     * Called when a tick starts.
-     */
+      * Called when a tick starts.
+      */
     override def onTickStart(): Unit = {}
 
     override def unregister(): Unit = { TestNetworkManager.networkMap.remove(ID) }
@@ -320,13 +313,20 @@ class TestNetworking extends TestBase {
     override def register(): Unit = { TestNetworkManager.networkMap(ID) = this }
 
     /**
-     * Called when a tick ends.
-     */
+      * Called when a tick ends.
+      */
     override def onTickEnd(): Unit = {}
   }
 
   class TestNode(val loc: Loc4) extends TileNetworkNode[TestNode, TestNetwork] {
     override def getLoc: Loc4 = loc
+  }
+
+  object TestNetworkManager {
+    val networkMap = scala.collection.mutable.HashMap[Int, TestNetwork]()
+    var nextId     = 0
+
+    def getID = { nextId += 1; nextId }
   }
 
 }

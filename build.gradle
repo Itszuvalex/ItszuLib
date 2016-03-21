@@ -1,5 +1,12 @@
 buildscript {
     repositories {
+        maven {
+            url 'http://artifactory.itszuvalex.com/plugins-release'
+            credentials {
+                username = System.getenv("ARTIFACTORY_USER")
+                password = System.getenv("ARTIFACTORY_PASS")
+            }
+        }
         mavenCentral()
         maven {
             name = "forge"
@@ -12,23 +19,39 @@ buildscript {
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
-        classpath group: 'com.layer', name: 'gradle-git-repo-plugin', version: '2.0.2'
+        //Check for the latest version here: http://plugins.gradle.org/plugin/com.jfrog.artifactory
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
     }
 }
 
 plugins {
-    id "com.github.maiflai.scalatest" version "0.6-5-g9065d91"
+    id "com.github.maiflai.scalatest" version "0.11"
+}
+
+allprojects{
+    repositories {
+        maven {
+            url 'http://artifactory.itszuvalex.com/plugins-release'
+            credentials {
+                username = System.getenv("ARTIFACTORY_USER")
+                password = System.getenv("ARTIFACTORY_PASS")
+            }
+        }
+    }
 }
 
 dependencies {
     testCompile 'org.scalatest:scalatest_2.11:2+'
+    testCompile 'org.scalamock:scalamock-scalatest-support_2.11:3.2.2'
     testRuntime 'org.pegdown:pegdown:1.5.0'
 }
+
+
 
 apply plugin: 'scala'
 apply plugin: 'forge'
 apply plugin: 'maven-publish'
-apply plugin: 'git-repo'
+apply plugin: 'com.jfrog.artifactory'
 
 project.ext {
     massive = "0"
@@ -39,19 +62,27 @@ project.ext {
 
 version = "${project.ext.mcVersion}-${project.ext.massive}.${project.ext.major}.${project.minor}"
 
-if (System.getenv().CIRCLE_BUILD_NUM != null) {
-    version += "-${System.getenv().CIRCLE_BUILD_NUM}"
+if (System.getenv().CI_BUILD_ID != null) {
+    version += "-${System.getenv().CI_BUILD_ID}"
 } else {
     version += "-local"
 }
 
-if (System.getenv().CIRCLE_BRANCH != null && !System.getenv().CIRCLE_BRANCH.equalsIgnoreCase("master")) {
+if (System.getenv().CI_BUILD_REF_NAME != null && !System.getenv().CI_BUILD_REF_NAME.equalsIgnoreCase("master")) {
     version += "-dev"
 }
 
+compileJava {
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+}
 compileScala {
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.useAnt = false
 }
 
 group = "com.itszuvalex.itszulib" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
@@ -65,14 +96,15 @@ minecraft {
     replace '@MAJOR@', project.major
     replace '@MINOR@', project.minor
     replace '@MC_VERSION@', version
-    if (System.getenv("CIRCLE_BUILD_NUM") != null) {
-        replace '@BUILD_NUMBER@', System.getenv("CIRCLE_BUILD_NUM")
+    if (System.getenv("CI_BUILD_ID") != null) {
+        replace '@BUILD_NUMBER@', System.getenv("CI_BUILD_ID")
     } else {
         replace '@BUILD_NUMBER@', 0
     }
 }
 
 dependencies {
+    compile 'org.scala-lang:scala-library:2.11.8'
 
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..
@@ -174,31 +206,24 @@ task getArtifacts(dependsOn: build) {
 //}
 
 task jarSource(type: org.gradle.api.tasks.bundling.Jar) {
-  baseName = "${archivesBaseName}-src"
-  dependsOn check
-  from sourceSets.main.scala.srcDirs
+    baseName = "${archivesBaseName}-src"
+    dependsOn check
+    from sourceSets.main.scala.srcDirs
 }
 
 task jarDeobf(type: org.gradle.api.tasks.bundling.Jar) {
-  baseName = "${archivesBaseName}-deobf"
-  dependsOn check
+    baseName = "${archivesBaseName}-deobf"
+    dependsOn check
 
-  from(sourceSets.main.output)
+    from(sourceSets.main.output)
 }
 
 build.dependsOn apiJar
 
 publish.dependsOn assemble
 
-gitPublishConfig {
-    org = "itszuvalex"
-    repo = "itszulib-release"
-}
-
 publishing {
-
     publications {
-
         mod(MavenPublication) {
             groupId group
             version project.version
@@ -214,20 +239,20 @@ publishing {
             }
         }
         src(MavenPublication) {
-          groupId group
-          version project.version
+            groupId group
+            version project.version
 
-          artifact jarSource {
-            classifier "src"
-          }
+            artifact jarSource {
+                classifier "src"
+            }
         }
         deobf(MavenPublication) {
-          groupId group
-          version project.version
+            groupId group
+            version project.version
 
-          artifact jarDeobf {
-            classifier 'deobf'
-          }
+            artifact jarDeobf {
+                classifier 'deobf'
+            }
         }
         scalaDoc(MavenPublication) {
             groupId group
@@ -238,12 +263,39 @@ publishing {
             }
         }
     }
-    repositories {
-        maven {
-            url "file://${gitPublishConfig.home}/${gitPublishConfig.org}/${gitPublishConfig.repo}/releases"
+}
+
+artifactory {
+    contextUrl = "http://artifactory.itszuvalex.com"
+    publish {
+        repository {
+            repoKey = 'ItszuLib'
+            username = System.getenv("ARTIFACTORY_USER")
+            password = System.getenv("ARTIFACTORY_PASS")
+            maven = true
+
+        }
+        defaults {
+            publications ('mod', 'api', 'src', 'deobf', 'scalaDoc')
+        }
+    }
+    resolve {
+        repository {
+            repoKey = 'libs-release'
+            username = System.getenv("ARTIFACTORY_USER")
+            password = System.getenv("ARTIFACTORY_PASS")
+            maven = true
+
         }
     }
 }
 
-
-idea { module { inheritOutputDirs = true } }
+idea {
+    project {
+        languageLevel = '1.7'
+        vcs = 'Git'
+    }
+    module {
+        inheritOutputDirs = true
+    }
+}

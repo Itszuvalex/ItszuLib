@@ -8,8 +8,8 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.world.World
 
 /**
- * Created by Itszuvalex on 11/28/14.
- */
+  * Created by Itszuvalex on 11/28/14.
+  */
 trait DroppableInventory extends Block {
   var shouldDrop = true
 

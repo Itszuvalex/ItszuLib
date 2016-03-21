@@ -36,8 +36,6 @@ class Point3D(var x: Float, var y: Float, var z: Float) {
     this
   }
 
-  def copy = new Point3D(x, y, z)
-
   def rotatedOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float) = copy.rotateOnYAxis(rot, xrotoffset, zrotoffset)
 
   def rotateOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float): Point3D = {
@@ -52,6 +50,8 @@ class Point3D(var x: Float, var y: Float, var z: Float) {
   }
 
   def rotatedOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float) = copy.rotateOnZAxis(rot, xrotoffset, yrotoffset)
+
+  def copy = new Point3D(x, y, z)
 
   def rotateOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float): Point3D = {
     if (rot == 0) {

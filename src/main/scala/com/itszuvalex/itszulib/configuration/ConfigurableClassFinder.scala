@@ -14,8 +14,8 @@ import scala.collection.mutable.ArrayBuffer
 
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 10/10/14.
- */
+  * Created by Christopher Harris (Itszuvalex) on 10/10/14.
+  */
 class ConfigurableClassFinder(val classPackage: String, val configKey: String = "Class Constants") {
   private val configurableClasses    = new ArrayBuffer[Class[_]]
   private val configurableSingletons = new mutable.HashMap[AnyRef, Class[_]]
@@ -72,9 +72,9 @@ class ConfigurableClassFinder(val classPackage: String, val configKey: String = 
   }
 
   /**
-   * @param clazz Class to load all @Configurable annotated public/private fields from.
-   * @return True if class successfully added.
-   */
+    * @param clazz Class to load all @Configurable annotated public/private fields from.
+    * @return True if class successfully added.
+    */
   def registerConfigurableClass(clazz: Class[_]) = configurableClasses.append(clazz)
 
 }

@@ -7,8 +7,8 @@ import com.itszuvalex.itszulib.util.PlayerUtils
 import net.minecraft.entity.player.EntityPlayer
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 8/3/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 8/3/15.
+  */
 object TileLocTrackerTest {
   val tracker = new LocationTracker
   val range   = 30f

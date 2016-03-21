@@ -1,8 +1,8 @@
 package com.itszuvalex.itszulib.implicits
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 3/27/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 3/27/15.
+  */
 object SugarImplicits {
 
   implicit class AnyRefImplicits[A <: AnyRef](a: A) {

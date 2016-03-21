@@ -12,8 +12,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 9/4/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 9/4/15.
+  */
 object GuiItemStack {
   val DEFAULT_RAISED_COLOR     = Color(255.toByte, 64, 64, 64).toInt
   val DEFAULT_LOWERED_COLOR    = Color(255.toByte, 15, 15, 15).toInt
@@ -27,15 +27,14 @@ class GuiItemStack(override var anchorX: Int,
                    var drawSlot: Boolean = true,
                    var str: String = null) extends GuiPanel {
 
-  override var panelHeight: Int = 18
-  override var panelWidth : Int = 18
-
+  val itemRenderer    = new RenderItem()
+  val fontRenderer    = Minecraft.getMinecraft.fontRenderer
+  override var _panelHeight: Int = 18
+  override var _panelWidth : Int = 18
   var colorRaised     = GuiItemStack.DEFAULT_RAISED_COLOR
   var colorLowered    = GuiItemStack.DEFAULT_LOWERED_COLOR
   var colorBackground = GuiItemStack.DEFAULT_BACKGROUND_COLOR
   var colorFont       = GuiItemStack.DEFAULT_FONT_COLOR
-  val itemRenderer    = new RenderItem()
-  val fontRenderer    = Minecraft.getMinecraft.fontRenderer
 
   override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
     super.addTooltip(mouseX, mouseY, tooltip)

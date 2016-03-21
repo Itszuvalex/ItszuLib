@@ -3,22 +3,29 @@ package com.itszuvalex.itszulib.gui
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 9/3/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 9/3/15.
+  */
 
 trait GuiPanel extends GuiElement {
-  var panelWidth: Int
-
-  var panelHeight: Int
+  val subElements = ArrayBuffer[GuiElement]()
+  var _panelWidth : Int
+  var _panelHeight: Int
 
   override def spaceHorizontal = panelWidth
 
-  override def spaceVertical = panelHeight
+  def panelWidth = _panelWidth
 
-  val subElements = ArrayBuffer[GuiElement]()
+  def panelWidth_=(width: Int) = _panelWidth = width
+
+  override def spaceVertical = panelHeight
 
   def add(elements: GuiElement*) = {
     subElements ++= elements.filter(gui => gui.setParent(this))
+    this
+  }
+
+  def remove(elements: GuiElement*) = {
+    subElements --= elements.filter(gui => gui.setParent(null))
     this
   }
 
@@ -29,6 +36,14 @@ trait GuiPanel extends GuiElement {
   def passAlongMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean = {
     subElements.exists(gui => gui.onMouseClick(mouseX - gui.anchorX, mouseY - gui.anchorY, button))
   }
+
+  /**
+    *
+    * @param char   Character input
+    * @param button Physical button ID
+    * @return True if key press is handled
+    */
+  override def onKeyTyped(char: Char, button: Int): Boolean = subElements.exists(_.onKeyTyped(char, button))
 
   override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
     super.addTooltip(mouseX, mouseY, tooltip)
@@ -43,6 +58,10 @@ trait GuiPanel extends GuiElement {
     ((mouseX >= 0) && (mouseX < panelWidth)) &&
     ((mouseY >= 0) && (mouseY < panelHeight))
   }
+
+  def panelHeight = _panelHeight
+
+  def panelHeight_=(height: Int) = _panelHeight = height
 
   override def update(): Unit = subElements.foreach(_.update())
 

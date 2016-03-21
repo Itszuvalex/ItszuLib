@@ -3,8 +3,8 @@ package com.itszuvalex.itszulib.gui
 import scala.collection.mutable.ListBuffer
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 9/3/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 9/3/15.
+  */
 trait GuiElement {
   var anchorX: Int
 
@@ -13,8 +13,7 @@ trait GuiElement {
   var moused = false
 
   private var parent: GuiElement = null
-
-  def getParent = parent
+  private var doRender           = true
 
   def setParent(s: GuiElement): Boolean = {
     var p = s
@@ -28,7 +27,7 @@ trait GuiElement {
     true
   }
 
-  private var doRender = true
+  def getParent = parent
 
   def shouldRender: Boolean = doRender && (if (getParent != null) getParent.shouldRender else true)
 
@@ -47,13 +46,21 @@ trait GuiElement {
   def onMouseLeave() = moused = false
 
   /**
-   *
-   * @param mouseX Local mouseX coordinates
-   * @param mouseY Local mouseY coordinates
-   * @param button
-   * @return True if click is handled
-   */
+    *
+    * @param mouseX Local mouseX coordinates
+    * @param mouseY Local mouseY coordinates
+    * @param button
+    * @return True if click is handled
+    */
   def onMouseClick(mouseX: Int, mouseY: Int, button: Int) = false
+
+  /**
+    *
+    * @param char   Character input
+    * @param button Physical button ID
+    * @return True if key press is handled
+    */
+  def onKeyTyped(char: Char, button: Int) = false
 
   def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]) = {}
 
@@ -64,7 +71,7 @@ trait GuiElement {
     (isMousedOver, isLocationInside(mouseX, mouseY)) match {
       case (true, false) => onMouseLeave()
       case (false, true) => onMouseEnter()
-      case _             =>
+      case _ =>
     }
     if (shouldRender) render(screenX, screenY, mouseX, mouseY, partialTicks)
   }

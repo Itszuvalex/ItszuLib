@@ -1,0 +1,20 @@
+image: ubuntu_gradle_jdk:latest
+
+stages:
+  - build
+
+full_build:
+  stage: build
+  only:
+    - master
+    - develop
+  script:
+    - apt-get update
+    - apt-get install --yes --force-yes gradle
+    - rm -rf build/libs/*
+    - gradle setupCIWorkspace
+    - gradle build
+    - gradle artifactoryPublish
+  cache:
+    untracked: true
+    key: "$CI_BUILD_NAME"

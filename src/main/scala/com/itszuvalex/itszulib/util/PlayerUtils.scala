@@ -31,22 +31,22 @@ import scala.collection.JavaConversions._
 
 object PlayerUtils {
   /**
-   *
-   * @param username
-   * @return True if MinecraftServer sees the player as online.
-   */
+    *
+    * @param username
+    * @return True if MinecraftServer sees the player as online.
+    */
   def isPlayerOnline(username: String) = MinecraftServer.getServer.getAllUsernames.contains(username)
 
   /**
-   *
-   * @param username
-   * @return The player entity of the player with username.
-   */
+    *
+    * @param username
+    * @return The player entity of the player with username.
+    */
   def getLocalPlayer(username: String): EntityPlayer = Minecraft.getMinecraft.theWorld.getPlayerEntityByName(username)
 
   //  def getServerPlayer(username: String): EntityPlayerMP = MinecraftServer.getServer.getConfigurationManager.func_152612_a(username)
 
-  def getServerPlayer(uuid: UUID): EntityPlayerMP = MinecraftServer.getServer.getConfigurationManager.playerEntityList.collectFirst { case player: EntityPlayerMP if player.getUniqueID.equals(uuid) => player}.orNull
+  def getServerPlayer(uuid: UUID): EntityPlayerMP = MinecraftServer.getServer.getConfigurationManager.playerEntityList.collectFirst { case player: EntityPlayerMP if player.getUniqueID.equals(uuid) => player }.orNull
 
   def sendMessageToPlayer(username: String, modID: String, message: String): Boolean = sendMessageToPlayer(username, modID, message, "")
 
@@ -65,15 +65,15 @@ object PlayerUtils {
                                                                                                                "")
 
   /**
-   *
-   * Sends chat message "(GOLD)[Femtocraft](RESET): (formatting)(message)(RESET)"
-   * to player.
-   *
-   * @param player player to send message to
-   * @param message Message to send to player
-   * @param formatting Any formatting you wish to apply to the message as a whole.
-   * @return True if player exists and message sent.
-   */
+    *
+    * Sends chat message "(GOLD)[Femtocraft](RESET): (formatting)(message)(RESET)"
+    * to player.
+    *
+    * @param player     player to send message to
+    * @param message    Message to send to player
+    * @param formatting Any formatting you wish to apply to the message as a whole.
+    * @return True if player exists and message sent.
+    */
   def sendMessageToPlayer(player: EntityPlayer, modID: String, message: String, formatting: String): Boolean = {
     if (player != null) {
       player

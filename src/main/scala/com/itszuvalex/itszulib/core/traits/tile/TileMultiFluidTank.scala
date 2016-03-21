@@ -4,13 +4,12 @@ import com.itszuvalex.itszulib.api.core.Saveable
 import com.itszuvalex.itszulib.core.TileEntityBase
 import com.itszuvalex.itszulib.network.PacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageFluidTankUpdate
-import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.fluids.{IFluidHandler, FluidTankInfo, FluidStack, FluidTank}
+import net.minecraftforge.fluids.{FluidStack, FluidTank, FluidTankInfo, IFluidHandler}
 
 /**
- * Created by Alex on 04.10.2015.
- */
+  * Created by Alex on 04.10.2015.
+  */
 trait TileMultiFluidTank extends TileEntityBase with IFluidHandler {
   @Saveable var tanks: Array[FluidTank] = defaultTanks
 
@@ -32,9 +31,9 @@ trait TileMultiFluidTank extends TileEntityBase with IFluidHandler {
   override def getTankInfo(from: ForgeDirection): Array[FluidTankInfo] = {for (i <- 0 until tanks.length) yield tanks(i).getInfo}.toArray
 
   /**
-   * If you change your tanks in serverUpdate, make sure to change them *BEFORE* calling super.serverUpdate().
-   * This way the client will get notified of the change in the same tick.
-   */
+    * If you change your tanks in serverUpdate, make sure to change them *BEFORE* calling super.serverUpdate().
+    * This way the client will get notified of the change in the same tick.
+    */
   override def serverUpdate(): Unit = {
     super.serverUpdate()
     if (!updateNeeded) return

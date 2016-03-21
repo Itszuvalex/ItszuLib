@@ -11,8 +11,8 @@ import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.common.util.ForgeDirection._
 
 /**
- * Created by Chris on 12/6/2014.
- */
+  * Created by Chris on 12/6/2014.
+  */
 object MultiSided {
   //TODO : THIS DOES NOT WORK
   //     METADATA IS ONLY 16 POSSIBLE VALUES
@@ -228,11 +228,38 @@ trait MultiSided extends Block {
   val icons = new Array[IIcon](6)
 
   /**
-   * Called whenever the block is added into the world. Args: world, x, y, z
-   */
+    * Called whenever the block is added into the world. Args: world, x, y, z
+    */
   override def onBlockAdded(world: World, x: Int, y: Int, z: Int) {
     super.onBlockAdded(world, x, y, z)
     setDefaultDirection(world, x, y, z)
+  }
+
+  /**
+    * set a blocks direction
+    */
+  private def setDefaultDirection(world: World, x: Int, y: Int, z: Int) {
+    if (!world.isRemote) {
+      val south = world.getBlock(x, y, z - 1)
+      val north = world.getBlock(x, y, z + 1)
+      val west = world.getBlock(x - 1, y, z)
+      val east = world.getBlock(x + 1, y, z)
+      val top = UP
+      var front = UNKNOWN
+      if (south.isOpaqueCube && !north.isOpaqueCube) {
+        front = NORTH
+      }
+      if (north.isOpaqueCube && !south.isOpaqueCube) {
+        front = SOUTH
+      }
+      if (west.isOpaqueCube && !east.isOpaqueCube) {
+        front = EAST
+      }
+      if (east.isOpaqueCube && !west.isOpaqueCube) {
+        front = WEST
+      }
+      world.setBlockMetadataWithNotify(x, y, z, getMetadataFromTopAndFront(top, front), 2)
+    }
   }
 
   override def getIcon(side: Int, metadata: Int): IIcon = {
@@ -259,35 +286,8 @@ trait MultiSided extends Block {
   def getTextureNameForSide(side: ForgeDirection): String
 
   /**
-   * set a blocks direction
-   */
-  private def setDefaultDirection(world: World, x: Int, y: Int, z: Int) {
-    if (!world.isRemote) {
-      val south = world.getBlock(x, y, z - 1)
-      val north = world.getBlock(x, y, z + 1)
-      val west = world.getBlock(x - 1, y, z)
-      val east = world.getBlock(x + 1, y, z)
-      val top = UP
-      var front = UNKNOWN
-      if (south.isOpaqueCube && !north.isOpaqueCube) {
-        front = NORTH
-      }
-      if (north.isOpaqueCube && !south.isOpaqueCube) {
-        front = SOUTH
-      }
-      if (west.isOpaqueCube && !east.isOpaqueCube) {
-        front = EAST
-      }
-      if (east.isOpaqueCube && !west.isOpaqueCube) {
-        front = WEST
-      }
-      world.setBlockMetadataWithNotify(x, y, z, getMetadataFromTopAndFront(top, front), 2)
-    }
-  }
-
-  /**
-   * Called when the block is placed in the world.
-   */
+    * Called when the block is placed in the world.
+    */
   override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, itemStack: ItemStack) {
     super.onBlockPlacedBy(world, x, y, z, entity, itemStack)
     val mask = MathHelper.floor_double((entity.rotationYaw * 4.0F / 360.0F).toDouble + 0.5D) & 3

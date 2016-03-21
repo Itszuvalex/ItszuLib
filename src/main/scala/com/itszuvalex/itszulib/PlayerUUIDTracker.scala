@@ -11,9 +11,11 @@ import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent
 import scala.collection.mutable
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 3/29/15.
- */
+  * Created by Christopher Harris (Itszuvalex) on 3/29/15.
+  */
 object PlayerUUIDTracker {
+  val UUIDToUsername = new mutable.HashMap[UUID, String]()
+  val UsernameToUUID = new mutable.HashMap[String, UUID]()
   private var xml: XMLLoaderWriter = null
 
   def init(): Unit = {
@@ -25,19 +27,26 @@ object PlayerUUIDTracker {
     load()
   }
 
-  val UUIDToUsername = new mutable.HashMap[UUID, String]()
-  val UsernameToUUID = new mutable.HashMap[String, UUID]()
-
+  def load() = {
+    UUIDToUsername.clear()
+    xml.load()
+    (xml.xml \ "Mapping").foreach(node => try addMapping(UUID.fromString(node \@ "uuid"), node \@ "username", doSave = false) catch {case _: Throwable =>})
+  }
 
   def getUsername(uuid: UUID) = UUIDToUsername.getOrElse(uuid, "")
 
   def getUUID(string: String) = UsernameToUUID.getOrElse(string, null)
 
-  def addMapping(uuid: UUID, username: String) = {
+  @SubscribeEvent
+  def onPlayerLogin(event: PlayerLoggedInEvent) = {
+    addMapping(event.player.getUniqueID, event.player.getCommandSenderName)
+  }
+
+  def addMapping(uuid: UUID, username: String, doSave: Boolean = true) = {
     if (UUIDToUsername.get(uuid).orNull != username) {
       UUIDToUsername(uuid) = username
       UsernameToUUID(username) = uuid
-      save()
+      if (doSave) save()
     }
   }
 
@@ -46,16 +55,5 @@ object PlayerUUIDTracker {
       {for (mapping <- UUIDToUsername) yield <Mapping uuid={mapping._1.toString} username={mapping._2}/>}
     </xml>
     xml.save()
-  }
-
-  def load() = {
-    UUIDToUsername.clear()
-    xml.load()
-    (xml.xml \ "Mapping").foreach(node => try addMapping(UUID.fromString(node \@ "uuid"), node \@ "username") catch {case _: Throwable =>})
-  }
-
-  @SubscribeEvent
-  def onPlayerLogin(event: PlayerLoggedInEvent) = {
-    addMapping(event.player.getUniqueID, event.player.getCommandSenderName)
   }
 }

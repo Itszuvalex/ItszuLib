@@ -51,17 +51,10 @@ public abstract class CommandBase implements ICommand {
         return true;
     }
 
-    public String getModName() {return "ItszuCore";}
-
     @Override
     public int compareTo(Object o) {
         return getCommandName().compareTo(((ICommand) o).getCommandName());
     }
-
-    public String getDescription() {
-        return "";
-    }
-
 
     @Override
     public String getCommandName() {
@@ -158,7 +151,6 @@ public abstract class CommandBase implements ICommand {
         return false;
     }
 
-
     ICommand getSubCommand(String name) {
         ICommand sub = subcmds.get(name);
         if (sub != null) return sub;
@@ -171,6 +163,12 @@ public abstract class CommandBase implements ICommand {
             }
         }
         return null;
+    }
+
+    public String getModName() {return "ItszuCore";}
+
+    public String getDescription() {
+        return "";
     }
 
 }

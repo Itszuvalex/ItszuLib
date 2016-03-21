@@ -14,10 +14,10 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 /**
- * Adapted from Vazkii's ShaderHelper class.
- *
- * https://github.com/Vazkii/Botania/blob/master/src/main/java/vazkii/botania/client/core/helper/ShaderHelper.java
- */
+  * Adapted from Vazkii's ShaderHelper class.
+  *
+  * https://github.com/Vazkii/Botania/blob/master/src/main/java/vazkii/botania/client/core/helper/ShaderHelper.java
+  */
 @SideOnly(Side.CLIENT) object ShaderUtils {
   final val VERT = ARBVertexShader.GL_VERTEX_SHADER_ARB
   final val FRAG = ARBFragmentShader.GL_FRAGMENT_SHADER_ARB
@@ -36,37 +36,6 @@ import scala.collection.JavaConverters._
   }
 
   def loadShader(vertFile: String, fragFile: String) = createProgram(vertFile, fragFile)
-
-  def registerShaderAdditionalParams(shader: Int, values: util.Map[String, (Unit) => Any]): Unit = {
-    shaderParameterMap(shader) = values
-  }
-
-  def bindShader(shader: Int) {
-    if (!ShaderUtils.canUseShaders) return
-
-    try {
-      ARBShaderObjects.glUseProgramObjectARB(shader)
-
-      shaderParameterMap.get(shader) match {
-        case Some(a) => a.foreach { case (name, vfun) =>
-          val loc = ARBShaderObjects.glGetUniformLocationARB(shader, name);
-          vfun(Unit) match {
-            case i: Int => ARBShaderObjects.glUniform1iARB(loc, i)
-            case f: Float => ARBShaderObjects.glUniform1fARB(loc, f)
-            case ib: IntBuffer => ARBShaderObjects.glUniform1ARB(loc, ib)
-            case fb: FloatBuffer => ARBShaderObjects.glUniform1ARB(loc, fb)
-            case _ =>
-          }
-                                  }
-        case None =>
-      }
-    } catch {case _: Throwable => releaseShader()}
-  }
-
-  def releaseShader() = bindShader(0)
-
-
-  def canUseShaders = OpenGlHelper.shadersSupported
 
   private def createProgram(vert: String, frag: String): Int = {
     var vertId = 0
@@ -113,8 +82,6 @@ import scala.collection.JavaConverters._
     }
   }
 
-  private def getLogInfo(obj: Int): String = ARBShaderObjects.glGetInfoLogARB(obj, ARBShaderObjects.glGetObjectParameteriARB(obj, ARBShaderObjects.GL_OBJECT_INFO_LOG_LENGTH_ARB))
-
   @throws[Exception]
   private def readFileAsString(filename: String): String = {
     val source = new StringBuilder
@@ -145,5 +112,37 @@ import scala.collection.JavaConverters._
     }
     source.toString()
   }
+
+  private def getLogInfo(obj: Int): String = ARBShaderObjects.glGetInfoLogARB(obj, ARBShaderObjects.glGetObjectParameteriARB(obj, ARBShaderObjects.GL_OBJECT_INFO_LOG_LENGTH_ARB))
+
+  def canUseShaders = OpenGlHelper.shadersSupported
+
+  def registerShaderAdditionalParams(shader: Int, values: util.Map[String, (Unit) => Any]): Unit = {
+    shaderParameterMap(shader) = values
+  }
+
+  def bindShader(shader: Int) {
+    if (!ShaderUtils.canUseShaders) return
+
+    try {
+      ARBShaderObjects.glUseProgramObjectARB(shader)
+
+      shaderParameterMap.get(shader) match {
+        case Some(a) => a.foreach { case (name, vfun) =>
+          val loc = ARBShaderObjects.glGetUniformLocationARB(shader, name);
+          vfun(Unit) match {
+            case i: Int => ARBShaderObjects.glUniform1iARB(loc, i)
+            case f: Float => ARBShaderObjects.glUniform1fARB(loc, f)
+            case ib: IntBuffer => ARBShaderObjects.glUniform1ARB(loc, ib)
+            case fb: FloatBuffer => ARBShaderObjects.glUniform1ARB(loc, fb)
+            case _ =>
+          }
+                                  }
+        case None =>
+      }
+    } catch {case _: Throwable => releaseShader()}
+  }
+
+  def releaseShader() = bindShader(0)
 
 }

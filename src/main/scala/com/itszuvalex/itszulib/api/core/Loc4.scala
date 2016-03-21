@@ -20,16 +20,21 @@
  */
 package com.itszuvalex.itszulib.api.core
 
+import com.itszuvalex.itszulib.api.OverridableFunction
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.ForgeDirection
 
 /**
- * Created by Christopher Harris (Itszuvalex) on 5/9/14.
- */
+  * Created by Christopher Harris (Itszuvalex) on 5/9/14.
+  */
 object Loc4 {
+  val worldIntMapper = new OverridableFunction((w: World) => w.provider.dimensionId)
+  val intWorldMapper = new OverridableFunction[(Int) => _ <: World](DimensionManager.getWorld _)
+
   def apply(compound: NBTTagCompound): Loc4 = {
     if (compound == null) null
     else {
@@ -38,13 +43,25 @@ object Loc4 {
       loc
     }
   }
+
+  def setWorldIntMapper(func: (World) => Int) = worldIntMapper.overrideFunc(func)
+
+  def restoreDefaultWorldIntMapper() = worldIntMapper.revert()
+
+  def mapWorld(world: World): Int = worldIntMapper.apply(world)
+
+  def setIntWorldMapper(func: (Int) => World) = intWorldMapper.overrideFunc(func)
+
+  def restoreDefaultIntWorldMapper() = intWorldMapper.revert()
+
+  def mapInt(int: Int): World = intWorldMapper.apply(int)
 }
 
 case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends NBTSerializable with Comparable[Loc4] {
 
   def this() = this(0, 0, 0, 0)
 
-  def this(te: TileEntity) = this(te.xCoord, te.yCoord, te.zCoord, te.getWorldObj.provider.dimensionId)
+  def this(te: TileEntity) = this(te.xCoord, te.yCoord, te.zCoord, Loc4.mapWorld(te.getWorldObj))
 
   def saveToNBT(compound: NBTTagCompound) {
     compound.setInteger("x", x)
@@ -60,27 +77,32 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends NBTSer
     dim = compound.getInteger("dim")
   }
 
-  def getWorld = Option(DimensionManager.getWorld(dim))
-
   def getTileEntity(force: Boolean = false) = getWorld match {
     case Some(a) => Option(if (a.blockExists(x, y, z) || force) a.getTileEntity(x, y, z) else null)
-    case None    => None
+    case None => None
   }
 
   def getBlock(force: Boolean = false) = getWorld match {
     case Some(a) => Option(if (a.blockExists(x, y, z) || force) a.getBlock(x, y, z) else null)
-    case None    => None
+    case None => None
+  }
+
+  def getWorld = Option(Loc4.mapInt(dim))
+
+  def getMetadata(force: Boolean = false) = getWorld match {
+    case Some(a) => Option(if (a.blockExists(x, y, z) || force) a.getBlockMetadata(x, y, z) else null)
+    case None => None
   }
 
   def getChunk(force: Boolean = false) = getWorld match {
     case Some(a) => Option(if (a.blockExists(x, y, z) || force) a.getChunkFromBlockCoords(x, z) else null)
-    case None    => None
+    case None => None
   }
 
   def chunkCoords = (x >> 4, z >> 4)
 
   def chunkContains(chunk: Chunk): Boolean = {
-    if (chunk.worldObj.provider.dimensionId != dim) false
+    if (Loc4.mapWorld(chunk.worldObj) != dim) false
     else if (x <= chunk.xPosition * 16) false
     else if (x > chunk.xPosition * 16 + 16) false
     else if (z <= chunk.zPosition * 16) false
@@ -108,13 +130,13 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends NBTSer
     distSqr(other.x, other.y, other.z)
   }
 
+  def distSqr(x: Int, y: Int, z: Int): Double =
+    (this.x - x) * (this.x - x) + (this.y - y) * (this.y - y) + (this.z - z) * (this.z - z)
+
   def dist(other: Loc4): Double = {
     if (other.dim != dim) return Float.MaxValue
     dist(other.x, other.y, other.z)
   }
-
-  def distSqr(x: Int, y: Int, z: Int): Double =
-    (this.x - x) * (this.x - x) + (this.y - y) * (this.y - y) + (this.z - z) * (this.z - z)
 
   def dist(x: Int, y: Int, z: Int) = Math.sqrt(distSqr(x, y, z))
 
