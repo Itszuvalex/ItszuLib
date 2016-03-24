@@ -27,7 +27,10 @@ class InventoryItemAccess(private[access] val inventoryAccess: InventoryItemColl
     *
     * @param stack ItemStack to set this to.
     */
-  override def setItemStack(stack: ItemStack): Unit = inventory.setInventorySlotContents(index, stack)
+  override def setItemStack(stack: ItemStack): Unit = {
+    inventory.setInventorySlotContents(index, stack)
+    super.setItemStack(stack)
+  }
 
   /**
     *

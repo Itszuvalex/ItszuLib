@@ -20,7 +20,7 @@
  */
 package com.itszuvalex.itszulib.api.core
 
-import com.itszuvalex.itszulib.api.OverridableFunction
+import com.itszuvalex.itszulib.api.Overridable
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
@@ -32,8 +32,8 @@ import net.minecraftforge.common.util.ForgeDirection
   * Created by Christopher Harris (Itszuvalex) on 5/9/14.
   */
 object Loc4 {
-  val worldIntMapper = new OverridableFunction((w: World) => w.provider.dimensionId)
-  val intWorldMapper = new OverridableFunction[(Int) => _ <: World](DimensionManager.getWorld _)
+  val worldIntMapper = new Overridable((w: World) => w.provider.dimensionId)
+  val intWorldMapper = new Overridable[(Int) => _ <: World](DimensionManager.getWorld _)
 
   def apply(compound: NBTTagCompound): Loc4 = {
     if (compound == null) null
@@ -44,13 +44,13 @@ object Loc4 {
     }
   }
 
-  def setWorldIntMapper(func: (World) => Int) = worldIntMapper.overrideFunc(func)
+  def setWorldIntMapper(func: (World) => Int) = worldIntMapper.overrideDefault(func)
 
   def restoreDefaultWorldIntMapper() = worldIntMapper.revert()
 
   def mapWorld(world: World): Int = worldIntMapper.apply(world)
 
-  def setIntWorldMapper(func: (Int) => World) = intWorldMapper.overrideFunc(func)
+  def setIntWorldMapper(func: (Int) => World) = intWorldMapper.overrideDefault(func)
 
   def restoreDefaultIntWorldMapper() = intWorldMapper.revert()
 

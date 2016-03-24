@@ -5,11 +5,29 @@ import com.itszuvalex.itszulib.testing.StubItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/10/2016.
   */
 object AccessHelpers extends TestBase {
+
+  val testNBTItemDeserializer = (nbt: NBTTagCompound) => {
+    if (nbt == null)
+      null
+    else if (nbt.hasNoTags)
+      null
+    else {
+      val item = new ItemStack(new StubItem())
+      item.stackSize = nbt.getByte("Count")
+      item.setItemDamage(nbt.getShort("Damage"))
+
+      if (item.getItemDamage < 0) {
+        item.setItemDamage(0)
+      }
+      item
+    }
+  }
 
   trait EmptyArray {
     val array = new Array[ItemStack](10)

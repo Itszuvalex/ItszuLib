@@ -21,7 +21,7 @@ class TestInventoryItemAccess extends TestBase {
     val collection = collectionAccess.collection
   }
 
-  "An ArrayItemAccess" when {
+  "A ArrayItemAccess" when {
     "referencing an empty Array slot" should {
       "return ItemStack None" in new Access(0, new EmptyCollection) {
         access.getItemStack shouldBe empty
@@ -117,34 +117,6 @@ class TestInventoryItemAccess extends TestBase {
         access.getItemStack shouldBe defined
         val out = access.getItemStack.get
         item should be theSameInstanceAs out
-      }
-      "when calling Split" should {
-        "return a FloatingItemAccess" in new Access(0, new EmptyCollection) {
-          access.split(0) shouldBe a[FloatingItemAccess]
-        }
-        "when Empty" must {
-          "return an empty FloatingItemAccess" in new Access(0, new EmptyCollection) {
-            access.split(0).getItemStack shouldBe empty
-          }
-        }
-        "when NonEmpty" must {
-          "decrease stack size by split amount and return it in the FloatingItemAccess" in new Access(3, new PartialCollection) {
-            val amt = access.currentStorage.get
-            val res = access.split(1)
-            access.currentStorage.get should equal(amt - 1)
-            res.currentStorage.get shouldEqual 1
-          }
-        }
-        "when splitting for its current amount, set clear its internal ItemStack" in new Access(3, new PartialCollection) {
-          val res = access.split(10)
-          access shouldBe 'Empty
-          res.currentStorage.get shouldEqual 10
-        }
-        "when splitting for more than its current amount, return its current amount and clear its ItemStack" in new Access(3, new PartialCollection) {
-          val res = access.split(15)
-          access shouldBe 'Empty
-          res.currentStorage.get shouldEqual 10
-        }
       }
     }
   }

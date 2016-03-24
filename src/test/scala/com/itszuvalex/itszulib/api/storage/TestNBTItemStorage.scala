@@ -9,11 +9,28 @@ import org.scalatest.BeforeAndAfterAll
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/13/2016.
   */
-class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
+class TestNBTItemStorage extends TestBase with BeforeAndAfterAll {
 
   override protected def beforeAll(): Unit = {
     NBTItemStorage.setNBTItemDeserializer(AccessHelpers.testNBTItemDeserializer)
     super.beforeAll()
+  }
+
+  trait EmptyNBT extends AccessHelpers.EmptyArray {
+    val compound = new NBTTagCompound
+    compound.setInteger(NBTItemStorage.SIZE_KEY, array.length)
+  }
+
+  trait PartialNBT extends AccessHelpers.PartialArray {
+    val compound = new NBTTagCompound
+    compound.setInteger(NBTItemStorage.SIZE_KEY, array.length)
+    array.zipWithIndex.foreach { case (item, index) =>
+      if (item != null) {
+        val c = new NBTTagCompound
+        item.writeToNBT(c)
+        compound.setTag(index.toString, c)
+      }
+                               }
   }
 
 
@@ -22,12 +39,12 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
     super.afterAll()
   }
 
-  trait EmptyStorage extends AccessHelpers.EmptyArray {
-    val storage = new ArrayItemStorage(array)
+  trait EmptyStorage extends EmptyNBT {
+    val storage = new NBTItemStorage(compound, true)
   }
 
-  trait PartialStorage extends AccessHelpers.PartialArray {
-    val storage = new ArrayItemStorage(array)
+  trait PartialStorage extends PartialNBT {
+    val storage = new NBTItemStorage(compound)
   }
 
   "An array item storage" should {

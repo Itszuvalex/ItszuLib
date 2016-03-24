@@ -18,7 +18,7 @@ trait IItemAccess {
     *
     * @param stack ItemStack to set this to.
     */
-  def setItemStack(stack: ItemStack): Unit
+  def setItemStack(stack: ItemStack): Unit = {onChanged()}
 
   def isEmpty: Boolean = getItemStack.isEmpty
 
@@ -38,7 +38,7 @@ trait IItemAccess {
 
     val inc = Math.min(amount, room.get)
     i.stackSize += inc
-    onChanged()
+    setItemStack(i)
     inc
                                                      }.getOrElse(0)
 
@@ -66,7 +66,8 @@ trait IItemAccess {
     i.stackSize -= dec
     if (i.stackSize <= 0)
       clear()
-    onChanged()
+    else
+      setItemStack(i)
     dec
                                                      }.getOrElse(0)
 
@@ -93,7 +94,18 @@ trait IItemAccess {
     * @param amount Amount to remove from this storage and transfer to a new one.
     * @return New item access
     */
-  def split(amount: Int): IItemAccess
+  def split(amount: Int): IItemAccess = amount match {
+    case invalid if invalid <= 0 => new FloatingItemAccess(null)
+    case _ => new FloatingItemAccess(
+                                      getItemStack.map { i =>
+                                        val item = i.copy()
+                                        item.stackSize = decrement(amount)
+                                        if (item.stackSize > 0)
+                                          item
+                                        else null
+                                                       }.orNull
+                                    )
+  }
 
   /**
     * Copies all required info from another IItemAccess

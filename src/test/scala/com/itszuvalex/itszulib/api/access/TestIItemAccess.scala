@@ -40,14 +40,10 @@ class TestIItemAccess extends TestBase {
       *
       * @param stack ItemStack to set this to.
       */
-    override def setItemStack(stack: ItemStack): Unit = itemStack = stack
-
-    /**
-      *
-      * @param amount Amount to remove from this storage and transfer to a new one.
-      * @return New item access
-      */
-    override def split(amount: Int): IItemAccess = null
+    override def setItemStack(stack: ItemStack): Unit = {
+      itemStack = stack
+      super.setItemStack(stack)
+    }
 
     /**
       *
@@ -156,6 +152,34 @@ class TestIItemAccess extends TestBase {
           access.copyFromAccess(other, true)
           access.currentStorage.get shouldEqual other.currentStorage.get
           access.damage.get shouldEqual other.damage.get
+        }
+      }
+      "when calling Split" should {
+        "return a FloatingItemAccess" in new EmptyAccess {
+          access.split(0) shouldBe a[FloatingItemAccess]
+        }
+        "when Empty" must {
+          "return an empty FloatingItemAccess" in new EmptyAccess {
+            access.split(0).getItemStack shouldBe empty
+          }
+        }
+        "when NonEmpty" must {
+          "decrease stack size by split amount and return it in the FloatingItemAccess" in new DefinedAccess(2) {
+            val amt = access.currentStorage.get
+            val res = access.split(1)
+            access.currentStorage.get should equal(amt - 1)
+            res.currentStorage.get shouldEqual 1
+          }
+        }
+        "when splitting for its current amount, set clear its internal ItemStack" in new DefinedAccess(10) {
+          val res = access.split(10)
+          access shouldBe 'Empty
+          res.currentStorage.get shouldEqual 10
+        }
+        "when splitting for more than its current amount, return its current amount and clear its ItemStack" in new DefinedAccess(10) {
+          val res = access.split(15)
+          access shouldBe 'Empty
+          res.currentStorage.get shouldEqual 10
         }
       }
     }

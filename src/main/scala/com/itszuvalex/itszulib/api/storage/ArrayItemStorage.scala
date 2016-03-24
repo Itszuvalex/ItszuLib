@@ -20,7 +20,9 @@
  */
 package com.itszuvalex.itszulib.api.storage
 
-import com.itszuvalex.itszulib.api.access.{ArrayItemCollectionAccess, IItemCollectionAccess, ItemAccessWrapperFactory, NBTItemCollectionAccess}
+import java.util
+
+import com.itszuvalex.itszulib.api.access.{IItemCollectionAccess, ItemAccessWrapperFactory, StorageItemCollectionAccess}
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -29,35 +31,62 @@ import net.minecraft.nbt.NBTTagCompound
   *
   */
 class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage {
-  private val access    = new ArrayItemCollectionAccess(array)
+  private val access    = new StorageItemCollectionAccess(this)
   private val invAccess = ItemAccessWrapperFactory.wrap(access)
 
   def this(size: Int) = this(new Array[ItemStack](size))
 
   def this() = this(0)
 
-  override def getAccess: IItemCollectionAccess = access
+  override def getAccess: IItemCollectionAccess = access.synchronized(access)
 
-  override def getInventory: IInventory = invAccess
+  override def getInventory: IInventory = access.synchronized(invAccess)
 
   /**
-    * @return ItemStack[] that backs this inventory class. Modifications to it modify this.
+    * @return ItemStack[] that backs this inventory class. Modifications to it modify this. This is not threadsafe
     */
   def getArray: Array[ItemStack] = array
 
-  override def saveToNBT(compound: NBTTagCompound) = {
-    new NBTItemCollectionAccess(compound, true).copyFromAccess(access, copy = false)
-  }
+  override def saveToNBT(compound: NBTTagCompound) =
+    access.synchronized {
+                          val store = new NBTItemStorage(compound, true)
+                          store.setSize(getSize, true)
+                          store.getAccess.copyFromAccess(access, copy = false)
+                        }
 
-  override def loadFromNBT(compound: NBTTagCompound) = {
-    val nbt = new NBTItemCollectionAccess(compound)
-    updateBackingStore(new Array[ItemStack](nbt.length))
-    access.copyFromAccess(nbt, copy = false)
-  }
+  override def loadFromNBT(compound: NBTTagCompound) =
+    access.synchronized {
+                          val nbt = new NBTItemStorage(compound, false)
+                          updateBackingStore(new Array[ItemStack](nbt.getSize))
+                          access.copyFromAccess(nbt.getAccess, copy = false)
+                        }
 
   private def updateBackingStore(a: Array[ItemStack]): Unit = {
-    array = a
-    access.updateBackingStore(array)
+    access.synchronized {
+                          incrementRevision()
+                          array = a
+                        }
   }
 
+  override def getItemStack(slot: Int): Option[ItemStack] = Option(array(slot))
+
+  override def getSize: Int = array.length
+
+  override def setItemStack(slot: Int, item: ItemStack): Unit = array(slot) = item
+
+  /**
+    *
+    * @param size  Size to attempt to set storage to.
+    * @param clear True if should empty current storage.  False to keep items in their locations,
+    *              dropping those that are out of bounds (on a size reduction.)
+    * @return True if resize successful, false if cannot resize.  False returns should never modify.
+    */
+  override def setSize(size: Int, clear: Boolean): Boolean = {
+    if (clear)
+      updateBackingStore(new Array[ItemStack](size))
+    else {
+      updateBackingStore(util.Arrays.copyOf(array, size))
+    }
+    true
+  }
 }
