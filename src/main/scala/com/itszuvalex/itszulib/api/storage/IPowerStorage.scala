@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.api.storage
 
-import com.itszuvalex.itszulib.api.access.{IPowerAccess, Revisioned}
+import com.itszuvalex.itszulib.api.access.{IPowerCollectionAccess, Revisioned}
 import com.itszuvalex.itszulib.api.core.NBTSerializable
 
 /**
@@ -8,6 +8,6 @@ import com.itszuvalex.itszulib.api.core.NBTSerializable
   */
 trait IPowerStorage extends NBTSerializable with Revisioned {
 
-  def getAccess: IPowerAccess
+  def getAccess: IPowerCollectionAccess
 
 }

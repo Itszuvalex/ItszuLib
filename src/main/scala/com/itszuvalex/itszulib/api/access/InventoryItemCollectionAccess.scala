@@ -15,6 +15,6 @@ class InventoryItemCollectionAccess(private[access] var inventory: IInventory) e
 
   private[itszuvalex] def updateBackingStore(inv: IInventory) = {
     inventory = inv
-    onInventoryChanged(-1)
+    onChanged(-1)
   }
 }

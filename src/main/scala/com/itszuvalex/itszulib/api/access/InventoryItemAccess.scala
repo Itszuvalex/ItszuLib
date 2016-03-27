@@ -12,7 +12,7 @@ class InventoryItemAccess(private[access] val inventoryAccess: InventoryItemColl
     *
     * @return Backing ItemStack
     */
-  override def getItemStack: Option[ItemStack] = if (isValid) Option(inventory.getStackInSlot(index)) else None
+  override def get: Option[ItemStack] = if (isValid) Option(inventory.getStackInSlot(index)) else None
 
   private[access] def inventory: IInventory = inventoryAccess.inventory
 
@@ -27,9 +27,9 @@ class InventoryItemAccess(private[access] val inventoryAccess: InventoryItemColl
     *
     * @param stack ItemStack to set this to.
     */
-  override def setItemStack(stack: ItemStack): Unit = {
+  override def set(stack: ItemStack): Unit = {
     inventory.setInventorySlotContents(index, stack)
-    super.setItemStack(stack)
+    super.set(stack)
   }
 
   /**

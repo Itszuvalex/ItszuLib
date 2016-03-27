@@ -27,7 +27,7 @@ object ItemAccessWrapperFactory {
   class InventoryWrapper(access: IItemCollectionAccess) extends IItemCollectionAccess with IInventory {
     override def canPlayerAccess(player: EntityPlayer): Boolean = access.canPlayerAccess(player)
 
-    override def decrStackSize(slot: Int, amount: Int): ItemStack = access.apply(slot).split(amount).getItemStack.orNull
+    override def decrStackSize(slot: Int, amount: Int): ItemStack = access.apply(slot).split(amount).get.orNull
 
     override def closeInventory(): Unit = {}
 
@@ -37,17 +37,17 @@ object ItemAccessWrapperFactory {
 
     override def getInventoryStackLimit: Int = 64
 
-    override def markDirty(): Unit = access.onInventoryChanged(-1)
+    override def markDirty(): Unit = access.onChanged(-1)
 
-    override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = access.apply(slot).isItemValid(stack)
+    override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = access.apply(slot).canSetTo(stack)
 
     override def getStackInSlotOnClosing(slot: Int): ItemStack = getStackInSlot(slot)
 
-    override def getStackInSlot(slot: Int): ItemStack = access.apply(slot).getItemStack.orNull
+    override def getStackInSlot(slot: Int): ItemStack = access.apply(slot).get.orNull
 
     override def openInventory(): Unit = {}
 
-    override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = access(slot).setItemStack(stack)
+    override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = access(slot).set(stack)
 
     override def isUseableByPlayer(player: EntityPlayer): Boolean = access.canPlayerAccess(player)
 

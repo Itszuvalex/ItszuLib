@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.api.storage
 
-import com.itszuvalex.itszulib.api.access.{IFluidAccess, Revisioned}
+import com.itszuvalex.itszulib.api.access.{IFluidCollectionAccess, Revisioned}
 import com.itszuvalex.itszulib.api.core.NBTSerializable
 
 /**
@@ -8,6 +8,6 @@ import com.itszuvalex.itszulib.api.core.NBTSerializable
   */
 trait IFluidStorage extends NBTSerializable with Revisioned {
 
-  def getAccess: IFluidAccess
+  def getAccess: IFluidCollectionAccess
 
 }

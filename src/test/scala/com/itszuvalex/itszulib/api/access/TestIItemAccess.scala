@@ -33,16 +33,16 @@ class TestIItemAccess extends TestBase {
       *
       * @return Backing ItemStack
       */
-    override def getItemStack: Option[ItemStack] = Option(itemStack)
+    override def get: Option[ItemStack] = Option(itemStack)
 
     /**
       * Sets this item access's storage to the ItemStack.
       *
       * @param stack ItemStack to set this to.
       */
-    override def setItemStack(stack: ItemStack): Unit = {
+    override def set(stack: ItemStack): Unit = {
       itemStack = stack
-      super.setItemStack(stack)
+      super.set(stack)
     }
 
     /**
@@ -78,18 +78,18 @@ class TestIItemAccess extends TestBase {
       "when copying from an empty access should remain empty" in new EmptyAccess {
         val other = new StubIItemAccess(null)
         access.copyFromAccess(other)
-        access.getItemStack shouldBe empty
+        access.get shouldBe empty
       }
       "when copying from a defined access" should {
         "become defined when using ItemStack reference" in new EmptyAccess with OtherAccess {
           access.copyFromAccess(other, false)
-          access.getItemStack should not be empty
+          access.get should not be empty
           access.currentStorage.get shouldEqual other.currentStorage.get
           access.damage.get shouldEqual other.damage.get
         }
         "become defined when copying ItemStack" in new EmptyAccess with OtherAccess {
           access.copyFromAccess(other, true)
-          access.getItemStack should not be empty
+          access.get should not be empty
           access.currentStorage.get shouldEqual other.currentStorage.get
           access.damage.get shouldEqual other.damage.get
         }
@@ -132,7 +132,7 @@ class TestIItemAccess extends TestBase {
         }
         "return currentStorage and clear ItemStack when decrementing more than currentStorage" in new DefinedAccess(2) {
           access.decrement(5) shouldBe 2
-          access.getItemStack shouldBe empty
+          access.get shouldBe empty
           access.currentStorage shouldBe empty
           access shouldBe 'changed
         }
@@ -140,7 +140,7 @@ class TestIItemAccess extends TestBase {
       "when copying from an empty access should become empty" in new DefinedAccess(2) {
         val other = new StubIItemAccess(null)
         access.copyFromAccess(other, true)
-        access.getItemStack shouldBe empty
+        access.get shouldBe empty
       }
       "when copying from a defined access" should {
         "match other when taking ItemStack reference" in new DefinedAccess(2) with OtherAccess {
@@ -160,7 +160,7 @@ class TestIItemAccess extends TestBase {
         }
         "when Empty" must {
           "return an empty FloatingItemAccess" in new EmptyAccess {
-            access.split(0).getItemStack shouldBe empty
+            access.split(0).get shouldBe empty
           }
         }
         "when NonEmpty" must {

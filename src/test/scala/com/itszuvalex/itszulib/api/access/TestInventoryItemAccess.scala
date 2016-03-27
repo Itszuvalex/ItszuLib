@@ -24,7 +24,7 @@ class TestInventoryItemAccess extends TestBase {
   "A ArrayItemAccess" when {
     "referencing an empty Array slot" should {
       "return ItemStack None" in new Access(0, new EmptyCollection) {
-        access.getItemStack shouldBe empty
+        access.get shouldBe empty
       }
       "return CurrentStorage None" in new Access(0, new EmptyCollection) {
         access.currentStorage shouldBe empty
@@ -42,10 +42,10 @@ class TestInventoryItemAccess extends TestBase {
     "referencing an occupied Array slot" should {
       "for getItemStack" must {
         "return ItemStack Some(_)" in new Access(0, new PartialCollection) {
-          access.getItemStack should not be empty
+          access.get should not be empty
         }
         "return ItemStack from backing inventory" in new Access(0, new PartialCollection) {
-          access.getItemStack.get should be theSameInstanceAs collection.inventory.getStackInSlot(0)
+          access.get.get should be theSameInstanceAs collection.inventory.getStackInSlot(0)
         }
       }
       "for currentStorage" must {
@@ -53,7 +53,7 @@ class TestInventoryItemAccess extends TestBase {
           access.currentStorage should not be empty
         }
         "return StackSize of ItemStack" in new Access(0, new PartialCollection) {
-          access.currentStorage.get shouldEqual access.getItemStack.get.stackSize
+          access.currentStorage.get shouldEqual access.get.get.stackSize
         }
       }
       "for maxStorage" must {
@@ -61,7 +61,7 @@ class TestInventoryItemAccess extends TestBase {
           access.maxStorage should not be empty
         }
         "return MaxStackSize of ItemStack" in new Access(0, new PartialCollection) {
-          access.maxStorage.get shouldEqual access.getItemStack.get.getMaxStackSize
+          access.maxStorage.get shouldEqual access.get.get.getMaxStackSize
         }
       }
       "for Damage" must {
@@ -69,7 +69,7 @@ class TestInventoryItemAccess extends TestBase {
           access.damage should not be empty
         }
         "return damage value of ItemStack" in new Access(0, new PartialCollection) {
-          access.damage.get shouldEqual access.getItemStack.get.getItemDamage
+          access.damage.get shouldEqual access.get.get.getItemDamage
         }
       }
       "for MaxDamage" must {
@@ -77,7 +77,7 @@ class TestInventoryItemAccess extends TestBase {
           access.maxDamage should not be empty
         }
         "return MaxDamage value of ItemStack" in new Access(0, new PartialCollection) {
-          access.maxDamage.get shouldEqual access.getItemStack.get.getMaxDamage
+          access.maxDamage.get shouldEqual access.get.get.getMaxDamage
         }
       }
       "increment" should {
@@ -97,14 +97,14 @@ class TestInventoryItemAccess extends TestBase {
         }
         "return currentStorage and clear ItemStack when decrementing more than currentStorage" in new Access(1, new PartialCollection) {
           access.decrement(5) shouldBe 2
-          access.getItemStack shouldBe empty
+          access.get shouldBe empty
           access.currentStorage shouldBe empty
         }
       }
     }
     "referencing an out of bounds Array slot" should {
       "throw ArrayIndexOutOfBoundsException" in new Access(-1, new EmptyCollection) {
-        intercept[ArrayIndexOutOfBoundsException](access.getItemStack)
+        intercept[ArrayIndexOutOfBoundsException](access.get)
       }
     }
     "referencing any object" must {
@@ -113,9 +113,9 @@ class TestInventoryItemAccess extends TestBase {
       }
       "set ItemStack and get same ItemStack out" in new Access(0, new EmptyCollection) {
         val item = new ItemStack(new StubItem)
-        access.setItemStack(item)
-        access.getItemStack shouldBe defined
-        val out = access.getItemStack.get
+        access.set(item)
+        access.get shouldBe defined
+        val out = access.get.get
         item should be theSameInstanceAs out
       }
     }

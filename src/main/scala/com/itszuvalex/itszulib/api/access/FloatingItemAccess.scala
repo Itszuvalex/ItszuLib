@@ -19,14 +19,14 @@ class FloatingItemAccess(item: ItemStack) extends IItemAccess {
     *
     * @return Backing ItemStack
     */
-  override def getItemStack: Option[ItemStack] = backingItem
+  override def get: Option[ItemStack] = backingItem
 
   /**
     * Sets this item access's storage to the ItemStack.
     *
     * @param stack ItemStack to set this to.
     */
-  override def setItemStack(stack: ItemStack): Unit = {
+  override def set(stack: ItemStack): Unit = {
     backingItem = Option(stack)
   }
 }

@@ -90,29 +90,5 @@ object StringUtils {
     * @return input with first letter capitalized.
     */
   def capitalize(input: String) = input.substring(0, 1).toUpperCase + input.substring(1)
-
-  /**
-    *
-    * @param i
-    * @return Formats i to a string, with ,'s inserted.
-    */
-  def formatIntegerToString(i: Int) = formatIntegerString(String.valueOf(i))
-
-  /**
-    *
-    * @param number
-    * @return Formats string representation if integer with ,'s.
-    */
-  def formatIntegerString(number: String) = {
-    val builder = new StringBuilder(number)
-    val length: Int = number.length
-    for (i <- 0 until length) {
-      if (i != 0 && i % 3 == 0) {
-        builder.insert(length - i, ',')
-      }
-    }
-    builder.toString()
-  }
-
 }
 

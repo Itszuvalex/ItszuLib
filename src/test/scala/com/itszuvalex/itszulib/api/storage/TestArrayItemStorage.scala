@@ -42,7 +42,7 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
       storage.getAccess(0) should not be 'Empty
 
       storage.getAccess.indices.forall { i =>
-        IDDamageWildCardNBTComparator.compare(storage.getAccess(i).getItemStack.orNull,
+        IDDamageWildCardNBTComparator.compare(storage.getAccess(i).get.orNull,
                                               storage.getInventory.getStackInSlot(i)) == 0
                                        }
     }
@@ -58,8 +58,8 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
       other.getAccess(0) should not be 'Empty
 
       storage.getAccess.indices.forall { i =>
-        IDDamageWildCardNBTComparator.compare(storage.getAccess(i).getItemStack.orNull,
-                                              other.getAccess(i).getItemStack.orNull) == 0
+        IDDamageWildCardNBTComparator.compare(storage.getAccess(i).get.orNull,
+                                              other.getAccess(i).get.orNull) == 0
                                        }
     }
   }
