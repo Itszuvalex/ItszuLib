@@ -32,17 +32,17 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
 
   "An array item storage" should {
     "have access and inventory " in new EmptyStorage {
-      storage.getAccess should not be null
+      storage.getFullAccess should not be null
       storage.getInventory should not be null
     }
     "have the same size" in new EmptyStorage {
-      storage.getAccess.length shouldEqual storage.getInventory.getSizeInventory
+      storage.getFullAccess.length shouldEqual storage.getInventory.getSizeInventory
     }
     "have matching items" in new PartialStorage {
-      storage.getAccess(0) should not be 'Empty
+      storage.getFullAccess(0) should not be 'Empty
 
-      storage.getAccess.indices.forall { i =>
-        IDDamageWildCardNBTComparator.compare(storage.getAccess(i).get.orNull,
+      storage.getFullAccess.indices.forall { i =>
+        IDDamageWildCardNBTComparator.compare(storage.getFullAccess(i).get.orNull,
                                               storage.getInventory.getStackInSlot(i)) == 0
                                        }
     }
@@ -52,14 +52,14 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
       val other = new ArrayItemStorage(0)
       other.loadFromNBT(comp)
 
-      storage.getAccess.length shouldEqual other.getAccess.length
+      storage.getFullAccess.length shouldEqual other.getFullAccess.length
 
-      storage.getAccess(0) should not be 'Empty
-      other.getAccess(0) should not be 'Empty
+      storage.getFullAccess(0) should not be 'Empty
+      other.getFullAccess(0) should not be 'Empty
 
-      storage.getAccess.indices.forall { i =>
-        IDDamageWildCardNBTComparator.compare(storage.getAccess(i).get.orNull,
-                                              other.getAccess(i).get.orNull) == 0
+      storage.getFullAccess.indices.forall { i =>
+        IDDamageWildCardNBTComparator.compare(storage.getFullAccess(i).get.orNull,
+                                              other.getFullAccess(i).get.orNull) == 0
                                        }
     }
   }

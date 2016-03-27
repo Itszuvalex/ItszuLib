@@ -38,7 +38,7 @@ class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage
 
   def this() = this(0)
 
-  override def getAccess: IItemCollectionAccess = access.synchronized(access)
+  override def getFullAccess: IItemCollectionAccess = access.synchronized(access)
 
   override def getInventory: IInventory = access.synchronized(invAccess)
 
@@ -50,15 +50,15 @@ class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage
   override def saveToNBT(compound: NBTTagCompound) =
     access.synchronized {
                           val store = new NBTItemStorage(compound, true)
-                          store.setSize(getSize, true)
-                          store.getAccess.copyFromAccess(access, copy = false)
+                          store.setSize(length, clear = true)
+                          store.getFullAccess.copyFromAccess(access, copy = false)
                         }
 
   override def loadFromNBT(compound: NBTTagCompound) =
     access.synchronized {
                           val nbt = new NBTItemStorage(compound, false)
-                          updateBackingStore(new Array[ItemStack](nbt.getSize))
-                          access.copyFromAccess(nbt.getAccess, copy = false)
+                          updateBackingStore(new Array[ItemStack](nbt.length))
+                          access.copyFromAccess(nbt.getFullAccess, copy = false)
                         }
 
   private def updateBackingStore(a: Array[ItemStack]): Unit = {
@@ -68,11 +68,7 @@ class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage
                         }
   }
 
-  override def getItemStack(slot: Int): Option[ItemStack] = Option(array(slot))
-
-  override def getSize: Int = array.length
-
-  override def setItemStack(slot: Int, item: ItemStack): Unit = array(slot) = item
+  override def length: Int = access.synchronized {array.length}
 
   /**
     *
@@ -89,4 +85,10 @@ class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage
     }
     true
   }
+
+  override def update(slot: Int, value: ItemStack): Unit = {
+    array(slot) = value
+  }
+
+  override def apply(slot: Int): ItemStack = array(slot)
 }

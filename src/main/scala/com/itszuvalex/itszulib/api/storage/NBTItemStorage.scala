@@ -40,7 +40,7 @@ class NBTItemStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) 
   if (isEmpty)
     initializeEmptyNBT()
 
-  override def getAccess: IItemCollectionAccess = access.synchronized(access)
+  override def getFullAccess: IItemCollectionAccess = access.synchronized(access)
 
   override def getInventory: IInventory = access.synchronized(invWrapper)
 
@@ -60,9 +60,9 @@ class NBTItemStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) 
                                                                                           }
                         }
 
-  override def getItemStack(slot: Int): Option[ItemStack] = Option(NBTItemStorage.deserialize(getItemCompound(slot)))
+  override def apply(slot: Int): ItemStack = NBTItemStorage.deserialize(getItemCompound(slot))
 
-  override def setItemStack(slot: Int, item: ItemStack): Unit = {
+  override def update(slot: Int, item: ItemStack): Unit = {
     (item, getItemCompound(slot, force = item != null)) match {
       case (null, null) =>
       case (null, comp) => nbt.removeTag(slot.toString)
@@ -84,7 +84,7 @@ class NBTItemStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) 
     else null
   }
 
-  override def getSize: Int = nbt.getInteger(NBTItemStorage.SIZE_KEY)
+  override def length: Int = nbt.getInteger(NBTItemStorage.SIZE_KEY)
 
   override def setSize(size: Int, clear: Boolean): Boolean =
     access.synchronized {

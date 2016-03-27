@@ -9,7 +9,7 @@ import net.minecraft.entity.player.EntityPlayer
 class StorageItemCollectionAccess(private val storage: IItemStorage) extends IItemCollectionAccess {
   override def canPlayerAccess(player: EntityPlayer): Boolean = true
 
-  override def length: Int = storage.getSize
+  override def length: Int = storage.length
 
   override def apply(idx: Int): IItemAccess = new StorageItemAccess(storage, idx)
 

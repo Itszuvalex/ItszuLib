@@ -16,7 +16,7 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   def defaultStorage: IItemStorage
 
-  override def getAccessibleSlotsFromSide(side: Int) = inventory.getAccess.indices.toArray
+  override def getAccessibleSlotsFromSide(side: Int) = inventory.getFullAccess.indices.toArray
 
   override def canExtractItem(slot: Int, item: ItemStack, side: Int) = true
 
@@ -26,7 +26,7 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   override def decrStackSize(slot: Int, amount: Int) = inventory.getInventory.decrStackSize(slot, amount)
 
-  override def getSizeInventory = inventory.getAccess.length
+  override def getSizeInventory = inventory.getFullAccess.length
 
   override def getInventoryStackLimit = inventory.getInventory.getInventoryStackLimit
 
@@ -46,7 +46,7 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
     notifyNeighborsOfChange()
   }
 
-  override def isUseableByPlayer(player: EntityPlayer) = canPlayerUse(player) && inventory.getAccess.canPlayerAccess(player)
+  override def isUseableByPlayer(player: EntityPlayer) = canPlayerUse(player) && inventory.getFullAccess.canPlayerAccess(player)
 
   override def getStackInSlot(slot: Int) = inventory.getInventory.getStackInSlot(slot)
 

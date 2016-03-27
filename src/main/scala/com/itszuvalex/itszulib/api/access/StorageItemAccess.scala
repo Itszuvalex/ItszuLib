@@ -14,7 +14,7 @@ class StorageItemAccess(private val storage: IItemStorage, private val index: In
     *
     * @return Backing ItemStack
     */
-  override def get: Option[ItemStack] = if (isValid) storage.getItemStack(index) else None
+  override def get: Option[ItemStack] = if (isValid) Option(storage(index)) else None
 
   /**
     * Sets this item access's storage to the ItemStack.
@@ -22,7 +22,7 @@ class StorageItemAccess(private val storage: IItemStorage, private val index: In
     * @param stack ItemStack to set this to.
     */
   override def set(stack: ItemStack): Unit = {
-    storage.setItemStack(index, stack)
+    storage(index) = stack
     onChanged()
   }
 
