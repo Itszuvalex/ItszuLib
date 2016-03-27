@@ -293,7 +293,6 @@ artifactory {
 idea {
     project {
         languageLevel = '1.7'
-        vcs = 'Git'
     }
     module {
         inheritOutputDirs = true

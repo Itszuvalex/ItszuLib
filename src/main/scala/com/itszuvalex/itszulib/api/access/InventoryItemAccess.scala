@@ -14,8 +14,6 @@ class InventoryItemAccess(private[access] val inventoryAccess: InventoryItemColl
     */
   override def get: Option[ItemStack] = if (isValid) Option(inventory.getStackInSlot(index)) else None
 
-  private[access] def inventory: IInventory = inventoryAccess.inventory
-
   /**
     *
     * @return True if this access is still valid.  False if underlying storage is no longer correct.
@@ -38,4 +36,6 @@ class InventoryItemAccess(private[access] val inventoryAccess: InventoryItemColl
     * @return New item access
     */
   override def split(amount: Int): IItemAccess = new FloatingItemAccess(inventory.decrStackSize(index, amount))
+
+  private[access] def inventory: IInventory = inventoryAccess.inventory
 }

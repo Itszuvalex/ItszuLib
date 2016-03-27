@@ -17,6 +17,12 @@ class StorageItemAccess(private val storage: IItemStorage, private val index: In
   override def get: Option[ItemStack] = if (isValid) Option(storage(index)) else None
 
   /**
+    *
+    * @return True if this access is still valid.  False if underlying storage is no longer correct.
+    */
+  override def isValid: Boolean = revision == storage.getRevision
+
+  /**
     * Sets this item access's storage to the ItemStack.
     *
     * @param stack ItemStack to set this to.
@@ -25,10 +31,4 @@ class StorageItemAccess(private val storage: IItemStorage, private val index: In
     storage(index) = stack
     onChanged()
   }
-
-  /**
-    *
-    * @return True if this access is still valid.  False if underlying storage is no longer correct.
-    */
-  override def isValid: Boolean = revision == storage.getRevision
 }

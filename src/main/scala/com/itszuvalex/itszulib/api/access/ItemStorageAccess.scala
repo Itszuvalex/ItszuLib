@@ -28,13 +28,6 @@ class ItemStorageAccess(private val storage: IItemStorage, private val index: In
 
   /**
     *
-    * @param amount Amount to remove from this storage and transfer to a new one.
-    * @return New item access
-    */
-  override def split(amount: Int): IItemAccess = ???
-
-  /**
-    *
     * @return True if this access is still valid.  False if underlying storage is no longer correct.
     */
   override def isValid: Boolean = revision == storage.getRevision

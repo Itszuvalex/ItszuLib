@@ -1,11 +1,13 @@
 package com.itszuvalex.itszulib.api.access
 
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{Item, ItemStack}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/10/16.
   */
 trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
+
+  def getItem: Option[Item] = get.map(_.getItem)
 
   /**
     *
@@ -34,6 +36,29 @@ trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
   def maxDamage: Option[Int] = get.map(_.getMaxDamage)
 
   /**
+    * Call when this changes backing item.
+    */
+  def onChanged(): Unit = {}
+
+  /**
+    *
+    * @param amount Amount to remove from this storage and transfer to a new one.
+    * @return New item access
+    */
+  def split(amount: Int): IItemAccess = amount match {
+    case invalid if invalid <= 0 => new FloatingItemAccess(null)
+    case _ => new FloatingItemAccess(
+                                      get.map { i =>
+                                        val item = i.copy()
+                                        item.stackSize = decrement(amount)
+                                        if (item.stackSize > 0)
+                                          item
+                                        else null
+                                              }.orNull
+                                    )
+  }
+
+  /**
     *
     * @param amount Amount to decrease ItemStack stacksize by.  Must be > 0
     * @return Math.min(amount, CurrentStorage) -> Amount of amount removed from the ItemStack.  Clears ItemStack if Math.min(amount, CurrentStorage) == CurrentStorage
@@ -57,33 +82,10 @@ trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
   def currentStorage: Option[Int] = get.map(_.stackSize)
 
   /**
-    * Call when this changes backing item.
-    */
-  def onChanged(): Unit = {}
-
-  /**
     * Remove Item and metadata from this access.
     */
   def clear(): Unit = {
     set(null)
-  }
-
-  /**
-    *
-    * @param amount Amount to remove from this storage and transfer to a new one.
-    * @return New item access
-    */
-  def split(amount: Int): IItemAccess = amount match {
-    case invalid if invalid <= 0 => new FloatingItemAccess(null)
-    case _ => new FloatingItemAccess(
-                                      get.map { i =>
-                                        val item = i.copy()
-                                        item.stackSize = decrement(amount)
-                                        if (item.stackSize > 0)
-                                          item
-                                        else null
-                                              }.orNull
-                                    )
   }
 
   /**

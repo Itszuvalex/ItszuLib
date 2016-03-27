@@ -16,13 +16,21 @@ class ArrayFluidStorage(private var array: Array[FluidStack]) extends IFluidStor
 
   override def getFullAccess: IFluidCollectionAccess = access.synchronized(access)
 
-  override def loadFromNBT(compound: NBTTagCompound): Unit = access.synchronized {
-                                                                                   ()
-                                                                                 }
+  override def saveToNBT(compound: NBTTagCompound) =
+    access.synchronized {
+                          val store = new NBTFluidStorage(compound, true)
+                          store.setSize(length, clear = true)
+                          store.getFullAccess.copyFromAccess(access, copy = false)
+                        }
 
-  override def saveToNBT(compound: NBTTagCompound): Unit = access.synchronized {
-                                                                                 ()
-                                                                               }
+  override def length: Int = array.length
+
+  override def loadFromNBT(compound: NBTTagCompound) =
+    access.synchronized {
+                          val nbt = new NBTFluidStorage(compound, false)
+                          updateBackingStore(new Array[FluidStack](nbt.length))
+                          access.copyFromAccess(nbt.getFullAccess, copy = false)
+                        }
 
   /**
     *
@@ -50,8 +58,6 @@ class ArrayFluidStorage(private var array: Array[FluidStack]) extends IFluidStor
   override def update(slot: Int, value: FluidStack): Unit = {
     array(slot) = value
   }
-
-  override def length: Int = array.length
 
   override def apply(slot: Int): FluidStack = array(slot)
 }
