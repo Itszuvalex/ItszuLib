@@ -6,6 +6,6 @@ import net.minecraftforge.fluids.FluidTank
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/27/2016.
   */
-trait IFluidTankStorage extends IStorage[IFluidTankStorage, IFluidTankCollectionAccess, IFluidTankAccess, FluidTank]
+trait IFluidTankCollectionStorage extends ICollectionStorage[IFluidTankCollectionStorage, IFluidTankCollectionAccess, IFluidTankAccess, FluidTank]
 
 

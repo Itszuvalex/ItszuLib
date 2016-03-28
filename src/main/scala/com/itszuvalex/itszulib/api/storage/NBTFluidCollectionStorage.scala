@@ -1,42 +1,39 @@
 package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.Overridable
-import com.itszuvalex.itszulib.api.access.StorageFluidTankCollectionAccess
+import com.itszuvalex.itszulib.api.access.StorageFluidCollectionAccess
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fluids.FluidTank
+import net.minecraftforge.fluids.FluidStack
 
 import scala.collection.JavaConversions._
 
-object NBTFluidTankStorage {
-  val SIZE_KEY     = "Size"
-  val CAPACITY_KEY = "Capacity"
+/**
+  * Created by Christopher Harris (Itszuvalex) on 3/27/2016.
+  */
+object NBTFluidCollectionStorage {
+  val SIZE_KEY = "Size"
 
-  val fluidTankNBTDeserializer = new Overridable((n: NBTTagCompound) => {
-    val tank = new FluidTank(n.getInteger(CAPACITY_KEY))
-    tank.readFromNBT(n)
-    tank
-  })
-
-  val fluidTankNBTSerializer = new Overridable((i: FluidTank, n: NBTTagCompound) => {
+  val fluidStackNBTDeserializer = new Overridable(FluidStack.loadFluidStackFromNBT _)
+  val fluidStackNBTSerializer   = new Overridable((i: FluidStack, n: NBTTagCompound) => {
     i.writeToNBT(n)
-    n.setInteger(CAPACITY_KEY, i.getCapacity)
+    () // Fix Unit.type error
   })
 
-  def setNBTFluidSerializer(func: (FluidTank, NBTTagCompound) => Unit) = fluidTankNBTSerializer.overrideDefault(func)
+  def setNBTFluidSerializer(func: (FluidStack, NBTTagCompound) => Unit) = fluidStackNBTSerializer.overrideDefault(func)
 
-  def restoreDefaultNBTFluidSerializer() = fluidTankNBTSerializer.revert()
+  def restoreDefaultNBTFluidSerializer() = fluidStackNBTSerializer.revert()
 
-  def serialize(fluid: FluidTank, nbt: NBTTagCompound) = fluidTankNBTSerializer.apply(fluid, nbt)
+  def serialize(fluid: FluidStack, nbt: NBTTagCompound) = fluidStackNBTSerializer.apply(fluid, nbt)
 
-  def setNBTFluidDeserializer(func: (NBTTagCompound) => FluidTank) = fluidTankNBTDeserializer.overrideDefault(func)
+  def setNBTFluidDeserializer(func: (NBTTagCompound) => FluidStack) = fluidStackNBTDeserializer.overrideDefault(func)
 
-  def restoreDefaultNBTFluidDeserializer() = fluidTankNBTDeserializer.revert()
+  def restoreDefaultNBTFluidDeserializer() = fluidStackNBTDeserializer.revert()
 
-  def deserialize(tag: NBTTagCompound): FluidTank = fluidTankNBTDeserializer.apply(tag)
+  def deserialize(tag: NBTTagCompound): FluidStack = fluidStackNBTDeserializer.apply(tag)
 }
 
-class NBTFluidTankStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) extends IFluidTankStorage {
-  private val access = new StorageFluidTankCollectionAccess(this)
+class NBTFluidCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) extends IFluidCollectionStorage {
+  private val access = new StorageFluidCollectionAccess(this)
 
   if (isEmpty)
     initializeEmptyNBT()
@@ -66,7 +63,7 @@ class NBTFluidTankStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = fa
                             itemKeys.filter(_.toInt >= size)
                             )
                           .foreach(nbt.removeTag)
-                          nbt.setInteger(NBTItemStorage.SIZE_KEY, size)
+                          nbt.setInteger(NBTItemCollectionStorage.SIZE_KEY, size)
                           true
                         }
 
@@ -77,20 +74,20 @@ class NBTFluidTankStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = fa
                                                                                           }
                         }
 
-  override def apply(slot: Int): FluidTank = NBTFluidTankStorage.deserialize(getFluidTankCompound(slot))
+  override def apply(slot: Int): FluidStack = NBTFluidCollectionStorage.deserialize(getFluidCompound(slot))
 
-  override def update(slot: Int, fluid: FluidTank): Unit = {
-    (fluid, getFluidTankCompound(slot, force = fluid != null)) match {
+  override def update(slot: Int, fluid: FluidStack): Unit = {
+    (fluid, getFluidCompound(slot, force = fluid != null)) match {
       case (null, null) =>
       case (null, comp) => nbt.removeTag(slot.toString)
       case (i, _) =>
         val comp = new NBTTagCompound
-        NBTFluidTankStorage.serialize(i, comp)
+        NBTFluidCollectionStorage.serialize(i, comp)
         nbt.setTag(slot.toString, comp)
     }
   }
 
-  private def getFluidTankCompound(slot: Int, force: Boolean = false): NBTTagCompound = {
+  private def getFluidCompound(slot: Int, force: Boolean = false): NBTTagCompound = {
     val exists = nbt.hasKey(slot.toString)
     if (exists || force) {
       if (force && !exists) {
@@ -101,5 +98,5 @@ class NBTFluidTankStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = fa
     else null
   }
 
-  override def length: Int = nbt.getInteger(NBTFluidTankStorage.SIZE_KEY)
+  override def length: Int = nbt.getInteger(NBTFluidCollectionStorage.SIZE_KEY)
 }

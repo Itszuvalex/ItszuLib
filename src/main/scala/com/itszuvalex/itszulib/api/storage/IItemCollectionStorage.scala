@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/13/2016.
   */
-trait IItemStorage extends IStorage[IItemStorage, IItemCollectionAccess, IItemAccess, ItemStack] {
+trait IItemCollectionStorage extends ICollectionStorage[IItemCollectionStorage, IItemCollectionAccess, IItemAccess, ItemStack] {
 
   override def getFullAccess: IItemCollectionAccess = new StorageItemCollectionAccess(this)
 

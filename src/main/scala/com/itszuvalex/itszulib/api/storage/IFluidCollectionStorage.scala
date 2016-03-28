@@ -6,5 +6,5 @@ import net.minecraftforge.fluids.FluidStack
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/24/16.
   */
-trait IFluidStorage extends IStorage[IFluidStorage, IFluidCollectionAccess, IFluidAccess, FluidStack]
+trait IFluidCollectionStorage extends ICollectionStorage[IFluidCollectionStorage, IFluidCollectionAccess, IFluidAccess, FluidStack]
 

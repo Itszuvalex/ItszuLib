@@ -1,12 +1,12 @@
 package com.itszuvalex.itszulib.api.access
 
-import com.itszuvalex.itszulib.api.storage.IItemStorage
+import com.itszuvalex.itszulib.api.storage.IItemCollectionStorage
 import net.minecraft.entity.player.EntityPlayer
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/24/16.
   */
-class StorageItemCollectionAccess(private val storage: IItemStorage) extends IItemCollectionAccess {
+class StorageItemCollectionAccess(private val storage: IItemCollectionStorage) extends IItemCollectionAccess {
   override def canPlayerAccess(player: EntityPlayer): Boolean = true
 
   override def length: Int = storage.length

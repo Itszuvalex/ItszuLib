@@ -1,12 +1,12 @@
 package com.itszuvalex.itszulib.api.access
 
-import com.itszuvalex.itszulib.api.storage.IFluidTankStorage
+import com.itszuvalex.itszulib.api.storage.IFluidTankCollectionStorage
 import net.minecraft.entity.player.EntityPlayer
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/27/16.
   */
-class StorageFluidTankCollectionAccess(private val storage: IFluidTankStorage) extends IFluidTankCollectionAccess {
+class StorageFluidTankCollectionAccess(private val storage: IFluidTankCollectionStorage) extends IFluidTankCollectionAccess {
   override def canPlayerAccess(player: EntityPlayer): Boolean = true
 
   override def length: Int = storage.length

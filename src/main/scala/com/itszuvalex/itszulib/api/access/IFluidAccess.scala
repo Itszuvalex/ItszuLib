@@ -56,6 +56,24 @@ trait IFluidAccess extends IAccess[IFluidAccess, FluidStack] {
     amount
                                          }.getOrElse(0)
 
+  def transfer(other: IFluidAccess, amt: Int): Int = {
+    if (isEmpty)
+      0
+    else if (other.isEmpty) {
+      val stack = get.get.copy
+      stack.amount = 0
+      if (other.canSetTo(stack)) {
+        other.set(stack)
+        decrement(other.increment(Math.min(amt, currentStorage.get)))
+      }
+      else 0
+    }
+    else if (other.get.exists(_.isFluidEqual(get.orNull))) {
+      decrement(other.increment(Math.min(amt, currentStorage.get)))
+    }
+    else 0
+  }
+
   def clear() = {
     set(null)
   }

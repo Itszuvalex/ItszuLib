@@ -11,7 +11,7 @@ import scala.collection.JavaConversions._
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/23/16.
   */
-object NBTItemStorage {
+object NBTItemCollectionStorage {
   val SIZE_KEY = "Size"
 
   val itemStackNBTDeserializer = new Overridable(ItemStack.loadItemStackFromNBT _)
@@ -33,7 +33,7 @@ object NBTItemStorage {
   def deserialize(tag: NBTTagCompound): ItemStack = itemStackNBTDeserializer.apply(tag)
 }
 
-class NBTItemStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) extends IItemStorage {
+class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) extends IItemCollectionStorage {
   private val access     = new StorageItemCollectionAccess(this)
   private val invWrapper = ItemAccessWrapperFactory.wrap(access)
 
@@ -60,7 +60,7 @@ class NBTItemStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) 
                                                                                           }
                         }
 
-  override def apply(slot: Int): ItemStack = NBTItemStorage.deserialize(getItemCompound(slot))
+  override def apply(slot: Int): ItemStack = NBTItemCollectionStorage.deserialize(getItemCompound(slot))
 
   override def update(slot: Int, item: ItemStack): Unit = {
     (item, getItemCompound(slot, force = item != null)) match {
@@ -68,7 +68,7 @@ class NBTItemStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) 
       case (null, comp) => nbt.removeTag(slot.toString)
       case (i, _) =>
         val comp = new NBTTagCompound
-        NBTItemStorage.serialize(i, comp)
+        NBTItemCollectionStorage.serialize(i, comp)
         nbt.setTag(slot.toString, comp)
     }
   }
@@ -84,7 +84,7 @@ class NBTItemStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) 
     else null
   }
 
-  override def length: Int = nbt.getInteger(NBTItemStorage.SIZE_KEY)
+  override def length: Int = nbt.getInteger(NBTItemCollectionStorage.SIZE_KEY)
 
   override def setSize(size: Int, clear: Boolean): Boolean =
     access.synchronized {
@@ -96,7 +96,7 @@ class NBTItemStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) 
                             itemKeys.filter(_.toInt >= size)
                             )
                           .foreach(nbt.removeTag)
-                          nbt.setInteger(NBTItemStorage.SIZE_KEY, size)
+                          nbt.setInteger(NBTItemCollectionStorage.SIZE_KEY, size)
                           true
                         }
 

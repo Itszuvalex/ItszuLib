@@ -5,4 +5,4 @@ import com.itszuvalex.itszulib.api.access.{IPowerAccess, IPowerCollectionAccess}
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/24/16.
   */
-trait IPowerStorage extends IStorage[IPowerStorage, IPowerCollectionAccess, IPowerAccess, Double]
+trait IPowerCollectionStorage extends ICollectionStorage[IPowerCollectionStorage, IPowerCollectionAccess, IPowerAccess, Double]

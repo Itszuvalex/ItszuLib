@@ -12,18 +12,18 @@ import org.scalatest.BeforeAndAfterAll
 class TestNBTItemStorage extends TestBase with BeforeAndAfterAll {
 
   override protected def beforeAll(): Unit = {
-    NBTItemStorage.setNBTItemDeserializer(AccessHelpers.testNBTItemDeserializer)
+    NBTItemCollectionStorage.setNBTItemDeserializer(AccessHelpers.testNBTItemDeserializer)
     super.beforeAll()
   }
 
   trait EmptyNBT extends AccessHelpers.EmptyItemArray {
     val compound = new NBTTagCompound
-    compound.setInteger(NBTItemStorage.SIZE_KEY, array.length)
+    compound.setInteger(NBTItemCollectionStorage.SIZE_KEY, array.length)
   }
 
   trait PartialNBT extends AccessHelpers.PartialItemArray {
     val compound = new NBTTagCompound
-    compound.setInteger(NBTItemStorage.SIZE_KEY, array.length)
+    compound.setInteger(NBTItemCollectionStorage.SIZE_KEY, array.length)
     array.zipWithIndex.foreach { case (item, index) =>
       if (item != null) {
         val c = new NBTTagCompound
@@ -35,16 +35,16 @@ class TestNBTItemStorage extends TestBase with BeforeAndAfterAll {
 
 
   override protected def afterAll(): Unit = {
-    NBTItemStorage.restoreDefaultNBTItemDeserializer()
+    NBTItemCollectionStorage.restoreDefaultNBTItemDeserializer()
     super.afterAll()
   }
 
   trait EmptyStorage extends EmptyNBT {
-    val storage = new NBTItemStorage(compound, true)
+    val storage = new NBTItemCollectionStorage(compound, true)
   }
 
   trait PartialStorage extends PartialNBT {
-    val storage = new NBTItemStorage(compound)
+    val storage = new NBTItemCollectionStorage(compound)
   }
 
   "An array item storage" should {
@@ -66,7 +66,7 @@ class TestNBTItemStorage extends TestBase with BeforeAndAfterAll {
     "correctly serialize and deserialize to NBT" in new PartialStorage {
       val comp = new NBTTagCompound
       storage.saveToNBT(comp)
-      val other = new ArrayItemStorage(0)
+      val other = new ArrayItemCollectionStorage(0)
       other.loadFromNBT(comp)
 
       storage.getFullAccess.length shouldEqual other.getFullAccess.length

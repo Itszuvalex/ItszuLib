@@ -1,17 +1,17 @@
 package com.itszuvalex.itszulib.api.access
 
 import com.itszuvalex.itszulib.TestBase
-import com.itszuvalex.itszulib.testing.{StubFluid, StubItem}
+import com.itszuvalex.itszulib.testing.StubItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fluids.FluidStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/10/2016.
   */
 object AccessHelpers extends TestBase {
+  val stubItem = new StubItem
 
   val testNBTItemDeserializer = (nbt: NBTTagCompound) => {
     if (nbt == null)
@@ -19,7 +19,7 @@ object AccessHelpers extends TestBase {
     else if (nbt.hasNoTags)
       null
     else {
-      val item = new ItemStack(new StubItem())
+      val item = new ItemStack(stubItem)
       item.stackSize = nbt.getByte("Count")
       item.setItemDamage(nbt.getShort("Damage"))
 
@@ -30,42 +30,42 @@ object AccessHelpers extends TestBase {
     }
   }
 
-//  val testNBTFluidDeserializer = (nbt: NBTTagCompound) => {
-//    if (nbt == null)
-//      null
-//    else if (nbt.hasNoTags)
-//      null
-//    else {
-//      val amt = nbt.getInteger("Amount")
-//      var tag: NBTTagCompound = null
-//      if (nbt.hasKey("NBT")) {
-//        tag = nbt.getCompoundTag("NBT")
-//      }
-//      val fluid = mockFluid(amt, tag)
-//      fluid
-//    }
-//  }
-//
-//  val testNBTFluidSerializer = (f: FluidStack, nbt: NBTTagCompound) => {
-//    if (f == null || nbt == null)
-//      ()
-//    else {
-//      nbt.setInteger("Amount", f.amount)
-//      if (f.tag != null && !f.tag.hasNoTags) {
-//        nbt.setTag("NBT", f.tag)
-//      }
-//    }
-//  }
-//
-//
-//  class DefaultFluid extends FluidStack(new StubFluid(), 0)
+  //  val testNBTFluidDeserializer = (nbt: NBTTagCompound) => {
+  //    if (nbt == null)
+  //      null
+  //    else if (nbt.hasNoTags)
+  //      null
+  //    else {
+  //      val amt = nbt.getInteger("Amount")
+  //      var tag: NBTTagCompound = null
+  //      if (nbt.hasKey("NBT")) {
+  //        tag = nbt.getCompoundTag("NBT")
+  //      }
+  //      val fluid = mockFluid(amt, tag)
+  //      fluid
+  //    }
+  //  }
+  //
+  //  val testNBTFluidSerializer = (f: FluidStack, nbt: NBTTagCompound) => {
+  //    if (f == null || nbt == null)
+  //      ()
+  //    else {
+  //      nbt.setInteger("Amount", f.amount)
+  //      if (f.tag != null && !f.tag.hasNoTags) {
+  //        nbt.setTag("NBT", f.tag)
+  //      }
+  //    }
+  //  }
+  //
+  //
+  //  class DefaultFluid extends FluidStack(new StubFluid(), 0)
 
-//  def mockFluid(amt: Int, tag: NBTTagCompound = null): FluidStack = {
-//    val stubStack = stub[DefaultFluid]
-//    stubStack.amount = amt
-//    stubStack.tag = tag
-//    stubStack
-//  }
+  //  def mockFluid(amt: Int, tag: NBTTagCompound = null): FluidStack = {
+  //    val stubStack = stub[DefaultFluid]
+  //    stubStack.amount = amt
+  //    stubStack.tag = tag
+  //    stubStack
+  //  }
 
   trait EmptyItemArray {
     val array = new Array[ItemStack](10)
@@ -73,31 +73,31 @@ object AccessHelpers extends TestBase {
 
   trait PartialItemArray {
     val array = new Array[ItemStack](10)
-    val item0 = new ItemStack(new StubItem)
-    val item1 = new ItemStack(new StubItem, 2)
-    val item3 = new ItemStack(new StubItem, 10)
-    val item7 = new ItemStack(new StubItem, 63)
+    val item0 = new ItemStack(stubItem)
+    val item1 = new ItemStack(stubItem, 2)
+    val item3 = new ItemStack(stubItem, 10)
+    val item7 = new ItemStack(stubItem, 63)
     array(0) = item0
     array(1) = item1
     array(3) = item3
     array(7) = item7
   }
 
-//  trait EmptyFluidArray {
-//    val array = new Array[FluidStack](10)
-//  }
-//
-//  trait PartialFluidArray {
-//    val array  = new Array[FluidStack](10)
-//    val fluid0 = mockFluid(0)
-//    val fluid1 = mockFluid(200)
-//    val fluid3 = mockFluid(1000)
-//    val fluid7 = mockFluid(2000)
-//    array(0) = fluid0
-//    array(1) = fluid1
-//    array(3) = fluid3
-//    array(7) = fluid7
-//  }
+  //  trait EmptyFluidArray {
+  //    val array = new Array[FluidStack](10)
+  //  }
+  //
+  //  trait PartialFluidArray {
+  //    val array  = new Array[FluidStack](10)
+  //    val fluid0 = mockFluid(0)
+  //    val fluid1 = mockFluid(200)
+  //    val fluid3 = mockFluid(1000)
+  //    val fluid7 = mockFluid(2000)
+  //    array(0) = fluid0
+  //    array(1) = fluid1
+  //    array(3) = fluid3
+  //    array(7) = fluid7
+  //  }
 
 
   class InventoryArrayAdapter(array: Array[ItemStack]) extends IInventory {

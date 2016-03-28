@@ -4,7 +4,7 @@ package com.itszuvalex.itszulib.api.storage
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/27/16.
   */
-class StorageIterator[S <: IStorage[S, _, _, D], D](private val storage: S) extends Iterator[D] {
+class CollectionStorageIterator[S <: ICollectionStorage[S, _, _, D], D](private val storage: S) extends Iterator[D] {
   private var index    = 0
   private val revision = storage.getRevision
 

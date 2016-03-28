@@ -1,12 +1,12 @@
 package com.itszuvalex.itszulib.api.access
 
-import com.itszuvalex.itszulib.api.storage.IFluidStorage
+import com.itszuvalex.itszulib.api.storage.IFluidCollectionStorage
 import net.minecraftforge.fluids.FluidStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/24/16.
   */
-class StorageFluidAccess(private val storage: IFluidStorage, private val index: Int) extends IFluidAccess {
+class StorageFluidAccess(private val storage: IFluidCollectionStorage, private val index: Int) extends IFluidAccess {
   private val revision = storage.getRevision
 
   /**

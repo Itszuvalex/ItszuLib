@@ -12,22 +12,22 @@ import org.scalatest.BeforeAndAfterAll
 class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
 
   override protected def beforeAll(): Unit = {
-    NBTItemStorage.setNBTItemDeserializer(AccessHelpers.testNBTItemDeserializer)
+    NBTItemCollectionStorage.setNBTItemDeserializer(AccessHelpers.testNBTItemDeserializer)
     super.beforeAll()
   }
 
 
   override protected def afterAll(): Unit = {
-    NBTItemStorage.restoreDefaultNBTItemDeserializer()
+    NBTItemCollectionStorage.restoreDefaultNBTItemDeserializer()
     super.afterAll()
   }
 
   trait EmptyStorage extends AccessHelpers.EmptyItemArray {
-    val storage = new ArrayItemStorage(array)
+    val storage = new ArrayItemCollectionStorage(array)
   }
 
   trait PartialStorage extends AccessHelpers.PartialItemArray {
-    val storage = new ArrayItemStorage(array)
+    val storage = new ArrayItemCollectionStorage(array)
   }
 
   "An array item storage" should {
@@ -49,7 +49,7 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
     "correctly serialize and deserialize to NBT" in new PartialStorage {
       val comp = new NBTTagCompound
       storage.saveToNBT(comp)
-      val other = new ArrayItemStorage(0)
+      val other = new ArrayItemCollectionStorage(0)
       other.loadFromNBT(comp)
 
       storage.getFullAccess.length shouldEqual other.getFullAccess.length

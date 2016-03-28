@@ -30,7 +30,7 @@ import net.minecraft.nbt.NBTTagCompound
 /**
   *
   */
-class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage {
+class ArrayItemCollectionStorage(private var array: Array[ItemStack]) extends IItemCollectionStorage {
   private val access    = new StorageItemCollectionAccess(this)
   private val invAccess = ItemAccessWrapperFactory.wrap(access)
 
@@ -49,7 +49,7 @@ class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage
 
   override def saveToNBT(compound: NBTTagCompound) =
     access.synchronized {
-                          val store = new NBTItemStorage(compound, true)
+                          val store = new NBTItemCollectionStorage(compound, true)
                           store.setSize(length, clear = true)
                           store.getFullAccess.copyFromAccess(access, copy = false)
                         }
@@ -58,8 +58,8 @@ class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage
 
   override def loadFromNBT(compound: NBTTagCompound) =
     access.synchronized {
-                          val nbt = new NBTItemStorage(compound, false)
-                          updateBackingStore(new Array[ItemStack](nbt.length))
+                          val nbt = new NBTItemCollectionStorage(compound, false)
+                          setSize(nbt.length, clear = true)
                           access.copyFromAccess(nbt.getFullAccess, copy = false)
                         }
 
@@ -72,9 +72,14 @@ class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage
     */
   override def setSize(size: Int, clear: Boolean): Boolean = {
     if (clear)
-      updateBackingStore(new Array[ItemStack](size))
+      if (size != length)
+        updateBackingStore(new Array[ItemStack](size))
+      else {
+        indices.foreach(i => this (i) = null)
+      }
     else {
-      updateBackingStore(util.Arrays.copyOf(array, size))
+      if (size != length)
+        updateBackingStore(util.Arrays.copyOf(array, size))
     }
     true
   }

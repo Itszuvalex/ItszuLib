@@ -1,5 +1,7 @@
 package com.itszuvalex.itszulib.api.access
 
+import net.minecraft.entity.player.EntityPlayer
+
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/26/16.
   */
@@ -7,7 +9,7 @@ trait IAccess[A <: IAccess[A, T], T] {
   /**
     * Don't use unless absolutely necessary
     *
-    * @return Backing ItemStack
+    * @return Backing Storage
     */
   def get: Option[T]
 
@@ -26,12 +28,14 @@ trait IAccess[A <: IAccess[A, T], T] {
 
   def canSetTo(stack: T): Boolean = true
 
+  def canPlayerAccess(player: EntityPlayer): Boolean = true
+
   /**
-    * Remove Item and metadata from this access.
+    * Remove all information from this storage.
     */
   def clear(): Unit
 
-  def onChanged(): Unit
+  def onChanged(): Unit = {}
 
   /**
     * Copies all required info from another A

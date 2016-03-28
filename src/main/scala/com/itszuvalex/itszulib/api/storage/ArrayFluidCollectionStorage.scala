@@ -1,24 +1,24 @@
 package com.itszuvalex.itszulib.api.storage
 
-import com.itszuvalex.itszulib.api.access.{IFluidTankCollectionAccess, StorageFluidTankCollectionAccess}
+import com.itszuvalex.itszulib.api.access.{IFluidCollectionAccess, StorageFluidCollectionAccess}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fluids.FluidTank
+import net.minecraftforge.fluids.FluidStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/27/16.
   */
-class ArrayFluidTankStorage(private var array: Array[FluidTank]) extends IFluidTankStorage {
-  private val access = new StorageFluidTankCollectionAccess(this)
+class ArrayFluidCollectionStorage(private var array: Array[FluidStack]) extends IFluidCollectionStorage {
+  private val access = new StorageFluidCollectionAccess(this)
 
-  def this(size: Int) = this(new Array[FluidTank](size))
+  def this(size: Int) = this(new Array[FluidStack](size))
 
   def this() = this(0)
 
-  override def getFullAccess: IFluidTankCollectionAccess = access.synchronized(access)
+  override def getFullAccess: IFluidCollectionAccess = access.synchronized(access)
 
   override def saveToNBT(compound: NBTTagCompound) =
     access.synchronized {
-                          val store = new NBTFluidTankStorage(compound, true)
+                          val store = new NBTFluidCollectionStorage(compound, true)
                           store.setSize(length, clear = true)
                           store.getFullAccess.copyFromAccess(access, copy = false)
                         }
@@ -27,10 +27,17 @@ class ArrayFluidTankStorage(private var array: Array[FluidTank]) extends IFluidT
 
   override def loadFromNBT(compound: NBTTagCompound) =
     access.synchronized {
-                          val nbt = new NBTFluidTankStorage(compound, false)
-                          updateBackingStore(new Array[FluidTank](nbt.length))
+                          val nbt = new NBTFluidCollectionStorage(compound, false)
+                          updateBackingStore(new Array[FluidStack](nbt.length))
                           access.copyFromAccess(nbt.getFullAccess, copy = false)
                         }
+
+  private def updateBackingStore(newArray: Array[FluidStack]): Unit = {
+    access.synchronized {
+                          incrementRevision()
+                          array = newArray
+                        }
+  }
 
   /**
     *
@@ -41,21 +48,14 @@ class ArrayFluidTankStorage(private var array: Array[FluidTank]) extends IFluidT
     */
   override def setSize(size: Int, clear: Boolean): Boolean = {
     if (clear)
-      updateBackingStore(new Array[FluidTank](size))
+      updateBackingStore(new Array[FluidStack](size))
     else {
       updateBackingStore(java.util.Arrays.copyOf(array, size))
     }
     true
   }
 
-  private def updateBackingStore(newArray: Array[FluidTank]): Unit = {
-    access.synchronized {
-                          incrementRevision()
-                          array = newArray
-                        }
-  }
+  override def update(slot: Int, value: FluidStack): Unit = array(slot) = value
 
-  override def update(slot: Int, value: FluidTank): Unit = array(slot) = value
-
-  override def apply(slot: Int): FluidTank = array(slot)
+  override def apply(slot: Int): FluidStack = array(slot)
 }

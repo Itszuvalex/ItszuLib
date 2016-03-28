@@ -29,7 +29,7 @@ trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
     *
     * @return Usually ItemStack.MaxStackSize, but could be different for different storages.
     */
-  def maxStorage: Option[Int] = get.map(i => Math.min(i.getMaxStackSize, 128)) //128 because ItemStack's deserializer only loads a Byte, and it's signed
+  def maxStorage: Option[Int] = get.map(_.getMaxStackSize)
 
   def damage: Option[Int] = get.map(_.getItemDamage)
 
@@ -56,6 +56,24 @@ trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
                                         else null
                                               }.orNull
                                     )
+  }
+
+  def transfer(other: IItemAccess, amt: Int): Int = {
+    if (isEmpty)
+      0
+    else if (other.isEmpty) {
+      val stack = get.get.copy
+      stack.stackSize = 0
+      if (other.canSetTo(stack)) {
+        other.set(stack)
+        decrement(other.increment(Math.min(amt, currentStorage.get)))
+      }
+      else 0
+    }
+    else if (other.get.exists(_.isItemEqual(get.orNull))) {
+      decrement(other.increment(Math.min(amt, currentStorage.get)))
+    }
+    else 0
   }
 
   /**

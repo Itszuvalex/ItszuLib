@@ -1,12 +1,12 @@
 package com.itszuvalex.itszulib.api.access
 
-import com.itszuvalex.itszulib.api.storage.IItemStorage
+import com.itszuvalex.itszulib.api.storage.IItemCollectionStorage
 import net.minecraft.item.ItemStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/24/16.
   */
-class StorageItemAccess(private val storage: IItemStorage, private val index: Int) extends IItemAccess {
+class StorageItemAccess(private val storage: IItemCollectionStorage, private val index: Int) extends IItemAccess {
   private val revision = storage.getRevision
 
   /**
@@ -31,4 +31,9 @@ class StorageItemAccess(private val storage: IItemStorage, private val index: In
     storage(index) = stack
     onChanged()
   }
+
+  /**
+    * Call when this changes backing item.
+    */
+  override def onChanged(): Unit = storage.onChanged(index)
 }
