@@ -30,35 +30,35 @@ object AccessHelpers extends TestBase {
     }
   }
 
-  val testNBTFluidDeserializer = (nbt: NBTTagCompound) => {
-    if (nbt == null)
-      null
-    else if (nbt.hasNoTags)
-      null
-    else {
-      val amt = nbt.getInteger("Amount")
-      var tag: NBTTagCompound = null
-      if (nbt.hasKey("NBT")) {
-        tag = nbt.getCompoundTag("NBT")
-      }
-      val fluid = mockFluid(amt, tag)
-      fluid
-    }
-  }
-
-  val testNBTFluidSerializer = (f: FluidStack, nbt: NBTTagCompound) => {
-    if (f == null || nbt == null)
-      ()
-    else {
-      nbt.setInteger("Amount", f.amount)
-      if (f.tag != null && !f.tag.hasNoTags) {
-        nbt.setTag("NBT", f.tag)
-      }
-    }
-  }
-
-
-  class DefaultFluid extends FluidStack(new StubFluid(), 0)
+//  val testNBTFluidDeserializer = (nbt: NBTTagCompound) => {
+//    if (nbt == null)
+//      null
+//    else if (nbt.hasNoTags)
+//      null
+//    else {
+//      val amt = nbt.getInteger("Amount")
+//      var tag: NBTTagCompound = null
+//      if (nbt.hasKey("NBT")) {
+//        tag = nbt.getCompoundTag("NBT")
+//      }
+//      val fluid = mockFluid(amt, tag)
+//      fluid
+//    }
+//  }
+//
+//  val testNBTFluidSerializer = (f: FluidStack, nbt: NBTTagCompound) => {
+//    if (f == null || nbt == null)
+//      ()
+//    else {
+//      nbt.setInteger("Amount", f.amount)
+//      if (f.tag != null && !f.tag.hasNoTags) {
+//        nbt.setTag("NBT", f.tag)
+//      }
+//    }
+//  }
+//
+//
+//  class DefaultFluid extends FluidStack(new StubFluid(), 0)
 
 //  def mockFluid(amt: Int, tag: NBTTagCompound = null): FluidStack = {
 //    val stubStack = stub[DefaultFluid]
