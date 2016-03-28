@@ -16,12 +16,12 @@ class TestNBTItemStorage extends TestBase with BeforeAndAfterAll {
     super.beforeAll()
   }
 
-  trait EmptyNBT extends AccessHelpers.EmptyArray {
+  trait EmptyNBT extends AccessHelpers.EmptyItemArray {
     val compound = new NBTTagCompound
     compound.setInteger(NBTItemStorage.SIZE_KEY, array.length)
   }
 
-  trait PartialNBT extends AccessHelpers.PartialArray {
+  trait PartialNBT extends AccessHelpers.PartialItemArray {
     val compound = new NBTTagCompound
     compound.setInteger(NBTItemStorage.SIZE_KEY, array.length)
     array.zipWithIndex.foreach { case (item, index) =>

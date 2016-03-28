@@ -12,9 +12,9 @@ class TestInventoryItemAccess extends TestBase {
 
   trait Collection {val collection: InventoryItemCollectionAccess}
 
-  class EmptyCollection extends Collection with AccessHelpers.EmptyArray {override val collection = new InventoryItemCollectionAccess(new InventoryArrayAdapter(array))}
+  class EmptyCollection extends Collection with AccessHelpers.EmptyItemArray {override val collection = new InventoryItemCollectionAccess(new InventoryArrayAdapter(array))}
 
-  class PartialCollection extends Collection with AccessHelpers.PartialArray {override val collection = new InventoryItemCollectionAccess(new InventoryArrayAdapter(array))}
+  class PartialCollection extends Collection with AccessHelpers.PartialItemArray {override val collection = new InventoryItemCollectionAccess(new InventoryArrayAdapter(array))}
 
   class Access(i: Int, collectionAccess: Collection) {
     val access     = new InventoryItemAccess(collectionAccess.collection, i)

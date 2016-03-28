@@ -22,11 +22,11 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
     super.afterAll()
   }
 
-  trait EmptyStorage extends AccessHelpers.EmptyArray {
+  trait EmptyStorage extends AccessHelpers.EmptyItemArray {
     val storage = new ArrayItemStorage(array)
   }
 
-  trait PartialStorage extends AccessHelpers.PartialArray {
+  trait PartialStorage extends AccessHelpers.PartialItemArray {
     val storage = new ArrayItemStorage(array)
   }
 

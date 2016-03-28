@@ -1,11 +1,12 @@
 package com.itszuvalex.itszulib.api.access
 
 import com.itszuvalex.itszulib.TestBase
-import com.itszuvalex.itszulib.testing.StubItem
+import com.itszuvalex.itszulib.testing.{StubFluid, StubItem}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.fluids.FluidStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/10/2016.
@@ -29,11 +30,48 @@ object AccessHelpers extends TestBase {
     }
   }
 
-  trait EmptyArray {
+  val testNBTFluidDeserializer = (nbt: NBTTagCompound) => {
+    if (nbt == null)
+      null
+    else if (nbt.hasNoTags)
+      null
+    else {
+      val amt = nbt.getInteger("Amount")
+      var tag: NBTTagCompound = null
+      if (nbt.hasKey("NBT")) {
+        tag = nbt.getCompoundTag("NBT")
+      }
+      val fluid = mockFluid(amt, tag)
+      fluid
+    }
+  }
+
+  val testNBTFluidSerializer = (f: FluidStack, nbt: NBTTagCompound) => {
+    if (f == null || nbt == null)
+      ()
+    else {
+      nbt.setInteger("Amount", f.amount)
+      if (f.tag != null && !f.tag.hasNoTags) {
+        nbt.setTag("NBT", f.tag)
+      }
+    }
+  }
+
+
+  class DefaultFluid extends FluidStack(new StubFluid(), 0)
+
+//  def mockFluid(amt: Int, tag: NBTTagCompound = null): FluidStack = {
+//    val stubStack = stub[DefaultFluid]
+//    stubStack.amount = amt
+//    stubStack.tag = tag
+//    stubStack
+//  }
+
+  trait EmptyItemArray {
     val array = new Array[ItemStack](10)
   }
 
-  trait PartialArray {
+  trait PartialItemArray {
     val array = new Array[ItemStack](10)
     val item0 = new ItemStack(new StubItem)
     val item1 = new ItemStack(new StubItem, 2)
@@ -44,6 +82,23 @@ object AccessHelpers extends TestBase {
     array(3) = item3
     array(7) = item7
   }
+
+//  trait EmptyFluidArray {
+//    val array = new Array[FluidStack](10)
+//  }
+//
+//  trait PartialFluidArray {
+//    val array  = new Array[FluidStack](10)
+//    val fluid0 = mockFluid(0)
+//    val fluid1 = mockFluid(200)
+//    val fluid3 = mockFluid(1000)
+//    val fluid7 = mockFluid(2000)
+//    array(0) = fluid0
+//    array(1) = fluid1
+//    array(3) = fluid3
+//    array(7) = fluid7
+//  }
+
 
   class InventoryArrayAdapter(array: Array[ItemStack]) extends IInventory {
     override def decrStackSize(slot: Int, amt: Int): ItemStack = {

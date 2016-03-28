@@ -54,21 +54,14 @@ class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage
                           store.getFullAccess.copyFromAccess(access, copy = false)
                         }
 
+  override def length: Int = access.synchronized(array.length)
+
   override def loadFromNBT(compound: NBTTagCompound) =
     access.synchronized {
                           val nbt = new NBTItemStorage(compound, false)
                           updateBackingStore(new Array[ItemStack](nbt.length))
                           access.copyFromAccess(nbt.getFullAccess, copy = false)
                         }
-
-  private def updateBackingStore(a: Array[ItemStack]): Unit = {
-    access.synchronized {
-                          incrementRevision()
-                          array = a
-                        }
-  }
-
-  override def length: Int = access.synchronized {array.length}
 
   /**
     *
@@ -86,9 +79,14 @@ class ArrayItemStorage(private var array: Array[ItemStack]) extends IItemStorage
     true
   }
 
-  override def update(slot: Int, value: ItemStack): Unit = {
-    array(slot) = value
+  private def updateBackingStore(a: Array[ItemStack]): Unit = {
+    access.synchronized {
+                          incrementRevision()
+                          array = a
+                        }
   }
+
+  override def update(slot: Int, value: ItemStack): Unit = array(slot) = value
 
   override def apply(slot: Int): ItemStack = array(slot)
 }
