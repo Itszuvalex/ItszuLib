@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.core.traits.block
 
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 
 /**
@@ -7,8 +8,8 @@ import net.minecraft.world.World
   */
 trait SpatialReactions {
 
-  def onPickup(world: World, x: Int, y: Int, z: Int)
+  def onPickup(world: World, pos: BlockPos)
 
-  def onPlacement(world: World, x: Int, y: Int, z: Int)
+  def onPlacement(world: World, pos: BlockPos)
 
 }

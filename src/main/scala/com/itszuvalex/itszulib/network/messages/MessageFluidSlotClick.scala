@@ -82,7 +82,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
             if ((message.manualAccess & 1) == 0) return item
             if (!FluidContainerRegistry.isFilledContainer(item)) return item
             val itemFluid = FluidContainerRegistry.getFluidForFilledItem(item)
-            if (itemFluid.getFluidID != message.filterFluid && message.filterFluid != -1) return item
+            if (itemFluid.getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
             val amt = tileSingleTank.tank.fill(itemFluid, false)
             if (amt < itemFluid.amount) return item
             tileSingleTank.tank.fill(itemFluid, true)
@@ -103,7 +103,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
             if ((message.manualAccess & 1) == 0) return item
             if (!FluidContainerRegistry.isFilledContainer(item)) return item
             val itemFluid = FluidContainerRegistry.getFluidForFilledItem(item)
-            if (itemFluid.getFluidID != message.filterFluid && message.filterFluid != -1) return item
+            if (itemFluid.getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
             val amt = tileMultiTank.tanks(message.tankID).fill(itemFluid, false)
             if (amt < itemFluid.amount) return item
             tileMultiTank.tanks(message.tankID).fill(itemFluid, true)
@@ -131,7 +131,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
             if ((message.manualAccess & 1) == 0) return item
             if (tileSingleTank.tank.getCapacity - tileSingleTank.tank.getFluidAmount == 0) return item
             if (item2.getFluid(item) == null) return item
-            if (item2.getFluid(item).getFluidID != message.filterFluid && message.filterFluid != -1) return item
+            if (item2.getFluid(item).getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
             tileSingleTank.tank.fill(item2.drain(item, tileSingleTank.tank.getCapacity - tileSingleTank.tank.getFluidAmount, true), true)
             tileSingleTank.setUpdateTank()
             item
@@ -150,7 +150,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
             if ((message.manualAccess & 1) == 0) return item
             if (tileMultiTank.tanks(message.tankID).getCapacity - tileMultiTank.tanks(message.tankID).getFluidAmount == 0) return item
             if (item2.getFluid(item) == null) return item
-            if (item2.getFluid(item).getFluidID != message.filterFluid && message.filterFluid != -1) return item
+            if (item2.getFluid(item).getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
             tileMultiTank.tanks(message.tankID).fill(item2.drain(item, tileMultiTank.tanks(message.tankID).getCapacity - tileMultiTank.tanks(message.tankID).getFluidAmount, true), true)
             tileMultiTank.setUpdateTanks()
             item
