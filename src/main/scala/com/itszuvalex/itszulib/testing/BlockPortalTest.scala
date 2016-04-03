@@ -13,7 +13,7 @@ class BlockPortalTest extends TileContainer(Material.iron) {
 
   override def isOpaqueCube = false
 
-  override def renderAsNormalBlock = false
+  override def isNormalCube: Boolean = false
 
   override def getRenderType = -1
 }

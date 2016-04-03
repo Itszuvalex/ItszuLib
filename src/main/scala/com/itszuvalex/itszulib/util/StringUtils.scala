@@ -3,9 +3,9 @@ package com.itszuvalex.itszulib.util
 import java.util.regex.{Matcher, Pattern}
 
 import com.itszuvalex.itszulib.ItszuLib
-import cpw.mods.fml.common.registry.GameRegistry
 import net.minecraft.block.Block
 import net.minecraft.item.{Item, ItemBlock, ItemStack}
+import net.minecraftforge.fml.common.registry.GameRegistry
 import org.apache.logging.log4j.Level
 
 /**

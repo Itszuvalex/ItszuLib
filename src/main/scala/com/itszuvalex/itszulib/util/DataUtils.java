@@ -29,7 +29,7 @@ import com.itszuvalex.itszulib.api.utility.TileSave;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import org.apache.logging.log4j.Level;
@@ -674,7 +674,7 @@ public class DataUtils {
         // });
 
         // ForgeDirection
-        registerSaveManager(ForgeDirection.class, new SaveManager() {
+        registerSaveManager(EnumFacing.class, new SaveManager() {
 
             @Override
             public void saveToNBT(NBTTagCompound compound, Field saveable,
@@ -684,7 +684,7 @@ public class DataUtils {
 
                 Saveable anno = saveable.getAnnotation(Saveable.class);
                 NBTTagCompound container = new NBTTagCompound();
-                ForgeDirection direction = (ForgeDirection) saveable.get(obj);
+                EnumFacing direction = (EnumFacing) saveable.get(obj);
                 if (direction == null) {
                     return;
                 }
@@ -700,7 +700,7 @@ public class DataUtils {
                     saveable.set(obj, null);
                     return;
                 }
-                ForgeDirection direction = ForgeDirection.getOrientation
+                EnumFacing direction = EnumFacing.getFront
                         (compound.getInteger(anno.tag().isEmpty() ? saveable.getName() : anno.tag()));
                 saveable.set(obj, direction);
             }
