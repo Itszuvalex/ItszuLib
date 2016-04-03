@@ -13,4 +13,4 @@ object StubFluid {
   }
 }
 
-class StubFluid(val name: String = "Test") extends Fluid(name)
+class StubFluid(val name: String = "Test") extends Fluid(name, null, null)

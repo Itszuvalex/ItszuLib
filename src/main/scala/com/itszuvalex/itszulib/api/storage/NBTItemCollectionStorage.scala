@@ -44,34 +44,44 @@ class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean
 
   override def getInventory: IInventory = access.synchronized(invWrapper)
 
-  override def loadFromNBT(compound: NBTTagCompound): Unit =
+
+  override def deserializeNBT(compound: NBTTagCompound): Unit =
     access.synchronized {
                           incrementRevision()
                           initializeEmptyNBT()
-                          compound.func_150296_c().asInstanceOf[java.util.Set[String]].foreach { key =>
+                          compound.getKeySet.foreach { key =>
                             nbt.setTag(key, compound.getTag(key).copy())
-                                                                                               }
+                                                     }
                         }
 
-  override def saveToNBT(compound: NBTTagCompound): Unit =
+  def initializeEmptyNBT() = {
+    setSize(0, clear = true)
+  }
+
+  override def setSize(size: Int, clear: Boolean): Boolean =
     access.synchronized {
-                          nbt.func_150296_c().asInstanceOf[java.util.Set[String]].foreach { key =>
+                          incrementRevision()
+                          val itemKeys = nbt.getKeySet.toSet
+                          (if (clear)
+                            itemKeys
+                          else
+                            itemKeys.filter(_.toInt >= size)
+                            )
+                          .foreach(nbt.removeTag)
+                          nbt.setInteger(NBTItemCollectionStorage.SIZE_KEY, size)
+                          true
+                        }
+
+  override def serializeNBT(): NBTTagCompound =
+    access.synchronized {
+                          val compound = new NBTTagCompound
+                          nbt.getKeySet.foreach { key =>
                             compound.setTag(key, nbt.getTag(key).copy())
-                                                                                          }
+                                                }
+                          compound
                         }
 
   override def apply(slot: Int): ItemStack = NBTItemCollectionStorage.deserialize(getItemCompound(slot))
-
-  override def update(slot: Int, item: ItemStack): Unit = {
-    (item, getItemCompound(slot, force = item != null)) match {
-      case (null, null) =>
-      case (null, comp) => nbt.removeTag(slot.toString)
-      case (i, _) =>
-        val comp = new NBTTagCompound
-        NBTItemCollectionStorage.serialize(i, comp)
-        nbt.setTag(slot.toString, comp)
-    }
-  }
 
   private def getItemCompound(slot: Int, force: Boolean = false): NBTTagCompound = {
     val exists = nbt.hasKey(slot.toString)
@@ -84,23 +94,16 @@ class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean
     else null
   }
 
-  override def length: Int = nbt.getInteger(NBTItemCollectionStorage.SIZE_KEY)
-
-  override def setSize(size: Int, clear: Boolean): Boolean =
-    access.synchronized {
-                          incrementRevision()
-                          val itemKeys = nbt.func_150296_c().asInstanceOf[java.util.Set[String]].toSet
-                          (if (clear)
-                            itemKeys
-                          else
-                            itemKeys.filter(_.toInt >= size)
-                            )
-                          .foreach(nbt.removeTag)
-                          nbt.setInteger(NBTItemCollectionStorage.SIZE_KEY, size)
-                          true
-                        }
-
-  def initializeEmptyNBT() = {
-    setSize(0, clear = true)
+  override def update(slot: Int, item: ItemStack): Unit = {
+    (item, getItemCompound(slot, force = item != null)) match {
+      case (null, null) =>
+      case (null, comp) => nbt.removeTag(slot.toString)
+      case (i, _) =>
+        val comp = new NBTTagCompound
+        NBTItemCollectionStorage.serialize(i, comp)
+        nbt.setTag(slot.toString, comp)
+    }
   }
+
+  override def length: Int = nbt.getInteger(NBTItemCollectionStorage.SIZE_KEY)
 }

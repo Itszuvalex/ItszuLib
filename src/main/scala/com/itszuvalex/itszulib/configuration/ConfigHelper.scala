@@ -69,7 +69,7 @@ object ConfigHelper {
         superclass = superclass.getSuperclass
       }
     }
-    fieldsList.foreach(field => {
+    fieldsList.foreach { field =>
       if (!(field.getDeclaringClass.ne(clazz) && obj == null)) {
         val accessible = field.isAccessible
         if (!accessible) field.setAccessible(true)
@@ -91,7 +91,7 @@ object ConfigHelper {
           field.setAccessible(false)
         }
       }
-    })
+                       }
   }
 
   def init() {

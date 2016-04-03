@@ -4,6 +4,7 @@ import com.itszuvalex.itszulib.api.events.EventTileEntityRelocation
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.{BlockPos, EnumFacing}
 import net.minecraft.world.{World, WorldServer}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.{BlockSnapshot, ForgeDirection}
@@ -15,44 +16,42 @@ import net.minecraftforge.event.world.BlockEvent.{BreakEvent, PlaceEvent}
 object TileEntityRelocation {
   val shiftElseRemake = false
 
-  def shiftBlock(world: World, x: Int, y: Int, z: Int, direction: ForgeDirection, player: EntityPlayer): Unit = {
-    val newX = x + direction.offsetX
-    val newY = y + direction.offsetY
-    val newZ = z + direction.offsetZ
-    moveBlock(world, x, y, z, world, newX, newY, newZ, false, player)
+  def shiftBlock(world: World, x: Int, y: Int, z: Int, direction: EnumFacing, player: EntityPlayer): Unit = {
+    val newX = x + direction.getFrontOffsetX
+    val newY = y + direction.getFrontOffsetY
+    val newZ = z + direction.getFrontOffsetZ
+    moveBlock(world, x, y, z, world, new BlockPos(newX, newY, newZ), false, player)
   }
 
-  def moveBlock(world: World, x: Int, y: Int, z: Int, destWorld: World, destX: Int, destY: Int, destZ: Int,
+  def moveBlock(world: World, pos: BlockPos, destWorld: World, destPos: BlockPos,
                 replace: Boolean = false, player: EntityPlayer): Unit = {
-    if (!replace && !destWorld.isAirBlock(destX, destY, destZ)) return
-    applySnapshot(extractBlock(world, x, y, z, player), destWorld, destX, destY, destZ, player)
+    if (!replace && !destWorld.isAirBlock(destPos)) return
+    applySnapshot(extractBlock(world, pos, player), destWorld, destPos, player)
   }
 
-  def extractBlock(world: World, x: Int, y: Int, z: Int, player: EntityPlayer): TileSave = {
+  def extractBlock(world: World, pos: BlockPos, player: EntityPlayer): TileSave = {
     world match {
       case world1: WorldServer =>
         if (MinecraftForge
             .EVENT_BUS
-            .post(new BreakEvent(x,
-                                 y,
-                                 z,
+            .post(new BreakEvent(
                                  world,
-                                 world.getBlock(x, y, z),
-                                 world.getBlockMetadata(x, y, z),
+              pos,
+                                 world.getBlockState(pos),
                                  player))) {
           return null
         }
       case _ =>
     }
-    if (MinecraftForge.EVENT_BUS.post(new EventTileEntityRelocation.Pickup(world, x, y, z))) return null
-    val tileEntity = world.getTileEntity(x, y, z)
-    val block = world.getBlock(x, y, z)
-    val metadata = world.getBlockMetadata(x, y, z)
-    val snapshot = new TileSave(world, x, y, z, block, metadata, tileEntity)
-    //    world.setBlockToAir(x, y, z)
-    world.removeTileEntity(x, y, z)
+    if (MinecraftForge.EVENT_BUS.post(new EventTileEntityRelocation.Pickup(world, pos))) return null
+    val tileEntity = world.getTileEntity(pos)
+    val block = world.getBlock(pos)
+    val metadata = world.getBlockMetadata(pos)
+    val snapshot = new TileSave(world, pos, block, metadata, tileEntity)
+    //    world.setBlockToAir(pos)
+    world.removeTileEntity(pos)
     //    TileContainer.shouldDrop = false
-    world.setBlock(x, y, z, Blocks.air, 0, 2)
+    world.setBlock(pos, Blocks.air, 0, 2)
     //    TileContainer.shouldDrop = true
     snapshot
   }

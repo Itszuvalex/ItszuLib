@@ -47,16 +47,15 @@ class ArrayItemCollectionStorage(private var array: Array[ItemStack]) extends II
     */
   def getArray: Array[ItemStack] = array
 
-  override def saveToNBT(compound: NBTTagCompound) =
-    access.synchronized {
-                          val store = new NBTItemCollectionStorage(compound, true)
-                          store.setSize(length, clear = true)
-                          store.getFullAccess.copyFromAccess(access, copy = false)
-                        }
+  access.synchronized {
+                        val compound = new NBTTagCompound
+                        val store = new NBTItemCollectionStorage(compound, true)
+                        store.setSize(length, clear = true)
+                        store.getFullAccess.copyFromAccess(access, copy = false)
+                        compound
+                      }
 
-  override def length: Int = access.synchronized(array.length)
-
-  override def loadFromNBT(compound: NBTTagCompound) =
+  override def deserializeNBT(compound: NBTTagCompound): Unit =
     access.synchronized {
                           val nbt = new NBTItemCollectionStorage(compound, false)
                           setSize(nbt.length, clear = true)
@@ -83,6 +82,8 @@ class ArrayItemCollectionStorage(private var array: Array[ItemStack]) extends II
     }
     true
   }
+
+  override def length: Int = access.synchronized(array.length)
 
   private def updateBackingStore(a: Array[ItemStack]): Unit = {
     access.synchronized {

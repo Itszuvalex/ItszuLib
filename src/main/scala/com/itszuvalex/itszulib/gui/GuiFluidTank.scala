@@ -96,9 +96,9 @@ class GuiFluidTank(override var anchorX: Int,
     if (manualAccess != 0 && isMousedOver) {
       tankID match {
         case -1 =>
-          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileSingleTank.xCoord, tileSingleTank.yCoord, tileSingleTank.zCoord, -1, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
+          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileSingleTank.getPos, -1, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
         case _ =>
-          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileMultiTank.xCoord, tileMultiTank.yCoord, tileMultiTank.zCoord, tankID, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
+          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileMultiTank.getPos, tankID, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
       }
     }
     super.onMouseClick(mouseX, mouseY, button)

@@ -4,7 +4,6 @@ import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.{FontRenderer, Gui}
 import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.client.renderer.entity.RenderItem
 import net.minecraft.item.ItemStack
 import org.lwjgl.opengl.GL11
 
@@ -27,8 +26,8 @@ class GuiItemStack(override var anchorX: Int,
                    var drawSlot: Boolean = true,
                    var str: String = null) extends GuiPanel {
 
-  val itemRenderer    = new RenderItem()
-  val fontRenderer    = Minecraft.getMinecraft.fontRenderer
+  val itemRenderer = Minecraft.getMinecraft.getRenderItem
+  val fontRenderer = Minecraft.getMinecraft.fontRendererObj
   override var _panelHeight: Int = 18
   override var _panelWidth : Int = 18
   var colorRaised     = GuiItemStack.DEFAULT_RAISED_COLOR
@@ -72,8 +71,8 @@ class GuiItemStack(override var anchorX: Int,
     if (itemStack != null) font = itemStack.getItem.getFontRenderer(itemStack)
     if (font == null) font = fontRenderer
     RenderHelper.enableGUIStandardItemLighting()
-    itemRenderer.renderItemAndEffectIntoGUI(font, Minecraft.getMinecraft.getTextureManager, itemStack, locX, locY)
-    itemRenderer.renderItemOverlayIntoGUI(font, Minecraft.getMinecraft.getTextureManager, itemStack, locX, locY, amt)
+    itemRenderer.renderItemAndEffectIntoGUI(itemStack, locX, locY)
+    itemRenderer.renderItemOverlayIntoGUI(font, itemStack, locX, locY, amt)
     itemRenderer.zLevel = 0.0F
     GL11.glPopMatrix()
   }

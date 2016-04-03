@@ -23,11 +23,12 @@ package com.itszuvalex.itszulib.core
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.core.traits.tile.TileDescriptionPacket
 import com.itszuvalex.itszulib.util.DataUtils
+import net.minecraft.client.renderer.texture.ITickable
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 
-abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
+abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with ITickable {
   override def readFromNBT(par1nbtTagCompound: NBTTagCompound) {
     super.readFromNBT(par1nbtTagCompound)
     DataUtils.loadObjectFromNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
@@ -38,8 +39,8 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
     DataUtils.saveObjectToNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
   }
 
-  override def updateEntity() {
-    super.updateEntity()
+  override def tick(): Unit = {
+    super.tick()
     if (!worldObj.isRemote) serverUpdate()
     else clientUpdate()
   }
@@ -74,7 +75,7 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
 
   def onSideActivate(par5EntityPlayer: EntityPlayer, side: Int): Boolean = {
     if (hasGUI) {
-      par5EntityPlayer.openGui(getMod, getGuiID, worldObj, xCoord, yCoord, zCoord)
+      par5EntityPlayer.openGui(getMod, getGuiID, worldObj, getPos.getX, getPos.getY, getPos.getZ)
       return true
     }
     false

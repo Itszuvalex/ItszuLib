@@ -1,12 +1,13 @@
 package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.access.{IAccess, ICollectionAccess, Revisioned}
-import com.itszuvalex.itszulib.api.core.NBTSerializable
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.INBTSerializable
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/26/16.
   */
-trait ICollectionStorage[T <: ICollectionStorage[T, C, A, D], C <: ICollectionAccess[C, A], A <: IAccess[A, D], D] extends scala.collection.mutable.Seq[D] with NBTSerializable with Revisioned {
+trait ICollectionStorage[T <: ICollectionStorage[T, C, A, D], C <: ICollectionAccess[C, A], A <: IAccess[A, D], D] extends scala.collection.mutable.Seq[D] with INBTSerializable[NBTTagCompound] with Revisioned {
 
   def getFullAccess: C
 

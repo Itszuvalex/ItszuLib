@@ -3,10 +3,10 @@ package com.itszuvalex.itszulib.logistics
 import java.util.concurrent.ConcurrentHashMap
 
 import com.itszuvalex.itszulib.ItszuLib
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent
-import cpw.mods.fml.common.network.NetworkRegistry
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.network.NetworkRegistry
 
 import scala.actors.threadpool.AtomicInteger
 import scala.collection.JavaConverters._

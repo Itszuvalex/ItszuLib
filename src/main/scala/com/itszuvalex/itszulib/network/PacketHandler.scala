@@ -2,8 +2,8 @@ package com.itszuvalex.itszulib.network
 
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.network.messages._
-import cpw.mods.fml.common.network.NetworkRegistry
-import cpw.mods.fml.relauncher.Side
+import net.minecraftforge.fml.common.network.NetworkRegistry
+import net.minecraftforge.fml.relauncher.Side
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 4/6/15.

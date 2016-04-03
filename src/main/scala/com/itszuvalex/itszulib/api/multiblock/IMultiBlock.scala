@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api.multiblock
 
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 
 /**
@@ -10,54 +11,42 @@ import net.minecraft.world.World
 trait IMultiBlock {
   /**
     * @param world
-    * @param x
-    * @param y
-    * @param z
+    * @param pos
     * @param strict Set to true to return false if any blocks that would be used to form this multiblock are already in one.
     * @return True if this MultiBlock can form in the given world, with the block at x,y,z as its controller block.
     *
     */
-  def canForm(world: World, x: Int, y: Int, z: Int, strict: Boolean): Boolean
+  def canForm(world: World, pos: BlockPos, strict: Boolean): Boolean
 
   /**
     * @param world
-    * @param x
-    * @param y
-    * @param z
-    * @param c_x
-    * @param c_y
-    * @param c_z
-    * @return True if the block at x, y, z is in the MultiBlock with the controller at c_x, c_y, c_z
+    * @param pos
+    * @param cPos
+    * @return True if the block at pos is in the MultiBlock with the controller at cPos
     */
-  def isBlockInMultiBlock(world: World, x: Int, y: Int, z: Int, c_x: Int, c_y: Int, c_z: Int): Boolean
+  def isBlockInMultiBlock(world: World, pos: BlockPos, cPos: BlockPos): Boolean
 
   /**
     * @param world
-    * @param x
-    * @param y
-    * @param z
+    * @param pos
     * @return True if this MultiBlock correctly forms in the given world, with the block at x,y,z as the controller
     *         block.
     */
-  def formMultiBlock(world: World, x: Int, y: Int, z: Int): Boolean
+  def formMultiBlock(world: World, pos: BlockPos): Boolean
 
   /**
     * @param world
-    * @param x
-    * @param y
-    * @param z
+    * @param pos
     * @return True if this MultiBlock correctly forms in the given world, using the block given at x,y,z anywhere in
     *         the MultiBlock
     */
-  def formMultiBlockWithBlock(world: World, x: Int, y: Int, z: Int): Boolean
+  def formMultiBlockWithBlock(world: World, pos: BlockPos): Boolean
 
   /**
     * @param world
-    * @param x
-    * @param y
-    * @param z
+    * @param pos
     * @return True if this MultiBlock breaks with no errors in the given world, using the block at x,y,z as the
     *         controller block.
     */
-  def breakMultiBlock(world: World, x: Int, y: Int, z: Int): Boolean
+  def breakMultiBlock(world: World, pos: BlockPos): Boolean
 }

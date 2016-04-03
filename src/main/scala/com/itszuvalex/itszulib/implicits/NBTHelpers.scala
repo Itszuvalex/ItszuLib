@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.implicits
 
-import com.itszuvalex.itszulib.api.core.NBTSerializable
 import net.minecraft.nbt.{NBTBase, NBTTagCompound, NBTTagList}
+import net.minecraftforge.common.util.INBTSerializable
 
 import scala.collection.JavaConversions._
 import scala.collection.TraversableOnce
@@ -13,11 +13,7 @@ object NBTHelpers {
 
   object NBTLiterals {
 
-    def NBTCompound(serializable: NBTSerializable) = {
-      val compound = new NBTTagCompound
-      serializable.saveToNBT(compound)
-      compound
-    }
+    def NBTCompound(serializable: INBTSerializable) = serializable.serializeNBT()
 
     def NBTCompound(elems: (String, Any)*): NBTTagCompound = NBTAdditions.NBTCompoundAdding(new NBTTagCompound)(elems: _*)
 
@@ -75,7 +71,7 @@ object NBTHelpers {
           case s: Short => compound.setShort(key, s)
           case s: String => compound.setString(key, s)
           case n: NBTBase => compound.setTag(key, n)
-          case save: NBTSerializable =>
+          case save: INBTSerializable =>
             compound.setTag(key, NBTLiterals.NBTCompound(save))
           case _ =>
         }
@@ -89,7 +85,7 @@ object NBTHelpers {
           case n: NBTTagCompound =>
             if (compound.hasKey(key)) {
               val nc = compound.getCompoundTag(key)
-              nc.merge(n.func_150296_c().collect { case key: String => (key, n.getTag(key)) }.toSeq: _*)
+              nc.merge(n.getKeySet.map(key => (key, n.getTag(key))).toSeq: _*)
             }
             else {
               compound.setTag(key, n)

@@ -1,11 +1,13 @@
 package com.itszuvalex.itszulib.api.utility
 
-import cpw.mods.fml.common.registry.GameRegistry
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.fml.common.registry.GameRegistry
 
 object TileSave {
   def apply(nBTTagCompound: NBTTagCompound) = loadFromNBT(nBTTagCompound)
@@ -23,36 +25,26 @@ object TileSave {
   }
 }
 
-class TileSave(private var _dimensionID: Int, var x: Int, var y: Int, var z: Int, var modID: String,
-               var blockID: String, var metadata: Int, var te: NBTTagCompound) /*extends ISaveable*/ {
+class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: String,
+               var blockID: String, var state: IBlockState, var te: NBTTagCompound) /*extends ISaveable*/ {
   lazy val block = GameRegistry.findBlock(modID, blockID)
 
   def world = DimensionManager.getWorld(dimensionID)
 
-  def world_=(world: World) = _dimensionID = world.provider.dimensionId
+  def world_=(world: World) = _dimensionID = world.provider.getDimensionId
 
-  def dimensionID = _dimensionID
-
-  def dimensionID_=(dim: Int) = _dimensionID = dim
-
-  def this(dimensionID: Int, x: Int, y: Int, z: Int, block: Block, metadata: Int, te: NBTTagCompound) =
+  def this(dimensionID: Int, pos: BlockPos, state: IBlockState, te: NBTTagCompound) =
     this(dimensionID,
-         x,
-         y,
-         z,
+         pos,
          GameRegistry.findUniqueIdentifierFor(block).modId,
          GameRegistry.findUniqueIdentifierFor(block).name,
-         metadata,
+         state,
          te)
 
-  def this(world: World, x: Int, y: Int, z: Int, block: Block, metadata: Int, te: NBTTagCompound) =
-    this(world.provider.dimensionId,
-         x,
-         y,
-         z,
-         GameRegistry.findUniqueIdentifierFor(block).modId,
-         GameRegistry.findUniqueIdentifierFor(block).name,
-         metadata,
+  def this(world: World, pos: BlockPos, te: NBTTagCompound) =
+    this(world.provider.getDimensionId,
+         pos,
+         world.getBlockState(pos),
          te)
 
   def this(dimensionID: Int, x: Int, y: Int, z: Int, block: Block, metadata: Int, te: TileEntity) =
@@ -86,6 +78,10 @@ class TileSave(private var _dimensionID: Int, var x: Int, var y: Int, var z: Int
     compound.setInteger("meta", metadata)
     if (te != null) compound.setTag("nbt", te)
   }
+
+  def dimensionID = _dimensionID
+
+  def dimensionID_=(dim: Int) = _dimensionID = dim
 
   /*
     override def loadFromNBT(compound: NBTTagCompound): Unit =  {

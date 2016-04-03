@@ -3,9 +3,9 @@ package com.itszuvalex.itszulib.configuration
 import com.google.common.reflect.ClassPath
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.core.Configurable
-import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.relauncher.Side
 import net.minecraftforge.common.config.Configuration
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.relauncher.Side
 import org.apache.logging.log4j.Level
 
 import scala.collection.JavaConversions._

@@ -24,8 +24,6 @@ trait IFluidAccess extends IAccess[IFluidAccess, FluidStack] {
 
   def currentStorage: Option[Int] = get.map(_.amount)
 
-  def onChanged() = {}
-
   def copyFromAccess(other: IFluidAccess, copyStack: Boolean = true): Unit =
     set(other.get match {
           case Some(i) => if (copyStack) i.copy() else i

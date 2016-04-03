@@ -6,6 +6,6 @@ import net.minecraft.item.ItemStack
 /**
   * Created by Christopher Harris (Itszuvalex) on 2/27/2016.
   */
-class FilteredSlot(inventory: IInventory, slot: Int, x: Int, y: Int) extends Slot(inventory, slot, x, y) {
-  override def isItemValid(item: ItemStack): Boolean = inventory.isItemValidForSlot(slot, item)
+class FilteredSlot(in_inventory: IInventory, slot: Int, x: Int, y: Int) extends Slot(in_inventory, slot, x, y) {
+  override def isItemValid(item: ItemStack): Boolean = in_inventory.isItemValidForSlot(slot, item)
 }

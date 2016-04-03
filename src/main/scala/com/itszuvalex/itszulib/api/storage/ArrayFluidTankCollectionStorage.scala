@@ -16,21 +16,30 @@ class ArrayFluidTankCollectionStorage(private var array: Array[FluidTank]) exten
 
   override def getFullAccess: IFluidTankCollectionAccess = access.synchronized(access)
 
-  override def saveToNBT(compound: NBTTagCompound) =
+  override def serializeNBT(): NBTTagCompound =
     access.synchronized {
+                          val compound = new NBTTagCompound
                           val store = new NBTFluidTankCollectionStorage(compound, true)
                           store.setSize(length, clear = true)
                           store.getFullAccess.copyFromAccess(access, copy = false)
+                          compound
                         }
 
   override def length: Int = array.length
 
-  override def loadFromNBT(compound: NBTTagCompound) =
+  override def deserializeNBT(compound: NBTTagCompound): Unit =
     access.synchronized {
                           val nbt = new NBTFluidTankCollectionStorage(compound, false)
                           updateBackingStore(new Array[FluidTank](nbt.length))
                           access.copyFromAccess(nbt.getFullAccess, copy = false)
                         }
+
+  private def updateBackingStore(newArray: Array[FluidTank]): Unit = {
+    access.synchronized {
+                          incrementRevision()
+                          array = newArray
+                        }
+  }
 
   /**
     *
@@ -46,13 +55,6 @@ class ArrayFluidTankCollectionStorage(private var array: Array[FluidTank]) exten
       updateBackingStore(java.util.Arrays.copyOf(array, size))
     }
     true
-  }
-
-  private def updateBackingStore(newArray: Array[FluidTank]): Unit = {
-    access.synchronized {
-                          incrementRevision()
-                          array = newArray
-                        }
   }
 
   override def update(slot: Int, value: FluidTank): Unit = array(slot) = value

@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.render
 
 import com.itszuvalex.itszulib.api.IPreviewableRenderer
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.collection._
 

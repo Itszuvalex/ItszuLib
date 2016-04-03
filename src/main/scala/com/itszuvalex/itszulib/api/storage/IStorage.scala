@@ -1,7 +1,6 @@
 package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.access.IAccess
-import com.itszuvalex.itszulib.api.core.NBTSerializable
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/27/16.

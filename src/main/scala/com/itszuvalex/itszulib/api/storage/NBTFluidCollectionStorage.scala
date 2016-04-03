@@ -40,13 +40,13 @@ class NBTFluidCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolea
 
   override def getFullAccess = access.synchronized(access)
 
-  override def loadFromNBT(compound: NBTTagCompound): Unit =
+  override def deserializeNBT(compound: NBTTagCompound): Unit =
     access.synchronized {
                           incrementRevision()
                           initializeEmptyNBT()
-                          compound.func_150296_c().asInstanceOf[java.util.Set[String]].foreach { key =>
+                          compound.getKeySet.foreach { key =>
                             nbt.setTag(key, compound.getTag(key).copy())
-                                                                                               }
+                                                     }
                         }
 
   def initializeEmptyNBT() = {
@@ -56,7 +56,7 @@ class NBTFluidCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolea
   override def setSize(size: Int, clear: Boolean): Boolean =
     access.synchronized {
                           incrementRevision()
-                          val itemKeys = nbt.func_150296_c().asInstanceOf[java.util.Set[String]].toSet
+                          val itemKeys = nbt.getKeySet.toSet
                           (if (clear)
                             itemKeys
                           else
@@ -67,11 +67,13 @@ class NBTFluidCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolea
                           true
                         }
 
-  override def saveToNBT(compound: NBTTagCompound): Unit =
+  override def serializeNBT(): NBTTagCompound =
     access.synchronized {
-                          nbt.func_150296_c().asInstanceOf[java.util.Set[String]].foreach { key =>
+                          val compound = new NBTTagCompound
+                          nbt.getKeySet.foreach { key =>
                             compound.setTag(key, nbt.getTag(key).copy())
-                                                                                          }
+                                                }
+                          compound
                         }
 
   override def apply(slot: Int): FluidStack = NBTFluidCollectionStorage.deserialize(getFluidCompound(slot))

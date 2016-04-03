@@ -23,13 +23,14 @@ package com.itszuvalex.itszulib.util;
 
 import com.itszuvalex.itszulib.ItszuLib;
 import com.itszuvalex.itszulib.PlayerUUIDTracker;
-import com.itszuvalex.itszulib.api.core.NBTSerializable;
 import com.itszuvalex.itszulib.api.core.Saveable;
 import com.itszuvalex.itszulib.api.utility.TileSave;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumFacing;
+import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import org.apache.logging.log4j.Level;
@@ -47,13 +48,11 @@ public class DataUtils {
         public void saveToNBT(NBTTagCompound compound, Field saveable,
                               Object obj) throws IllegalArgumentException,
                                                  IllegalAccessException {
-            NBTSerializable sobj = (NBTSerializable) saveable.get(obj);
+            INBTSerializable sobj = (INBTSerializable) saveable.get(obj);
             if (sobj == null) {
                 return;
             }
-            NBTTagCompound info = new NBTTagCompound();
-            sobj.saveToNBT(info);
-            compound.setTag(saveable.getName(), info);
+            compound.setTag(saveable.getName(), sobj.serializeNBT());
         }
 
         @Override
@@ -65,11 +64,9 @@ public class DataUtils {
                 return;
             }
 
-            NBTTagCompound container = compound.getCompoundTag(saveable
-                    .getName());
-            NBTSerializable info = (NBTSerializable) saveable.get(obj);
-            info.loadFromNBT(container);
-//			saveable.set(obj, info);
+            NBTBase container = compound.getTag(saveable.getName());
+            INBTSerializable info = (INBTSerializable) saveable.get(obj);
+            info.deserializeNBT(container);
         }
     };
 
@@ -936,7 +933,7 @@ public class DataUtils {
             SaveManager man = managerMap.get(clazz);
             if (man != null) {
                 man.saveToNBT(compound, saveable, obj);
-            } else if (NBTSerializable.class.isAssignableFrom(clazz)) {
+            } else if (INBTSerializable.class.isAssignableFrom(clazz)) {
                 iSaveableSaveManager.saveToNBT(compound, saveable, obj);
             } else {
                 ItszuLib.logger().log(Level.ERROR,
@@ -1007,7 +1004,7 @@ public class DataUtils {
             SaveManager man = managerMap.get(clazz);
             if (man != null) {
                 man.readFromNBT(compound, saveable, obj);
-            } else if (NBTSerializable.class.isAssignableFrom(clazz)) {
+            } else if (INBTSerializable.class.isAssignableFrom(clazz)) {
                 Object os = saveable.get(obj);
                 if (os == null) {
                     ItszuLib.logger().log(Level.ERROR,

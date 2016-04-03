@@ -1,10 +1,10 @@
 package com.itszuvalex.itszulib.network.messages
 
-import cpw.mods.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
 import io.netty.buffer.ByteBuf
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{CompressedStreamTools, NBTSizeTracker, NBTTagCompound}
+import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
 
 /**
   * Created by Alex on 11.10.2015.

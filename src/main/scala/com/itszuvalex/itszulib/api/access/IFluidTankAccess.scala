@@ -17,8 +17,6 @@ trait IFluidTankAccess extends IAccess[IFluidTankAccess, FluidTank] {
     amount
                                          }.getOrElse(0)
 
-  def onChanged() = {}
-
   def room = maxStorage.map(_ - currentStorage.get)
 
   def currentStorage: Option[Int] = get.map(_.getFluidAmount)

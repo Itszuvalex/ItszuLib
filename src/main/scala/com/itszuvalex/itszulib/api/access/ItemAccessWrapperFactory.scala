@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.api.access
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.util.{ChatComponentText, IChatComponent}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/12/2016.
@@ -29,7 +30,24 @@ object ItemAccessWrapperFactory {
 
     override def decrStackSize(slot: Int, amount: Int): ItemStack = access.apply(slot).split(amount).get.orNull
 
-    override def closeInventory(): Unit = {}
+    override def setField(id: Int, value: Int): Unit = {}
+
+    override def removeStackFromSlot(index: Int): ItemStack = {
+      val ia = access(index)
+      val item = ia.get.orNull
+      ia.clear()
+      item
+    }
+
+    override def getField(id: Int): Int = 0
+
+    override def getFieldCount: Int = 0
+
+    override def openInventory(player: EntityPlayer): Unit = {}
+
+    override def clear(): Unit = access.foreach(_.clear())
+
+    override def closeInventory(player: EntityPlayer): Unit = {}
 
     override def getSizeInventory: Int = length
 
@@ -41,19 +59,17 @@ object ItemAccessWrapperFactory {
 
     override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = access.apply(slot).canSetTo(stack)
 
-    override def getStackInSlotOnClosing(slot: Int): ItemStack = getStackInSlot(slot)
-
     override def getStackInSlot(slot: Int): ItemStack = access.apply(slot).get.orNull
-
-    override def openInventory(): Unit = {}
 
     override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = access(slot).set(stack)
 
     override def isUseableByPlayer(player: EntityPlayer): Boolean = access.canPlayerAccess(player)
 
-    override def hasCustomInventoryName: Boolean = false
+    override def getDisplayName: IChatComponent = new ChatComponentText("InventoryWrapper")
 
-    override def getInventoryName: String = ""
+    override def getName: String = "InventoryWrapper"
+
+    override def hasCustomName: Boolean = false
 
     override def apply(idx: Int): IItemAccess = access.apply(idx)
   }

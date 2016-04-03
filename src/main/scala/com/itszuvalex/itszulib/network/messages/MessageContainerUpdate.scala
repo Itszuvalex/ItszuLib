@@ -1,8 +1,8 @@
 package com.itszuvalex.itszulib.network.messages
 
-import cpw.mods.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
 import io.netty.buffer.ByteBuf
 import net.minecraft.client.Minecraft
+import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 10/19/14.

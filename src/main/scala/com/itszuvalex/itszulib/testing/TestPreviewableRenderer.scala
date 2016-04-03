@@ -22,8 +22,7 @@ class TestPreviewableRenderer extends IPreviewableRenderer {
     */
   override def renderAtLocation(stack: ItemStack, world: World, x: Int, y: Int, z: Int,
                                 rx: Double, ry: Double, rz: Double): Unit = {
-    Tessellator.instance.startDrawingQuads()
     RenderUtils.renderCube(rx.toFloat, ry.toFloat, rz.toFloat, 0, 0, 0, 1, 1, 1, Blocks.diamond_ore.getIcon(0, 0))
-    Tessellator.instance.draw()
+    Tessellator.getInstance().draw()
   }
 }

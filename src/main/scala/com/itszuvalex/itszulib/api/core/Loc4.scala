@@ -23,16 +23,16 @@ package com.itszuvalex.itszulib.api.core
 import com.itszuvalex.itszulib.api.Overridable
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.{BlockPos, EnumFacing}
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.common.util.ForgeDirection
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 5/9/14.
   */
 object Loc4 {
-  val worldIntMapper = new Overridable((w: World) => w.provider.dimensionId)
+  val worldIntMapper = new Overridable((w: World) => w.provider.getDimensionId)
   val intWorldMapper = new Overridable[(Int) => _ <: World](DimensionManager.getWorld _)
 
   def apply(compound: NBTTagCompound): Loc4 = {
@@ -61,7 +61,10 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends NBTSer
 
   def this() = this(0, 0, 0, 0)
 
-  def this(te: TileEntity) = this(te.xCoord, te.yCoord, te.zCoord, Loc4.mapWorld(te.getWorldObj))
+
+  def this(loc: BlockPos, dim: Int) = this(loc.getX, loc.getY, loc.getZ, dim)
+
+  def this(te: TileEntity) = this(te.getPos, Loc4.mapWorld(te.getWorld))
 
   def saveToNBT(compound: NBTTagCompound) {
     compound.setInteger("x", x)
@@ -78,31 +81,30 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends NBTSer
   }
 
   def getTileEntity(force: Boolean = false) = getWorld match {
-    case Some(a) => Option(if (a.blockExists(x, y, z) || force) a.getTileEntity(x, y, z) else null)
+    case Some(a) => Option(if (a.isBlockLoaded(getPos) || force) a.getTileEntity(getPos) else null)
     case None => None
   }
 
-  def getBlock(force: Boolean = false) = getWorld match {
-    case Some(a) => Option(if (a.blockExists(x, y, z) || force) a.getBlock(x, y, z) else null)
+  def getBlock(force: Boolean = false) = getBlockState(force).map(_.getBlock)
+
+  def getBlockState(force: Boolean = false) = getWorld match {
+    case Some(a) => Option(if (a.isBlockLoaded(getPos) || force) a.getBlockState(getPos) else null)
     case None => None
   }
+
+  def getPos = new BlockPos(x, y, z)
 
   def getWorld = Option(Loc4.mapInt(dim))
 
-  def getMetadata(force: Boolean = false) = getWorld match {
-    case Some(a) => Option(if (a.blockExists(x, y, z) || force) a.getBlockMetadata(x, y, z) else null)
-    case None => None
-  }
-
   def getChunk(force: Boolean = false) = getWorld match {
-    case Some(a) => Option(if (a.blockExists(x, y, z) || force) a.getChunkFromBlockCoords(x, z) else null)
+    case Some(a) => Option(if (a.isBlockLoaded(getPos) || force) a.getChunkFromBlockCoords(getPos) else null)
     case None => None
   }
 
   def chunkCoords = (x >> 4, z >> 4)
 
   def chunkContains(chunk: Chunk): Boolean = {
-    if (Loc4.mapWorld(chunk.worldObj) != dim) false
+    if (Loc4.mapWorld(chunk.getWorld) != dim) false
     else if (x <= chunk.xPosition * 16) false
     else if (x > chunk.xPosition * 16 + 16) false
     else if (z <= chunk.zPosition * 16) false
@@ -118,9 +120,9 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends NBTSer
     else false
   }
 
-  def getOffset(dir: ForgeDirection, distance: Int = 1): Loc4 = getOffset(distance * dir.offsetX,
-                                                                          distance * dir.offsetY,
-                                                                          distance * dir.offsetZ)
+  def getOffset(dir: EnumFacing, distance: Int = 1): Loc4 = getOffset(distance * dir.getFrontOffsetX,
+                                                                      distance * dir.getFrontOffsetY,
+                                                                      distance * dir.getFrontOffsetZ)
 
 
   def getOffset(xOffset: Int, yOffset: Int, zOffset: Int): Loc4 = new Loc4(x + xOffset, y + yOffset, z + zOffset, dim)

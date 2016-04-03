@@ -20,7 +20,7 @@
  */
 package com.itszuvalex.itszulib.render
 
-import com.itszuvalex.itszulib.api.core.{NBTSerializable, Saveable}
+import com.itszuvalex.itszulib.api.core.Saveable
 import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.nbt.NBTTagCompound
 

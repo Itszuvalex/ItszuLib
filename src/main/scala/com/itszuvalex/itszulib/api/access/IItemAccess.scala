@@ -36,11 +36,6 @@ trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
   def maxDamage: Option[Int] = get.map(_.getMaxDamage)
 
   /**
-    * Call when this changes backing item.
-    */
-  def onChanged(): Unit = {}
-
-  /**
     *
     * @param amount Amount to remove from this storage and transfer to a new one.
     * @return New item access

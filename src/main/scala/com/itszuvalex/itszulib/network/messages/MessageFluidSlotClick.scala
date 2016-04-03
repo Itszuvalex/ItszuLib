@@ -2,12 +2,13 @@ package com.itszuvalex.itszulib.network.messages
 
 import com.itszuvalex.itszulib.core.traits.tile.{TileFluidTank, TileMultiFluidTank}
 import com.itszuvalex.itszulib.network.PacketHandler
-import cpw.mods.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
 import io.netty.buffer.ByteBuf
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.BlockPos
 import net.minecraftforge.fluids.{FluidContainerRegistry, IFluidContainerItem}
+import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
 
 /**
   * Created by Alex on 11.10.2015.
@@ -40,7 +41,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
 
   override def onMessage(message: MessageFluidSlotClick, ctx: MessageContext): IMessage = {
     val player = ctx.getServerHandler.playerEntity
-    player.worldObj.getTileEntity(message.x, message.y, message.z) match {
+    player.worldObj.getTileEntity(new BlockPos(message.x, message.y, message.z)) match {
       case tank: TileFluidTank => tileSingleTank = tank; tankID = -1
       case tank: TileMultiFluidTank => tileMultiTank = tank
       case _ => return null

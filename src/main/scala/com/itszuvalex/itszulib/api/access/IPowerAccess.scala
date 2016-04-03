@@ -32,8 +32,6 @@ trait IPowerAccess extends IAccess[IPowerAccess, Double] {
     amount
                                                }.getOrElse(0)
 
-  def onChanged(): Unit = {}
-
   def clear(): Unit = {
     set(0)
   }

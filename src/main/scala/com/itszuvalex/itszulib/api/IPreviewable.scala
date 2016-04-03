@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.api
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import net.minecraft.item.Item
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 8/26/15.
