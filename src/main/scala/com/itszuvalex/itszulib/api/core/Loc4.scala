@@ -27,6 +27,7 @@ import net.minecraft.util.{BlockPos, EnumFacing}
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.INBTSerializable
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 5/9/14.
@@ -35,11 +36,13 @@ object Loc4 {
   val worldIntMapper = new Overridable((w: World) => w.provider.getDimensionId)
   val intWorldMapper = new Overridable[(Int) => _ <: World](DimensionManager.getWorld _)
 
+  val ORIGIN = Loc4(0, 0, 0, 0)
+
   def apply(compound: NBTTagCompound): Loc4 = {
     if (compound == null) null
     else {
       val loc = new Loc4(0, 0, 0, 0)
-      loc.loadFromNBT(compound)
+      loc.deserializeNBT(compound)
       loc
     }
   }
@@ -57,23 +60,26 @@ object Loc4 {
   def mapInt(int: Int): World = intWorldMapper.apply(int)
 }
 
-case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends NBTSerializable with Comparable[Loc4] {
+case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSerializable[NBTTagCompound] with Comparable[Loc4] {
 
   def this() = this(0, 0, 0, 0)
 
-
   def this(loc: BlockPos, dim: Int) = this(loc.getX, loc.getY, loc.getZ, dim)
 
-  def this(te: TileEntity) = this(te.getPos, Loc4.mapWorld(te.getWorld))
+  def this(world: World, pos: BlockPos) = this(pos, Loc4.mapWorld(world))
 
-  def saveToNBT(compound: NBTTagCompound) {
+  def this(te: TileEntity) = this(te.getWorld, te.getPos)
+
+  override def serializeNBT(): NBTTagCompound = {
+    val compound = new NBTTagCompound
     compound.setInteger("x", x)
     compound.setInteger("y", y)
     compound.setInteger("z", z)
     compound.setInteger("dim", dim)
+    compound
   }
 
-  def loadFromNBT(compound: NBTTagCompound) {
+  override def deserializeNBT(compound: NBTTagCompound): Unit = {
     x = compound.getInteger("x")
     y = compound.getInteger("y")
     z = compound.getInteger("z")

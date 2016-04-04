@@ -1,12 +1,13 @@
 package com.itszuvalex.itszulib.api.utility
 
-import net.minecraft.block.Block
+import com.itszuvalex.itszulib.api.core.Loc4
 import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.INBTSerializable
 import net.minecraftforge.fml.common.registry.GameRegistry
 
 object TileSave {
@@ -26,8 +27,18 @@ object TileSave {
 }
 
 class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: String,
-               var blockID: String, var state: IBlockState, var te: NBTTagCompound) /*extends ISaveable*/ {
+               var blockID: String, var meta: Int, var te: NBTTagCompound) extends INBTSerializable[NBTTagCompound] {
+
   lazy val block = GameRegistry.findBlock(modID, blockID)
+
+  def this(dim: Int, x: Int, y: Int, z: Int, modID: String, blockID: String, meta: Int, nbt: NBTTagCompound) =
+    this(dim, new BlockPos(x, y, z), modID, blockID, meta, nbt)
+
+  def this(dim: Int, x: Int, y: Int, z: Int, modID: String, blockID: String, state: IBlockState, nbt: NBTTagCompound) =
+    this(dim, x, y, z, modID, blockID, state.getBlock.getMetaFromState(state), nbt)
+
+  def this(dim: Int, pos: BlockPos, modID: String, blockID: String, state: IBlockState, nbt: NBTTagCompound) =
+    this(dim, pos, modID, blockID, state.getBlock.getMetaFromState(state), nbt)
 
   def world = DimensionManager.getWorld(dimensionID)
 
@@ -47,8 +58,8 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
          world.getBlockState(pos),
          te)
 
-  def this(dimensionID: Int, x: Int, y: Int, z: Int, block: Block, metadata: Int, te: TileEntity) =
-    this(dimensionID, x, y, z, block, metadata, if (te != null) {
+  def this(dimensionID: Int, pos: BlockPos, state: IBlockState, te: TileEntity) =
+    this(dimensionID, pos, state, if (te != null) {
       val nbt = new NBTTagCompound
       te.writeToNBT(nbt)
       nbt
@@ -56,8 +67,8 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
       null
     })
 
-  def this(world: World, x: Int, y: Int, z: Int, block: Block, metadata: Int, te: TileEntity) =
-    this(world, x, y, z, block, metadata, if (te != null) {
+  def this(world: World, pos: BlockPos, state: IBlockState, te: TileEntity) =
+    this(world, pos, if (te != null) {
       val nbt = new NBTTagCompound
       te.writeToNBT(nbt)
       nbt
@@ -65,33 +76,36 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
       null
     })
 
-  def this(world: World, x: Int, y: Int, z: Int) =
-    this(world, x, y, z, world.getBlock(x, y, z), world.getBlockMetadata(x, y, z), world.getTileEntity(x, y, z))
+  def this(world: World, pos: BlockPos) =
+    this(world, pos, world.getBlockState(pos), world.getTileEntity(pos))
 
-  def saveToNBT(compound: NBTTagCompound): Unit = {
+  def this(loc: Loc4) = this(loc.getWorld.get, loc.getPos)
+
+  override def serializeNBT(): NBTTagCompound = {
+    val compound = new NBTTagCompound
     compound.setInteger("dimension", dimensionID)
-    compound.setInteger("posX", x)
-    compound.setInteger("posY", y)
-    compound.setInteger("posZ", z)
+    compound.setInteger("posX", pos.getX)
+    compound.setInteger("posY", pos.getY)
+    compound.setInteger("posZ", pos.getZ)
     compound.setString("modID", modID)
     compound.setString("blockID", blockID)
-    compound.setInteger("meta", metadata)
+    compound.setInteger("meta", meta)
     if (te != null) compound.setTag("nbt", te)
+    compound
   }
 
   def dimensionID = _dimensionID
 
   def dimensionID_=(dim: Int) = _dimensionID = dim
 
-  /*
-    override def loadFromNBT(compound: NBTTagCompound): Unit =  {
-      _dimensionID = compound.getInteger("dimension")
-      x = compound.getInteger("posX")
-      y = compound.getInteger("posY")
-      z = compound.getInteger("posZ")
-      modID = compound.getString("modID")
-      blockID = compound.getString("blockID")
-      metadata = compound.getInteger("meta")
-      te = if (compound.hasKey("nbt")) compound.getCompoundTag("nbt") else null
-    }*/
+  override def deserializeNBT(compound: NBTTagCompound): Unit = {
+    _dimensionID = compound.getInteger("dimension")
+    pos = new BlockPos(compound.getInteger("posX"),
+                       compound.getInteger("posY"),
+                       compound.getInteger("posZ"))
+    modID = compound.getString("modID")
+    blockID = compound.getString("blockID")
+    meta = compound.getInteger("meta")
+    te = if (compound.hasKey("nbt")) compound.getCompoundTag("nbt") else null
+  }
 }

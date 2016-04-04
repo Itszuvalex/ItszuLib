@@ -27,6 +27,8 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
 
   override def compareTo(o: ICommand): Int = getCommandName.compareTo(o.getCommandName)
 
+  override def getCommandName = name
+
   override def getCommandAliases: java.util.List[String] = aliases
 
   override def processCommand(icommandsender: ICommandSender, astring: Array[String]) {
@@ -69,8 +71,7 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
             output.append(alias)
                                         }
           com match {
-            case base: CommandBase =>
-              output.append(EnumChatFormatting.WHITE).append(" - ").append(base.getDescription).append(EnumChatFormatting.YELLOW)
+            case base: CommandBase => output.append(EnumChatFormatting.WHITE).append(" - ").append(base.getDescription).append(EnumChatFormatting.YELLOW)
             case _ =>
           }
           PlayerUtils.sendMessageToPlayer(player, getModName, output.toString)
@@ -81,24 +82,7 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
     ""
   }
 
-  override def getCommandName = name
-
   def getModName: String = ItszuLib.ID
-
-  private def getSubCommand(name: String): Option[ICommand] = {
-    subcmds.get(name) match {
-      case a: Some => a
-      case None =>
-        subcmds.values.foreach { subc =>
-          subc.getCommandAliases.foreach { alias =>
-            if (alias.compareToIgnoreCase(name) == 0) {
-              return Some(subc)
-            }
-                                         }
-                               }
-        None
-    }
-  }
 
   def getDescription = ""
 
@@ -113,6 +97,21 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
       }
     }
     new util.ArrayList[String](subcmds.keySet)
+  }
+
+  private def getSubCommand(name: String): Option[ICommand] = {
+    subcmds.get(name) match {
+      case a: Some => a
+      case None =>
+        subcmds.values.foreach { subc =>
+          subc.getCommandAliases.foreach { alias =>
+            if (alias.compareToIgnoreCase(name) == 0) {
+              return Some(subc)
+            }
+                                         }
+                               }
+        None
+    }
   }
 
   override def isUsernameIndex(astring: Array[String], i: Int): Boolean = {
