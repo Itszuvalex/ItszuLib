@@ -60,7 +60,7 @@ class PlayerProperties(protected final var player: EntityPlayer) extends IExtend
     }
     catch {
       case e: InstantiationException =>
-        ItszuLib.logger.log(Level.ERROR, "Failed to create new instance of " + entry.getKey + " on creating PlayerProperties for player: " + player + " name: " + player.getCommandSenderName)
+        ItszuLib.logger.log(Level.ERROR, "Failed to create new instance of " + entry.getKey + " on creating PlayerProperties for player: " + player + " name: " + player.getName)
         e.printStackTrace()
       case e: IllegalAccessException =>
         e.printStackTrace()

@@ -2,14 +2,12 @@ package com.itszuvalex.itszulib.core.traits.block
 
 import com.itszuvalex.itszulib.core.traits.block.MultiSided._
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{IIcon, MathHelper}
+import net.minecraft.util.EnumFacing._
+import net.minecraft.util.{EnumFacing, MathHelper}
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.common.util.ForgeDirection._
-import org.omg.CORBA.UNKNOWN
+import org.omg.CORBA.null
 
 /**
   * Created by Chris on 12/6/2014.
@@ -18,9 +16,9 @@ object MultiSided {
   //TODO : THIS DOES NOT WORK
   //     METADATA IS ONLY 16 POSSIBLE VALUES
   //    THIS REQURIES 24.  YOU WILL NEED TO GO TO TILE ENTITIES TO DO THIS.
-  def getTopAndFrontFromMetadata(metadata: Byte): (ForgeDirection, ForgeDirection) = {
-    val top = getOrientation(metadata / 4)
-    var front = UNKNOWN
+  def getTopAndFrontFromMetadata(metadata: Byte): (EnumFacing, EnumFacing) = {
+    val top = getFront(metadata / 4)
+    var front: EnumFacing = null
     (top, metadata % 4) match {
       //*****************************
       case (UP, 0) => front = NORTH
@@ -58,7 +56,7 @@ object MultiSided {
     (top, front)
   }
 
-  def getMetadataFromTopAndFront(top: ForgeDirection, front: ForgeDirection): Byte = {
+  def getMetadataFromTopAndFront(top: EnumFacing, front: EnumFacing): Byte = {
     val ret: Byte = (top.ordinal * 4).toByte
     var s: Byte = 0
     (top, front) match {
@@ -98,8 +96,8 @@ object MultiSided {
     (ret + s).toByte
   }
 
-  def getRotatedSide(orig: ForgeDirection, top: ForgeDirection, front: ForgeDirection): ForgeDirection = {
-    if (orig == UNKNOWN) return UNKNOWN
+  def getRotatedSide(orig: EnumFacing, top: EnumFacing, front: EnumFacing): EnumFacing = {
+    if (orig == null) return null
 
     (top, front) match {
       case (NORTH, dir) =>
@@ -112,7 +110,7 @@ object MultiSided {
               case EAST => WEST
               case SOUTH => DOWN
               case WEST => EAST
-              case _ => UNKNOWN
+              case _ => null
             }
           case EAST =>
             orig match {
@@ -122,7 +120,7 @@ object MultiSided {
               case EAST => NORTH
               case SOUTH => DOWN
               case WEST => SOUTH
-              case _ => UNKNOWN
+              case _ => null
             }
           case DOWN =>
             orig match {
@@ -132,7 +130,7 @@ object MultiSided {
               case EAST => EAST
               case SOUTH => DOWN
               case WEST => WEST
-              case _ => UNKNOWN
+              case _ => null
             }
           case WEST =>
             orig match {
@@ -142,9 +140,9 @@ object MultiSided {
               case EAST => SOUTH
               case SOUTH => DOWN
               case WEST => NORTH
-              case _ => UNKNOWN
+              case _ => null
             }
-          case _ => UNKNOWN
+          case _ => null
         }
       case (UP, dir) =>
         dir match {
@@ -157,7 +155,7 @@ object MultiSided {
               case EAST => NORTH
               case SOUTH => EAST
               case WEST => SOUTH
-              case _ => UNKNOWN
+              case _ => null
             }
           case SOUTH => orig.getOpposite
           case WEST =>
@@ -168,9 +166,9 @@ object MultiSided {
               case EAST => SOUTH
               case SOUTH => WEST
               case WEST => NORTH
-              case _ => UNKNOWN
+              case _ => null
             }
-          case _ => UNKNOWN
+          case _ => null
         }
       case (EAST, dir) =>
         dir match {
@@ -182,7 +180,7 @@ object MultiSided {
               case EAST => UP
               case SOUTH => WEST
               case WEST => DOWN
-              case _ => UNKNOWN
+              case _ => null
             }
           case SOUTH =>
             orig match {
@@ -192,7 +190,7 @@ object MultiSided {
               case EAST => UP
               case SOUTH => NORTH
               case WEST => DOWN
-              case _ => UNKNOWN
+              case _ => null
             }
           case DOWN =>
             orig match {
@@ -202,7 +200,7 @@ object MultiSided {
               case EAST => UP
               case SOUTH => EAST
               case WEST => DOWN
-              case _ => UNKNOWN
+              case _ => null
             }
           case NORTH =>
             orig match {
@@ -212,15 +210,15 @@ object MultiSided {
               case EAST => UP
               case SOUTH => SOUTH
               case WEST => DOWN
-              case _ => UNKNOWN
+              case _ => null
             }
-          case _ => UNKNOWN
+          case _ => null
         }
       //*****************************
-      case (UNKNOWN, _) => UNKNOWN
-      case (_, UNKNOWN) => UNKNOWN
+      case (null, _) => null
+      case (_, null) => null
       case (t, dir) => getRotatedSide(orig.getOpposite, t.getOpposite, dir.getOpposite)
-      case _ => UNKNOWN
+      case _ => null
     }
   }
 }
@@ -246,7 +244,7 @@ trait MultiSided extends Block {
       val west = world.getBlock(x - 1, y, z)
       val east = world.getBlock(x + 1, y, z)
       val top = UP
-      var front = UNKNOWN
+      var front = null
       if (south.isOpaqueCube && !north.isOpaqueCube) {
         front = NORTH
       }
@@ -265,8 +263,8 @@ trait MultiSided extends Block {
 
   override def getIcon(side: Int, metadata: Int): IIcon = {
     val (top, front) = getTopAndFrontFromMetadata(metadata.toByte)
-    getRotatedSide(ForgeDirection.getOrientation(side), top, front) match {
-      case UNKNOWN => super.getIcon(side, metadata)
+    getRotatedSide(EnumFacing.getOrientation(side), top, front) match {
+      case null => super.getIcon(side, metadata)
       case other => icons(other.ordinal)
     }
   }
@@ -284,7 +282,7 @@ trait MultiSided extends Block {
     icons(DOWN.ordinal()) = register.registerIcon(getTextureNameForSide(DOWN))
   }
 
-  def getTextureNameForSide(side: ForgeDirection): String
+  def getTextureNameForSide(side: EnumFacing): String
 
   /**
     * Called when the block is placed in the world.

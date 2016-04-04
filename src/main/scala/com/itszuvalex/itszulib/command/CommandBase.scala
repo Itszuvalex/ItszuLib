@@ -18,7 +18,7 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
 
   var subcmds = new mutable.HashMap[String, ICommand]
 
-  def this(name: String) = this(name, Array[String](name))
+  def this(name: String) = this(name, ArrayBuffer[String](name))
 
   def addSubCommand(subcommand: ICommand): Boolean = {
     subcmds.put(subcommand.getCommandName, subcommand)
@@ -101,7 +101,7 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
 
   private def getSubCommand(name: String): Option[ICommand] = {
     subcmds.get(name) match {
-      case a: Some => a
+      case Some(a) => Some(a)
       case None =>
         subcmds.values.foreach { subc =>
           subc.getCommandAliases.foreach { alias =>

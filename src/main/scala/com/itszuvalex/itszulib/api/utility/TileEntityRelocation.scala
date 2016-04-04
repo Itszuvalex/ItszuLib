@@ -15,11 +15,11 @@ import net.minecraftforge.event.world.BlockEvent.{BreakEvent, PlaceEvent}
 object TileEntityRelocation {
   val shiftElseRemake = false
 
-  def shiftBlock(world: World, x: Int, y: Int, z: Int, direction: EnumFacing, player: EntityPlayer): Unit = {
-    val newX = x + direction.getFrontOffsetX
-    val newY = y + direction.getFrontOffsetY
-    val newZ = z + direction.getFrontOffsetZ
-    moveBlock(world, x, y, z, world, new BlockPos(newX, newY, newZ), false, player)
+  def shiftBlock(world: World, pos: BlockPos, direction: EnumFacing, player: EntityPlayer): Unit = {
+    val newX = pos.getX + direction.getFrontOffsetX
+    val newY = pos.getY + direction.getFrontOffsetY
+    val newZ = pos.getZ + direction.getFrontOffsetZ
+    moveBlock(world, pos, world, new BlockPos(newX, newY, newZ), false, player)
   }
 
   def moveBlock(world: World, pos: BlockPos, destWorld: World, destPos: BlockPos,
@@ -33,11 +33,10 @@ object TileEntityRelocation {
       case world1: WorldServer =>
         if (MinecraftForge
             .EVENT_BUS
-            .post(new BreakEvent(
-                                  world,
-                                  pos,
-                                  world.getBlockState(pos),
-                                  player))) {
+            .post(new BreakEvent(world,
+                                 pos,
+                                 world.getBlockState(pos),
+                                 player))) {
           return null
         }
       case _ =>

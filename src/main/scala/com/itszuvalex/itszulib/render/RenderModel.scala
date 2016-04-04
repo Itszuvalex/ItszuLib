@@ -21,6 +21,8 @@
 package com.itszuvalex.itszulib.render
 
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumFacing._
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.common.util.ForgeDirection._
 
@@ -87,7 +89,7 @@ class RenderModel(var location: Point3D, var center: Point3D) {
     tes.addTranslation(-location.x, -location.y, -location.z)
   }
 
-  def rotatedToDirection(dir: ForgeDirection) = dir match {
+  def rotatedToDirection(dir: EnumFacing) = dir match {
     case SOUTH => rotatedOnXAxis(Math.PI)
     case EAST => rotatedOnYAxis(-Math.PI / 2d)
     case WEST => rotatedOnYAxis(Math.PI / 2d)

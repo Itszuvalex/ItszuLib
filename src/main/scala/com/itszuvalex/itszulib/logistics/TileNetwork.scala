@@ -25,7 +25,7 @@ object TileNetwork {
       node.getTileEntity() match {
         case Some(c) =>
           c match {
-            case a: INetworkNode[N] if !explored.contains(a.getLoc) =>
+            case a: C if !explored.contains(a.getLoc) =>
               explored += node
               network.getConnections(a.getLoc).getOrElse(Set()).foreach(expandLoc(_, network, explored))
             case _ =>

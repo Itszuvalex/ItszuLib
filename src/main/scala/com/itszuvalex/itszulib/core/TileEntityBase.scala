@@ -27,6 +27,7 @@ import net.minecraft.client.renderer.texture.ITickable
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumFacing
 
 abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with ITickable {
   override def readFromNBT(par1nbtTagCompound: NBTTagCompound) {
@@ -73,7 +74,7 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
     DataUtils.saveObjectToNBT(compound, this, DataUtils.EnumSaveType.ITEM)
   }
 
-  def onSideActivate(par5EntityPlayer: EntityPlayer, side: Int): Boolean = {
+  def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {
     if (hasGUI) {
       par5EntityPlayer.openGui(getMod, getGuiID, worldObj, getPos.getX, getPos.getY, getPos.getZ)
       return true
