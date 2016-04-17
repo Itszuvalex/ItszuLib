@@ -34,6 +34,8 @@ package object wrappers {
     override def nbt: NBTTagCompound = stack.getTagCompound
 
     override def nbt_=(nbt: NBTTagCompound): Unit = stack.setTagCompound(nbt)
+
+    override def item_=(i: Item): Unit = stack.setItem(i)
   }
 
 }
