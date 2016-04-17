@@ -7,7 +7,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing._
 import net.minecraft.util.{EnumFacing, MathHelper}
 import net.minecraft.world.World
-import org.omg.CORBA.null
 
 /**
   * Created by Chris on 12/6/2014.

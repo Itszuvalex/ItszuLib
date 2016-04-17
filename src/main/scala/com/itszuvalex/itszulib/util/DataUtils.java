@@ -824,11 +824,9 @@ public class DataUtils {
                                   Object obj) throws IllegalArgumentException,
                                                      IllegalAccessException {
                 Saveable anno = saveable.getAnnotation(Saveable.class);
-                NBTTagCompound container = new NBTTagCompound();
                 TileSave stack = (TileSave) saveable.get(obj);
                 if (stack == null) return;
-                stack.saveToNBT(container);
-                compound.setTag(anno.tag().isEmpty() ? saveable.getName() : anno.tag(), container);
+                compound.setTag(anno.tag().isEmpty() ? saveable.getName() : anno.tag(), stack.serializeNBT());
             }
 
             @Override

@@ -120,6 +120,8 @@ object NBTHelpers {
 
       def String(key: String) = if (compound.hasKey(key)) compound.getString(key) else null
 
+      def Compound(key: String) = if(compound.hasKey(key)) compound.getCompoundTag(key) else null
+
       def NBTCompound[T <: AnyRef](key: String)(callback: NBTTagCompound => T): T = if (compound != null) {
         if (compound.hasKey(key)) {
           val read = compound.getCompoundTag(key)
