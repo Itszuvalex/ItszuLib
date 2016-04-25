@@ -32,7 +32,7 @@ object InventoryUtils {
     if (restrictions != null) {
       util.Arrays.sort(restrictions)
     }
-    for (i <- 0 until slots.length) {
+    slots.indices.foreach { i =>
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) != null && compareItem(slots(i), item) == 0) {
           val slot = slots(i)
@@ -47,7 +47,7 @@ object InventoryUtils {
         }
       }
     }
-    for (i <- 0 until slots.length) {
+    slots.indices.foreach { i =>
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) == null) {
           slots(i) = item.copy

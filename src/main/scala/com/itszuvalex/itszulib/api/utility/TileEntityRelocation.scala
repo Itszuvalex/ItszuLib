@@ -73,7 +73,7 @@ object TileEntityRelocation {
     if (MinecraftForge.EVENT_BUS.post(new EventTileEntityRelocation.Placement(destWorld, destPos, destWorld.getBlockState(destPos)))) {
       return false
     }
-    destWorld.setBlock(destPos, s.block, s.metadata, 3)
+    destWorld.setBlockState(destPos, s.block.getStateFromMeta(s.meta))
     if (s.te != null) {
       if (s.pos.getX != destPos.getX) s.te.setInteger("x", destPos.getX)
       if (s.pos.getY != destPos.getY) s.te.setInteger("y", destPos.getY)
@@ -81,15 +81,13 @@ object TileEntityRelocation {
       val newTile = if (s.world == destWorld) {
         TileEntity.createAndLoadEntity(s.te)
       } else {
-        val tile = s.block.createTileEntity(destWorld, s.metadata)
+        val tile = s.block.createTileEntity(destWorld, s.block.getStateFromMeta(s.meta))
         tile.readFromNBT(s.te)
         tile
       }
-      newTile.blockType = s.block
       destWorld.setTileEntity(destPos, newTile)
     }
-    s.block.onBlockAdded(destWorld, destPos)
-    s.block.onPostBlockPlaced(destWorld, destPos, destWorld.getBlockMetadata(destPos))
+    s.block.onBlockAdded(destWorld, destPos, s.block.getStateFromMeta(s.meta))
     true
   }
 }

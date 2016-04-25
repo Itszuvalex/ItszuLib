@@ -6,6 +6,7 @@ import com.itszuvalex.itszulib.core.TileEntityBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.util.{ChatComponentText, EnumFacing, IChatComponent}
 
 /**
   * Created by Chris on 11/29/2014.
@@ -16,13 +17,33 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   def defaultStorage: IItemCollectionStorage
 
-  override def getAccessibleSlotsFromSide(side: Int) = inventory.getFullAccess.indices.toArray
 
-  override def canExtractItem(slot: Int, item: ItemStack, side: Int) = true
+  override def getSlotsForFace(side: EnumFacing): Array[Int] = inventory.indices.toArray
 
-  override def canInsertItem(slot: Int, item: ItemStack, side: Int) = true
+  override def canExtractItem(index: Int, stack: ItemStack, direction: EnumFacing): Boolean = true
 
-  override def closeInventory() = {}
+  override def canInsertItem(index: Int, itemStackIn: ItemStack, direction: EnumFacing): Boolean = true
+
+  override def hasDescription: Boolean = false
+
+  override def closeInventory(player: EntityPlayer): Unit = {}
+
+  override def clear(): Unit = inventory.getFullAccess.foreach(_.clear())
+
+  override def openInventory(player: EntityPlayer): Unit = {}
+
+  override def removeStackFromSlot(index: Int): ItemStack = {
+    val i = inventory.getFullAccess(index)
+    val ret = i.get.orNull
+    i.clear()
+    ret
+  }
+
+  override def getDisplayName: IChatComponent = new ChatComponentText("Inventory")
+
+  override def getName: String = "inventory"
+
+  override def hasCustomName: Boolean = false
 
   override def decrStackSize(slot: Int, amount: Int) = inventory.getInventory.decrStackSize(slot, amount)
 
@@ -31,10 +52,6 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
   override def getInventoryStackLimit = inventory.getInventory.getInventoryStackLimit
 
   override def isItemValidForSlot(slot: Int, item: ItemStack) = inventory.getInventory.isItemValidForSlot(slot, item)
-
-  override def getStackInSlotOnClosing(slot: Int): ItemStack = inventory.getInventory.getStackInSlotOnClosing(slot)
-
-  override def openInventory() = {}
 
   override def setInventorySlotContents(slot: Int, item: ItemStack) = {
     inventory.getInventory.setInventorySlotContents(slot, item)
@@ -50,7 +67,4 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   override def getStackInSlot(slot: Int) = inventory.getInventory.getStackInSlot(slot)
 
-  override def hasCustomInventoryName = false
-
-  override def getInventoryName = ""
 }
