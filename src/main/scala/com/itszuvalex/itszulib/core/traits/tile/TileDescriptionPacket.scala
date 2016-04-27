@@ -10,7 +10,7 @@ import net.minecraft.tileentity.TileEntity
   * Created by Christopher on 2/20/2015.
   */
 trait TileDescriptionPacket extends TileEntity {
-  override def getDescriptionPacket: Packet = {
+  override def getDescriptionPacket: Packet[_] = {
     if (!hasDescription) {
       return null
     }

@@ -1,15 +1,14 @@
 package com.itszuvalex.itszulib.core.traits.block
 
-import net.minecraft.util.BlockPos
-import net.minecraft.world.World
+import com.itszuvalex.itszulib.api.core.Loc4
 
 /**
   * Created by Itszuvalex on 1/1/15.
   */
 trait SpatialReactions {
 
-  def onPickup(world: World, pos: BlockPos)
+  def onPickup(loc: Loc4)
 
-  def onPlacement(world: World, pos: BlockPos)
+  def onPlacement(loc: Loc4)
 
 }

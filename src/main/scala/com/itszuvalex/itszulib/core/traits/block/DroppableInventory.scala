@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.core.traits.block
 
 import java.util.Random
 
+import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.util.InventoryUtils
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
@@ -20,7 +21,7 @@ trait DroppableInventory extends Block {
       worldIn.getTileEntity(pos) match {
         case ti: IInventory =>
           val random = new Random
-          (0 until ti.getSizeInventory).map(ti.getStackInSlot).foreach(InventoryUtils.dropItem(_, worldIn, pos, random))
+          (0 until ti.getSizeInventory).map(ti.getStackInSlot).foreach(InventoryUtils.dropItem(_, new Loc4(worldIn, pos), random))
         case _ =>
       }
     }

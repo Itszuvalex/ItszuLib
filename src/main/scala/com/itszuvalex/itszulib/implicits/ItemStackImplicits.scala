@@ -35,7 +35,7 @@ object ItemStackImplicits {
   implicit class ForcedNBT(i: ItemStack) {
     def forceTag: NBTTagCompound = {
       if (!i.hasTagCompound)
-        i.stackTagCompound = new NBTTagCompound
+        i.setTagCompound(new NBTTagCompound)
       i.getTagCompound
     }
   }

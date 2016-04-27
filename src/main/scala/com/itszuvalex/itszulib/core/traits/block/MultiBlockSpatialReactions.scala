@@ -1,21 +1,20 @@
 package com.itszuvalex.itszulib.core.traits.block
 
+import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.api.multiblock.IMultiBlockComponent
-import net.minecraft.util.BlockPos
-import net.minecraft.world.World
 
 /**
   * Created by Itszuvalex on 1/1/15.
   */
 trait MultiBlockSpatialReactions extends MultiBlock with SpatialReactions {
-  override def onPickup(world: World, pos: BlockPos): Unit = {
-    world.getTileEntity(pos) match {
-      case m: IMultiBlockComponent if m.getInfo.isValidMultiBlock => getMultiBlock.breakMultiBlock(world, m.getInfo.cLoc)
+  override def onPickup(loc: Loc4): Unit = {
+    loc.getWorld.get.getTileEntity(loc.getPos) match {
+      case m: IMultiBlockComponent if m.getInfo.isValidMultiBlock => getMultiBlock.breakMultiBlock(m.getInfo.cLoc)
       case _ =>
     }
   }
 
-  override def onPlacement(world: World, pos: BlockPos): Unit = {
-    getMultiBlock.formMultiBlockWithBlock(world, pos)
+  override def onPlacement(loc: Loc4): Unit = {
+    getMultiBlock.formMultiBlockWithBlock(loc)
   }
 }

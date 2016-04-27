@@ -1,9 +1,7 @@
 package com.itszuvalex.itszulib.testing
 
 import com.itszuvalex.itszulib.api.IPreviewableRenderer
-import com.itszuvalex.itszulib.render.RenderUtils
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
@@ -22,7 +20,7 @@ class TestPreviewableRenderer extends IPreviewableRenderer {
     */
   override def renderAtLocation(stack: ItemStack, world: World, x: Int, y: Int, z: Int,
                                 rx: Double, ry: Double, rz: Double): Unit = {
-    RenderUtils.renderCube(rx.toFloat, ry.toFloat, rz.toFloat, 0, 0, 0, 1, 1, 1, Blocks.diamond_ore.getIcon(0, 0))
+//    RenderUtils.renderCube(rx.toFloat, ry.toFloat, rz.toFloat, 0, 0, 0, 1, 1, 1, Blocks.diamond_ore.getIcon(0, 0))
     Tessellator.getInstance().draw()
   }
 }

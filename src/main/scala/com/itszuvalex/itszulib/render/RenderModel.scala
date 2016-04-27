@@ -23,8 +23,6 @@ package com.itszuvalex.itszulib.render
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumFacing._
-import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.common.util.ForgeDirection._
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -83,10 +81,10 @@ class RenderModel(var location: Point3D, var center: Point3D) {
   }
 
   def draw() {
-    val tes = Tessellator.instance
-    tes.addTranslation(location.x, location.y, location.z)
+    val tes = Tessellator.getInstance()
+//    tes.addTranslation(location.x, location.y, location.z)
     faces.foreach(_.draw)
-    tes.addTranslation(-location.x, -location.y, -location.z)
+//    tes.addTranslation(-location.x, -location.y, -location.z)
   }
 
   def rotatedToDirection(dir: EnumFacing) = dir match {

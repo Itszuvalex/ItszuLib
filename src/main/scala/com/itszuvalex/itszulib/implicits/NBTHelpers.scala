@@ -13,7 +13,7 @@ object NBTHelpers {
 
   object NBTLiterals {
 
-    def NBTCompound(serializable: INBTSerializable) = serializable.serializeNBT()
+    def NBTCompound(serializable: INBTSerializable[NBTTagCompound]) = serializable.serializeNBT()
 
     def NBTCompound(elems: (String, Any)*): NBTTagCompound = NBTAdditions.NBTCompoundAdding(new NBTTagCompound)(elems: _*)
 
@@ -71,7 +71,7 @@ object NBTHelpers {
           case s: Short => compound.setShort(key, s)
           case s: String => compound.setString(key, s)
           case n: NBTBase => compound.setTag(key, n)
-          case save: INBTSerializable =>
+          case save: INBTSerializable[NBTTagCompound] =>
             compound.setTag(key, NBTLiterals.NBTCompound(save))
           case _ =>
         }
