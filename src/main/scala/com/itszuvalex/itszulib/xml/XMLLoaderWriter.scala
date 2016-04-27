@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib.configuration.xml
+package com.itszuvalex.itszulib.xml
 
 import java.io.File
 

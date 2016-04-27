@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib.wrappers
+package com.itszuvalex.itszulib.api.wrappers
 
 import net.minecraft.item.Item
 import net.minecraft.nbt.NBTTagCompound

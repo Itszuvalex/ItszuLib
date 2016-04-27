@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib
+package com.itszuvalex.itszulib.api
 
 import net.minecraft.item.ItemStack
 
@@ -8,4 +8,6 @@ import net.minecraft.item.ItemStack
 package object wrappers {
 
   implicit def WrapItemStack(item: ItemStack): WrappedItemStack = new WrappedItemStack(item)
+
+  implicit def WrapItemStackToInterface(item: ItemStack): IItemStack = new WrappedItemStack(item)
 }

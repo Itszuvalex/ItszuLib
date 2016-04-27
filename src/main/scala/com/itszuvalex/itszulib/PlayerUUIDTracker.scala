@@ -3,7 +3,7 @@ package com.itszuvalex.itszulib
 import java.io.File
 import java.util.UUID
 
-import com.itszuvalex.itszulib.configuration.xml.XMLLoaderWriter
+import com.itszuvalex.itszulib.xml.XMLLoaderWriter
 import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent

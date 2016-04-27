@@ -95,13 +95,13 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
 
   @Deprecated def onInventoryChanged() = setModified()
 
-  def setModified() = if (worldObj != null) worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+  def setModified() = if (worldObj != null) worldObj.markChunkDirty(getPos, this)
 
-  def setRenderUpdate() = if (worldObj != null) worldObj.markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord)
+  def setRenderUpdate() = if (worldObj != null) worldObj.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
 
-  def setUpdate() = if (worldObj != null) worldObj.markBlockForUpdate(xCoord, yCoord, zCoord)
+  def setUpdate() = if (worldObj != null) worldObj.markBlockForUpdate(getPos)
 
-  def notifyNeighborsOfChange() = if (worldObj != null) worldObj.func_147453_f(xCoord, yCoord, zCoord, getBlockType)
+  def notifyNeighborsOfChange() = if (worldObj != null) worldObj.notifyNeighborsOfStateChange(getPos, getBlockType)
 
   def onBlockBreak(): Unit = {}
 

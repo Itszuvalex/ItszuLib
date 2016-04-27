@@ -1,34 +1,35 @@
 package com.itszuvalex.itszulib.api.multiblock
 
+import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.implicits.NBTHelpers.NBTAdditions._
+import com.itszuvalex.itszulib.implicits.NBTHelpers.NBTLiterals._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.BlockPos
-import net.minecraft.world.World
 import net.minecraftforge.common.util.INBTSerializable
 
 class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCompound] {
-  private var isMultiBlock            = false
-  private var controllerPos: BlockPos = new BlockPos(0, 0, 0)
+  private var isMultiBlock        = false
+  private var controllerLoc: Loc4 = new Loc4(0, 0, 0, 0)
 
-  def isController(pos: BlockPos) = isValidMultiBlock && pos.equals(controllerPos)
+  def isController(loc: Loc4) = isValidMultiBlock && loc.equals(controllerLoc)
 
   override def isValidMultiBlock = isMultiBlock
 
-  override def formMultiBlock(world: World, pos: BlockPos): Boolean = {
+  override def formMultiBlock(loc: Loc4): Boolean = {
     if (isMultiBlock) {
-      if (pos != controllerPos) {
+      if (loc != controllerLoc) {
         return false
       }
     }
     isMultiBlock = true
-    controllerPos = pos
+    controllerLoc = loc
     true
   }
 
-  def cPos = controllerPos
+  def cLoc = controllerLoc
 
-  override def breakMultiBlock(world: World, pos: BlockPos): Boolean = {
+  override def breakMultiBlock(loc: Loc4): Boolean = {
     if (isMultiBlock) {
-      if (pos != controllerPos) {
+      if (loc != controllerLoc) {
         return false
       }
     }
@@ -39,18 +40,14 @@ class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCo
   override def getInfo = this
 
   override def serializeNBT(): NBTTagCompound = {
-    val nbt = new NBTTagCompound
-    nbt.setBoolean("isFormed", isMultiBlock)
-    nbt.setInteger("c_x", controllerPos.getX)
-    nbt.setInteger("c_y", controllerPos.getY)
-    nbt.setInteger("c_z", controllerPos.getZ)
-    nbt
+    NBTCompound(
+                 "isFormed" -> isMultiBlock,
+                 "c_loc" -> controllerLoc
+               )
   }
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
-    isMultiBlock = nbt.getBoolean("isFormed")
-    controllerPos = new BlockPos(nbt.getInteger("c_x"),
-                                 nbt.getInteger("c_y"),
-                                 nbt.getInteger("c_z"))
+    isMultiBlock = nbt.Bool("isFormed")
+    controllerLoc = nbt.NBTCompound("c_loc")(Loc4(_))
   }
 }

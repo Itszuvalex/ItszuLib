@@ -21,7 +21,6 @@ trait DroppableInventory extends Block {
         case ti: IInventory =>
           val random = new Random
           (0 until ti.getSizeInventory).map(ti.getStackInSlot).foreach(InventoryUtils.dropItem(_, worldIn, pos, random))
-          worldIn.func_147453_f(pos, state.getBlock)
         case _ =>
       }
     }

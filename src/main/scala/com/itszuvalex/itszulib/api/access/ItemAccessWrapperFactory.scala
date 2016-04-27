@@ -24,7 +24,6 @@ object ItemAccessWrapperFactory {
     }
   }
 
-
   class InventoryWrapper(access: IItemCollectionAccess) extends IItemCollectionAccess with IInventory {
     override def canPlayerAccess(player: EntityPlayer): Boolean = access.canPlayerAccess(player)
 

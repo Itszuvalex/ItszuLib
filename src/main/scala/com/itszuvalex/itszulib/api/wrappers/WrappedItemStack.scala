@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib.wrappers
+package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
 import com.itszuvalex.itszulib.implicits.IDImplicits._
@@ -43,7 +43,7 @@ case class WrappedItemStack(private val stack: ItemStack) extends IItemStack {
 
   override def stackSize: Int = stack.stackSize
 
-  override def stackSizeMax: Int = stack.stackSizeMax
+  override def stackSizeMax: Int = stack.getMaxStackSize
 
   override def nbt_=(nbt: NBTTagCompound): Unit = stack.setTagCompound(nbt)
 

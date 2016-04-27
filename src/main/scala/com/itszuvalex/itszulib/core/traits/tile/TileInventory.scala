@@ -17,7 +17,6 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   def defaultStorage: IItemCollectionStorage
 
-
   override def getSlotsForFace(side: EnumFacing): Array[Int] = inventory.indices.toArray
 
   override def canExtractItem(index: Int, stack: ItemStack, direction: EnumFacing): Boolean = true

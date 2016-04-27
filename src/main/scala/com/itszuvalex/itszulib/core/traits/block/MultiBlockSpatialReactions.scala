@@ -10,7 +10,7 @@ import net.minecraft.world.World
 trait MultiBlockSpatialReactions extends MultiBlock with SpatialReactions {
   override def onPickup(world: World, pos: BlockPos): Unit = {
     world.getTileEntity(pos) match {
-      case m: IMultiBlockComponent if m.getInfo.isValidMultiBlock => getMultiBlock.breakMultiBlock(world, m.getInfo.cPos)
+      case m: IMultiBlockComponent if m.getInfo.isValidMultiBlock => getMultiBlock.breakMultiBlock(world, m.getInfo.cLoc)
       case _ =>
     }
   }
