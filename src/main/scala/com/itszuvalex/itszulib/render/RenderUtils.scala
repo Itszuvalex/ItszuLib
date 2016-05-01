@@ -26,6 +26,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.client.renderer.{ActiveRenderInfo, GlStateManager, Tessellator, WorldRenderer}
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumFacing._
 import org.lwjgl.opengl.GL11
 
 object RenderUtils {
@@ -342,10 +343,10 @@ object RenderUtils {
     GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
     //        GlStateManager.color(f, f1, f2, f3)
     worldrenderer.begin(7, DefaultVertexFormats.POSITION)
-    worldrenderer.pos(x.toDouble, (y + height).toDouble, zheight.toDouble).endVertex()
-    worldrenderer.pos((x + width).toDouble, (y + height).toDouble, zheight.toDouble).endVertex()
-    worldrenderer.pos((x + width).toDouble, y.toDouble, zheight.toDouble).endVertex()
-    worldrenderer.pos(x.toDouble, y.toDouble, zheight.toDouble).endVertex()
+    worldrenderer.pos(x.toDouble, (y + height).toDouble, zheight.toDouble).tex(minU.toDouble, maxV.toDouble).endVertex()
+    worldrenderer.pos((x + width).toDouble, (y + height).toDouble, zheight.toDouble).tex(maxU.toDouble, maxV.toDouble).endVertex()
+    worldrenderer.pos((x + width).toDouble, y.toDouble, zheight.toDouble).tex(maxU.toDouble, minV.toDouble).endVertex()
+    worldrenderer.pos(x.toDouble, y.toDouble, zheight.toDouble).tex(minU.toDouble, minV.toDouble).endVertex()
     tessellator.draw()
     GlStateManager.enableTexture2D()
     GlStateManager.disableBlend()
