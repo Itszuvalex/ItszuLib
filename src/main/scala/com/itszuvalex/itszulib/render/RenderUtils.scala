@@ -23,7 +23,8 @@ package com.itszuvalex.itszulib.render
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
-import net.minecraft.client.renderer.{ActiveRenderInfo, Tessellator}
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.client.renderer.{ActiveRenderInfo, GlStateManager, Tessellator, WorldRenderer}
 import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11
 
@@ -333,12 +334,21 @@ object RenderUtils {
 
   private def drawTexturedModalRectFromIcon(zheight: Float, x: Int, y: Int, width: Int, height: Int, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     val tessellator = Tessellator.getInstance()
-    tessellator.startDrawingQuads()
-    tessellator.addVertexWithUV(x.toDouble, (y + height).toDouble, zheight.toDouble, minU.toDouble, maxV.toDouble)
-    tessellator.addVertexWithUV((x + width).toDouble, (y + height).toDouble, zheight.toDouble, maxU.toDouble, maxV.toDouble)
-    tessellator.addVertexWithUV((x + width).toDouble, y.toDouble, zheight.toDouble, maxU.toDouble, minV.toDouble)
-    tessellator.addVertexWithUV(x.toDouble, y.toDouble, zheight.toDouble, minU.toDouble, minV.toDouble)
-    tessellator.draw
+
+    //Taken from net.minecraft.client.Gui
+    val worldrenderer = tessellator.getWorldRenderer
+    GlStateManager.enableBlend()
+    GlStateManager.disableTexture2D()
+    GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+    //        GlStateManager.color(f, f1, f2, f3)
+    worldrenderer.begin(7, DefaultVertexFormats.POSITION)
+    worldrenderer.pos(x.toDouble, (y + height).toDouble, zheight.toDouble).endVertex()
+    worldrenderer.pos((x + width).toDouble, (y + height).toDouble, zheight.toDouble).endVertex()
+    worldrenderer.pos((x + width).toDouble, y.toDouble, zheight.toDouble).endVertex()
+    worldrenderer.pos(x.toDouble, y.toDouble, zheight.toDouble).endVertex()
+    tessellator.draw()
+    GlStateManager.enableTexture2D()
+    GlStateManager.disableBlend()
   }
 }
 
