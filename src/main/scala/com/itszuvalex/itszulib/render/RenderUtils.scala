@@ -55,6 +55,10 @@ object RenderUtils {
     finally GL11.glTranslated(-x, -y, -z)
   }
 
+  def setNormal(x: Double, y: Double, z: Double) = {
+    GL11.glNormal3d(x, y, z)
+  }
+
   def renderCube(x: Float, y: Float, z: Float, startx: Float, starty: Float, startz: Float, endx: Float, endy: Float, endz: Float, texture: TextureAtlasSprite) {
     renderCube(x, y, z, startx, starty, startz, endx, endy, endz, texture, texture.getMinU, texture.getMaxU, texture.getMinV, texture.getMaxV)
   }
@@ -349,8 +353,6 @@ object RenderUtils {
   }
 
   private def drawTexturedModalRectFromIcon(zheight: Float, x: Int, y: Int, width: Int, height: Int, minU: Float, maxU: Float, minV: Float, maxV: Float) {
-    val tessellator = Tessellator.getInstance()
-
     //Taken from net.minecraft.client.Gui
     GlStateManager.enableBlend()
     GlStateManager.disableTexture2D()

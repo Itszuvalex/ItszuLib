@@ -20,9 +20,7 @@
 */
 package com.itszuvalex.itszulib.render
 
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
-import net.minecraft.util.IIcon
 
 class RenderQuad(var a: Point3D,
                  var b: Point3D,
@@ -120,13 +118,15 @@ class RenderQuad(var a: Point3D,
   }
 
   def draw() {
-    val tes = Tessellator.getInstance().getWorldRenderer
+    import RenderUtils._
     val normal = getNormal
-//    tes.setNormal(normal.x.toFloat, normal.y.toFloat, normal.z.toFloat)
-//    tes.addVertexWithUV(a.x, a.y, a.z, minU, maxV)
-//    tes.addVertexWithUV(b.x, b.y, b.z, minU, minV)
-//    tes.addVertexWithUV(c.x, c.y, c.z, maxU, minV)
-//    tes.addVertexWithUV(d.x, d.y, d.z, maxU, maxV)
+    drawBlock {
+                setNormal(normal.x, normal.y, normal.z)
+                addVertexUV(a.x, a.y, a.z, minU, maxV)
+                addVertexUV(b.x, b.y, b.z, minU, minV)
+                addVertexUV(c.x, c.y, c.z, maxU, minV)
+                addVertexUV(d.x, d.y, d.z, maxU, maxV)
+              }
   }
 
   def getNormal = new Vector3(c, b).cross(new Vector3(a, b)).normalize()
