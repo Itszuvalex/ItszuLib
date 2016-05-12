@@ -39,7 +39,7 @@ class ProxyClient extends ProxyCommon {
     // Previewable Rendering Test
     PreviewableIDs.testID = PreviewableRendererRegistry.bindRenderer(new TestPreviewableRenderer)
 
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[PortalTileTest], new RenderPortalTest)
+    ClientRegistry.bindTileEntitySpecialRenderer[PortalTileTest](classOf[PortalTileTest], new RenderPortalTest)
 
     GuiStack.init()
   }

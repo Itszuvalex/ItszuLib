@@ -2,11 +2,8 @@ package com.itszuvalex.itszulib.testing
 
 import com.itszuvalex.itszulib.render.RenderUtils._
 import com.itszuvalex.itszulib.render.{RenderUtils, ShaderUtils}
-import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.init.Blocks
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
@@ -18,14 +15,14 @@ object RenderPortalTest {
   private val pictureLocation: ResourceLocation = new ResourceLocation("textures/entity/end_portal.png")
 }
 
-class RenderPortalTest extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(p_147500_1_ : TileEntity, x: Double, y: Double, z: Double, p_147500_8_ : Float): Unit = {
+class RenderPortalTest extends TileEntitySpecialRenderer[PortalTileTest] {
+
+  override def renderTileEntityAt(te: PortalTileTest, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int): Unit = {
     //    renderBackground(x, y, z)
 
     //    bindTexture(RenderPortalTest.skyLocation)
 
-    val man = Minecraft.getMinecraft.getTextureManager
-    man.bindTexture(man.getResourceLocation(0))
+    RenderUtils.bindBlockTextures()
 
     //    GL11.glPushMatrix()
 
@@ -35,7 +32,7 @@ class RenderPortalTest extends TileEntitySpecialRenderer {
     //    GL11.glAlphaFunc(GL11.GL_ALWAYS, 1)
     //    GL11.glEnable(GL11.GL_DEPTH)
     //    GL11.glEnable(GL11.GL_DEPTH_TEST)
-    val icon = Blocks.fire.getFireIcon(0)
+    val icon = RenderUtils.getDefaultTextureForBlock(Blocks.fire)
     drawBillboard(x + 0.5, y + 0.5, z + 0.5, 0, .5, icon.getMinU, icon.getMaxU, icon.getMinV, icon.getMaxV)
     GL11.glPopAttrib()
     //

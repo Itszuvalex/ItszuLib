@@ -85,7 +85,11 @@ object NBTHelpers {
           case n: NBTTagCompound =>
             if (compound.hasKey(key)) {
               val nc = compound.getCompoundTag(key)
-              nc.merge(n.getKeySet.map(key => (key, n.getTag(key).asInstanceOf[Any])).toSeq: _*)
+              nc.seqMerge(
+                        n.getKeySet.map { key =>
+                          (key, n.getTag(key).asInstanceOf[Any])
+                                        }.toSeq
+                      )
             }
             else {
               compound.setTag(key, n)
@@ -95,6 +99,8 @@ object NBTHelpers {
                       }
         compound
       }
+
+      def seqMerge(elems: Seq[(String, Any)]): NBTTagCompound = merge(elems: _*)
     }
 
 

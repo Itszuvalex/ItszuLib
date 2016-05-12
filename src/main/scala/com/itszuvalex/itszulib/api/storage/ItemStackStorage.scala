@@ -13,4 +13,13 @@ class ItemStackStorage(private var item: ItemStack) extends IStorage[ItemStackSt
 
   override def getAccess: IItemAccess = new FloatingItemAccess(item)
 
+  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
+    //TODO: ItemStackWrapper
+    item = ItemStack.loadItemStackFromNBT(nbt)
+  }
+
+  override def serializeNBT(): NBTTagCompound = {
+    //TODO: ItemStackWrapper
+    item.serializeNBT()
+  }
 }

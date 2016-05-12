@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.{ChatComponentText, IChatComponent}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/10/2016.
@@ -120,9 +121,27 @@ object AccessHelpers extends TestBase {
       markDirty()
     }
 
-    override def markDirty(): Unit = {}
+    override def closeInventory(player: EntityPlayer): Unit = {}
 
-    override def closeInventory(): Unit = {}
+    override def clear(): Unit = array.indices.foreach(array(_) = null)
+
+    override def openInventory(player: EntityPlayer): Unit = {}
+
+    override def getFieldCount: Int = 0
+
+    override def getField(id: Int): Int = 0
+
+    override def removeStackFromSlot(index: Int): ItemStack = array(index)
+
+    override def setField(id: Int, value: Int): Unit = {}
+
+    override def getDisplayName: IChatComponent = new ChatComponentText("")
+
+    override def getName: String = ""
+
+    override def hasCustomName: Boolean = false
+
+    override def markDirty(): Unit = {}
 
     override def getSizeInventory: Int = array.length
 
@@ -130,17 +149,9 @@ object AccessHelpers extends TestBase {
 
     override def isItemValidForSlot(slot: Int, item: ItemStack): Boolean = true
 
-    override def getStackInSlotOnClosing(slot: Int): ItemStack = array(slot)
-
-    override def openInventory(): Unit = {}
-
     override def isUseableByPlayer(player: EntityPlayer): Boolean = true
 
     override def getStackInSlot(slot: Int): ItemStack = array(slot)
-
-    override def hasCustomInventoryName: Boolean = false
-
-    override def getInventoryName: String = ""
   }
 
 }

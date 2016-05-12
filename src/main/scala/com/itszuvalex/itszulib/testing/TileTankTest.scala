@@ -26,8 +26,8 @@ class TileTankTest extends TileEntityBase with TileMultiFluidTank {
 
   override def hasDescription: Boolean = true
 
-  override def onSideActivate(player: EntityPlayer, side: Int): Boolean = {
-    player.openGui(getMod, 0, worldObj, getPos.getX, getPos.getY, getPos.getZ)
+  override def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {
+    par5EntityPlayer.openGui(getMod, 0, getWorld, getPos.getX, getPos.getY, getPos.getZ)
     true
   }
 
@@ -40,9 +40,10 @@ class TileTankTest extends TileEntityBase with TileMultiFluidTank {
     super.serverUpdate()
   }
 
-  override def fill(from: Any, resource: FluidStack, doFill: Boolean): Int = 0
 
-  override def drain(from: Any, resource: FluidStack, doDrain: Boolean): FluidStack = null
+  override def fill(id: Int, from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = 0
+
+  override def drain(id: Int, from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = null
 
   override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = null
 }

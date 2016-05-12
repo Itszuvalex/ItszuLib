@@ -41,8 +41,7 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
   }
 
   override def tick(): Unit = {
-    super.tick()
-    if (!worldObj.isRemote) serverUpdate()
+    if (!getWorld.isRemote) serverUpdate()
     else clientUpdate()
   }
 
@@ -76,7 +75,7 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
 
   def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {
     if (hasGUI) {
-      par5EntityPlayer.openGui(getMod, getGuiID, worldObj, getPos.getX, getPos.getY, getPos.getZ)
+      par5EntityPlayer.openGui(getMod, getGuiID, getWorld, getPos.getX, getPos.getY, getPos.getZ)
       return true
     }
     false
@@ -95,13 +94,13 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
 
   @Deprecated def onInventoryChanged() = setModified()
 
-  def setModified() = if (worldObj != null) worldObj.markChunkDirty(getPos, this)
+  def setModified() = if (getWorld != null) getWorld.markChunkDirty(getPos, this)
 
-  def setRenderUpdate() = if (worldObj != null) worldObj.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
+  def setRenderUpdate() = if (getWorld != null) getWorld.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
 
-  def setUpdate() = if (worldObj != null) worldObj.markBlockForUpdate(getPos)
+  def setUpdate() = if (getWorld != null) getWorld.markBlockForUpdate(getPos)
 
-  def notifyNeighborsOfChange() = if (worldObj != null) worldObj.notifyNeighborsOfStateChange(getPos, getBlockType)
+  def notifyNeighborsOfChange() = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType)
 
   def onBlockBreak(): Unit = {}
 

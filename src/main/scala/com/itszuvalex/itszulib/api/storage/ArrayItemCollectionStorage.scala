@@ -47,13 +47,14 @@ class ArrayItemCollectionStorage(private var array: Array[ItemStack]) extends II
     */
   def getArray: Array[ItemStack] = array
 
-  access.synchronized {
-                        val compound = new NBTTagCompound
-                        val store = new NBTItemCollectionStorage(compound, true)
-                        store.setSize(length, clear = true)
-                        store.getFullAccess.copyFromAccess(access, copy = false)
-                        compound
-                      }
+  override def serializeNBT(): NBTTagCompound =
+    access.synchronized {
+                          val compound = new NBTTagCompound
+                          val store = new NBTItemCollectionStorage(compound, true)
+                          store.setSize(length, clear = true)
+                          store.getFullAccess.copyFromAccess(access, copy = false)
+                          compound
+                        }
 
   override def deserializeNBT(compound: NBTTagCompound): Unit =
     access.synchronized {

@@ -20,6 +20,8 @@
  */
 package com.itszuvalex.itszulib.render
 
+import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
@@ -54,6 +56,10 @@ object RenderUtils {
     }
     finally GL11.glTranslated(-x, -y, -z)
   }
+
+  def getDefaultTextureForBlock(block: Block): TextureAtlasSprite = getTextureForBlockInState(block, block.getDefaultState)
+
+  def getTextureForBlockInState(block: Block, state: IBlockState) = Minecraft.getMinecraft.getBlockRendererDispatcher.getBlockModelShapes.getTexture(state)
 
   def setNormal(x: Double, y: Double, z: Double) = {
     GL11.glNormal3d(x, y, z)

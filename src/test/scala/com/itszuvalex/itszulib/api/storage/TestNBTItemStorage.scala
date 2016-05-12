@@ -64,10 +64,9 @@ class TestNBTItemStorage extends TestBase with BeforeAndAfterAll {
                                        }
     }
     "correctly serialize and deserialize to NBT" in new PartialStorage {
-      val comp = new NBTTagCompound
-      storage.saveToNBT(comp)
+      val comp = storage.serializeNBT()
       val other = new ArrayItemCollectionStorage(0)
-      other.loadFromNBT(comp)
+      other.deserializeNBT(comp)
 
       storage.getFullAccess.length shouldEqual other.getFullAccess.length
 

@@ -3,7 +3,6 @@ package com.itszuvalex.itszulib.api.storage
 import com.itszuvalex.itszulib.TestBase
 import com.itszuvalex.itszulib.api.access.AccessHelpers
 import com.itszuvalex.itszulib.util.Comparators.ItemStack.IDDamageWildCardNBTComparator
-import net.minecraft.nbt.NBTTagCompound
 import org.scalatest.BeforeAndAfterAll
 
 /**
@@ -47,10 +46,9 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
                                        }
     }
     "correctly serialize and deserialize to NBT" in new PartialStorage {
-      val comp = new NBTTagCompound
-      storage.saveToNBT(comp)
+      val comp = storage.serializeNBT()
       val other = new ArrayItemCollectionStorage(0)
-      other.loadFromNBT(comp)
+      other.deserializeNBT(comp)
 
       storage.getFullAccess.length shouldEqual other.getFullAccess.length
 

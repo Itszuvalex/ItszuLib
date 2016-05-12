@@ -39,7 +39,7 @@ trait TileMultiFluidTank extends TileEntityBase with IFluidHandler {
     if (!updateNeeded) return
     tanks.indices.foreach { i =>
       val tank = tanks(i)
-      PacketHandler.INSTANCE.sendToDimension(new MessageFluidTankUpdate(pos.getX, pos.getY, pos.getZ, i, if (tank.getFluid == null) -1 else tank.getFluid.getFluid.getID, tank.getFluidAmount), worldObj.provider.getDimensionId)
+      PacketHandler.INSTANCE.sendToDimension(new MessageFluidTankUpdate(getPos.getX, getPos.getY, getPos.getZ, i, if (tank.getFluid == null) -1 else tank.getFluid.getFluid.getID, tank.getFluidAmount), getWorld.provider.getDimensionId)
                           }
     updateNeeded = false
   }

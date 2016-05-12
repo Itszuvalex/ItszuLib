@@ -95,11 +95,13 @@ case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable v
   def dot(vector: Vector3) = x * vector.x + y * vector.y + z * vector.z
 
 
-  def saveToNBT(compound: NBTTagCompound) {
+  override def serializeNBT(): NBTTagCompound = {
+    val compound = new NBTTagCompound
     DataUtils.saveObjectToNBT(compound, this, DataUtils.EnumSaveType.WORLD)
+    compound
   }
 
-  def loadFromNBT(compound: NBTTagCompound) {
+  override def deserializeNBT(compound: NBTTagCompound) {
     DataUtils.loadObjectFromNBT(compound, this, DataUtils.EnumSaveType.WORLD)
   }
 }

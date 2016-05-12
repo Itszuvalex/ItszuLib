@@ -97,9 +97,9 @@ class GuiFluidTank(override var anchorX: Int,
     if (manualAccess != 0 && isMousedOver) {
       tankID match {
         case -1 =>
-          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileSingleTank.getPos, -1, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
+          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileSingleTank.getLoc, -1, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
         case _ =>
-          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileMultiTank.getPos, tankID, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
+          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileMultiTank.getLoc, tankID, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
       }
     }
     super.onMouseClick(mouseX, mouseY, button)
@@ -150,12 +150,12 @@ class GuiFluidTank(override var anchorX: Int,
       case -1 =>
         if (tileSingleTank.tank.getFluid == null) return
         if (tileSingleTank.tank.getFluid.amount == 0) return
-        icon = tileSingleTank.tank.getFluid.getFluid.getStillIcon
+        icon = RenderUtils.getDefaultTextureForBlock(tileSingleTank.tank.getFluid.getFluid.getBlock)
         height = math.floor((tileSingleTank.tank.getFluid.amount / tileSingleTank.tank.getCapacity.toDouble) * 64).toInt
       case _ =>
         if (tileMultiTank.tanks(tankID).getFluid == null) return
         if (tileMultiTank.tanks(tankID).getFluid.amount == 0) return
-        icon = tileMultiTank.tanks(tankID).getFluid.getFluid.getStillIcon
+        icon = RenderUtils.getDefaultTextureForBlock(tileMultiTank.tanks(tankID).getFluid.getFluid.getBlock)
         height = math.floor((tileMultiTank.tanks(tankID).getFluid.amount / tileMultiTank.tanks(tankID).getCapacity.toDouble) * 64).toInt
     }
     val topPx = screenY + 65 - height

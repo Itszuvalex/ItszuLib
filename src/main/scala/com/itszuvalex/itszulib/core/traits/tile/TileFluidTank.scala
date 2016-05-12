@@ -34,7 +34,7 @@ trait TileFluidTank extends TileEntityBase with IFluidHandler {
   override def serverUpdate(): Unit = {
     super.serverUpdate()
     if (!updateNeeded) return
-    PacketHandler.INSTANCE.sendToDimension(new MessageFluidTankUpdate(pos.getX, pos.getY, pos.getZ, if (tank.getFluid == null) -1 else tank.getFluid.getFluid.getID, tank.getFluidAmount), worldObj.provider.getDimensionId)
+    PacketHandler.INSTANCE.sendToDimension(new MessageFluidTankUpdate(getPos.getX, getPos.getY, getPos.getZ, if (tank.getFluid == null) -1 else tank.getFluid.getFluid.getID, tank.getFluidAmount), getWorld.provider.getDimensionId)
     updateNeeded = false
   }
 

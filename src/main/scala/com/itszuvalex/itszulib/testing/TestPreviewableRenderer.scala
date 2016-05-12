@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.testing
 
 import com.itszuvalex.itszulib.api.IPreviewableRenderer
+import com.itszuvalex.itszulib.api.core.Loc4
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -18,9 +19,8 @@ class TestPreviewableRenderer extends IPreviewableRenderer {
     * @param y     Y Location
     * @param z     Z Location
     */
-  override def renderAtLocation(stack: ItemStack, world: World, x: Int, y: Int, z: Int,
-                                rx: Double, ry: Double, rz: Double): Unit = {
-//    RenderUtils.renderCube(rx.toFloat, ry.toFloat, rz.toFloat, 0, 0, 0, 1, 1, 1, Blocks.diamond_ore.getIcon(0, 0))
+  override def renderAtLocation(stack: ItemStack, loc: Loc4, rx: Double, ry: Double, rz: Double): Unit = {
+    //    RenderUtils.renderCube(rx.toFloat, ry.toFloat, rz.toFloat, 0, 0, 0, 1, 1, 1, Blocks.diamond_ore.getIcon(0, 0))
     Tessellator.getInstance().draw()
   }
 }
