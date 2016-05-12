@@ -10,6 +10,8 @@ import net.minecraft.nbt.NBTTagCompound
   */
 object WrappedItemStack {
 
+  def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
+
   val nbtSerializer = new Overridable((c: WrappedItemStack) => {
     c.asMinecraft.serializeNBT()
   })
@@ -20,7 +22,8 @@ object WrappedItemStack {
                                        )
 
   val nbtSelfModifyingDeserializer = new Overridable((c: WrappedItemStack, n: NBTTagCompound) => {
-    c.asMinecraft.readFromNBT(n)
+    if (c.asMinecraft != null)
+      c.asMinecraft.readFromNBT(n)
   })
 }
 
@@ -35,17 +38,17 @@ case class WrappedItemStack(private val stack: ItemStack) extends IItemStack {
 
   override def itemID: Int = item.itemID
 
-  override def stackSize_=(size: Int): Unit = stack.stackSize = size
+  override def stackSize_=(size: Int): Unit = asMinecraft.stackSize = size
 
-  override def damage: Int = stack.getItemDamage
+  override def damage: Int = asMinecraft.getItemDamage
 
-  override def damage_=(dam: Int): Unit = stack.setItemDamage(dam)
+  override def damage_=(dam: Int): Unit = asMinecraft.setItemDamage(dam)
 
-  override def stackSize: Int = stack.stackSize
+  override def stackSize: Int = asMinecraft.stackSize
 
-  override def stackSizeMax: Int = stack.getMaxStackSize
+  override def stackSizeMax: Int = asMinecraft.getMaxStackSize
 
-  override def nbt_=(nbt: NBTTagCompound): Unit = stack.setTagCompound(nbt)
+  override def nbt_=(nbt: NBTTagCompound): Unit = asMinecraft.setTagCompound(nbt)
 
   override def damageMaximum: Int = item.getMaxDamage(asMinecraft)
 
@@ -53,11 +56,11 @@ case class WrappedItemStack(private val stack: ItemStack) extends IItemStack {
 
   override def serializeNBT(): NBTTagCompound = WrappedItemStack.nbtSerializer.apply(this)
 
-  override def item: Item = stack.getItem
+  override def item: Item = asMinecraft.getItem
 
-  override def nbt: NBTTagCompound = stack.getTagCompound
+  override def nbt: NBTTagCompound = asMinecraft.getTagCompound
 
-  override def item_=(i: Item): Unit = stack.setItem(i)
+  override def item_=(i: Item): Unit = asMinecraft.setItem(i)
 
   implicit def asMinecraft: ItemStack = stack
 
