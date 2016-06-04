@@ -1,13 +1,14 @@
 package com.itszuvalex.itszulib.api.access
 
-import net.minecraft.item.{Item, ItemStack}
+import com.itszuvalex.itszulib.api.wrappers.IItemStack
+import net.minecraft.item.Item
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/10/16.
   */
-trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
+trait IItemAccess extends IAccess[IItemAccess, IItemStack] {
 
-  def getItem: Option[Item] = get.map(_.getItem)
+  def getItem: Option[Item] = get.map(_.item)
 
   /**
     *
@@ -29,11 +30,11 @@ trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
     *
     * @return Usually ItemStack.MaxStackSize, but could be different for different storages.
     */
-  def maxStorage: Option[Int] = get.map(_.getMaxStackSize)
+  def maxStorage: Option[Int] = get.map(_.stackSizeMax)
 
-  def damage: Option[Int] = get.map(_.getItemDamage)
+  def damage: Option[Int] = get.map(_.damage)
 
-  def maxDamage: Option[Int] = get.map(_.getMaxDamage)
+  def maxDamage: Option[Int] = get.map(_.damageMax)
 
   /**
     *
@@ -44,7 +45,7 @@ trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
     case invalid if invalid <= 0 => new FloatingItemAccess(null)
     case _ => new FloatingItemAccess(
                                       get.map { i =>
-                                        val item = i.copy()
+                                        val item = i.copy
                                         item.stackSize = decrement(amount)
                                         if (item.stackSize > 0)
                                           item
@@ -108,7 +109,7 @@ trait IItemAccess extends IAccess[IItemAccess, ItemStack] {
     */
   def copyFromAccess(other: IItemAccess, copyStack: Boolean = true): Unit =
     set(other.get match {
-          case Some(i) => if (copyStack) i.copy() else i
+          case Some(i) => if (copyStack) i.copy else i
           case None => null
         })
 

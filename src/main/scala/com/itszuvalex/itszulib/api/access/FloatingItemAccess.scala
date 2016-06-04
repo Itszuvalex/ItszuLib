@@ -1,11 +1,11 @@
 package com.itszuvalex.itszulib.api.access
 
-import net.minecraft.item.ItemStack
+import com.itszuvalex.itszulib.api.wrappers.IItemStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/10/16.
   */
-class FloatingItemAccess(item: ItemStack) extends IItemAccess {
+class FloatingItemAccess(item: IItemStack) extends IItemAccess {
   private[access] var backingItem = Option(item)
 
   /**
@@ -19,14 +19,14 @@ class FloatingItemAccess(item: ItemStack) extends IItemAccess {
     *
     * @return Backing ItemStack
     */
-  override def get: Option[ItemStack] = backingItem
+  override def get: Option[IItemStack] = backingItem
 
   /**
     * Sets this item access's storage to the ItemStack.
     *
     * @param stack ItemStack to set this to.
     */
-  override def set(stack: ItemStack): Unit = {
+  override def set(stack: IItemStack): Unit = {
     backingItem = Option(stack)
   }
 }

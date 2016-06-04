@@ -23,6 +23,7 @@ package com.itszuvalex.itszulib.api.storage
 import java.util
 
 import com.itszuvalex.itszulib.api.access.{IItemCollectionAccess, ItemAccessWrapperFactory, StorageItemCollectionAccess}
+import com.itszuvalex.itszulib.api.wrappers.{IItemStack, WrappedItemStack}
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -30,13 +31,15 @@ import net.minecraft.nbt.NBTTagCompound
 /**
   *
   */
-class ArrayItemCollectionStorage(private var array: Array[ItemStack]) extends IItemCollectionStorage {
+class ArrayItemCollectionStorage(private var array: Array[IItemStack]) extends IItemCollectionStorage {
   private val access    = new StorageItemCollectionAccess(this)
   private val invAccess = ItemAccessWrapperFactory.wrap(access)
 
-  def this(size: Int) = this(new Array[ItemStack](size))
+  def this(size: Int) = this(new Array[IItemStack](size))
 
   def this() = this(0)
+
+  def this(ar: Array[ItemStack]) = this(ar.map(WrappedItemStack(_).asInstanceOf[IItemStack]))
 
   override def getFullAccess: IItemCollectionAccess = access.synchronized(access)
 
@@ -45,7 +48,7 @@ class ArrayItemCollectionStorage(private var array: Array[ItemStack]) extends II
   /**
     * @return ItemStack[] that backs this inventory class. Modifications to it modify this. This is not threadsafe
     */
-  def getArray: Array[ItemStack] = array
+  def getArray: Array[IItemStack] = array
 
   override def serializeNBT(): NBTTagCompound =
     access.synchronized {
@@ -73,7 +76,7 @@ class ArrayItemCollectionStorage(private var array: Array[ItemStack]) extends II
   override def setSize(size: Int, clear: Boolean): Boolean = {
     if (clear)
       if (size != length)
-        updateBackingStore(new Array[ItemStack](size))
+        updateBackingStore(new Array[IItemStack](size))
       else {
         indices.foreach(i => this (i) = null)
       }
@@ -86,14 +89,14 @@ class ArrayItemCollectionStorage(private var array: Array[ItemStack]) extends II
 
   override def length: Int = access.synchronized(array.length)
 
-  private def updateBackingStore(a: Array[ItemStack]): Unit = {
+  private def updateBackingStore(a: Array[IItemStack]): Unit = {
     access.synchronized {
                           incrementRevision()
                           array = a
                         }
   }
 
-  override def update(slot: Int, value: ItemStack): Unit = array(slot) = value
+  override def update(slot: Int, value: IItemStack): Unit = array(slot) = value
 
-  override def apply(slot: Int): ItemStack = array(slot)
+  override def apply(slot: Int): IItemStack = array(slot)
 }

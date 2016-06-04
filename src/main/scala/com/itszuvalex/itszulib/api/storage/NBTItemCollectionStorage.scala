@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.Overridable
 import com.itszuvalex.itszulib.api.access.{IItemCollectionAccess, ItemAccessWrapperFactory, StorageItemCollectionAccess}
+import com.itszuvalex.itszulib.api.wrappers.{IItemStack, WrappedItemStack}
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -81,7 +82,7 @@ class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean
                           compound
                         }
 
-  override def apply(slot: Int): ItemStack = NBTItemCollectionStorage.deserialize(getItemCompound(slot))
+  override def apply(slot: Int): IItemStack = WrappedItemStack(NBTItemCollectionStorage.deserialize(getItemCompound(slot)))
 
   private def getItemCompound(slot: Int, force: Boolean = false): NBTTagCompound = {
     val exists = nbt.hasKey(slot.toString)
@@ -94,13 +95,13 @@ class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean
     else null
   }
 
-  override def update(slot: Int, item: ItemStack): Unit = {
+  override def update(slot: Int, item: IItemStack): Unit = {
     (item, getItemCompound(slot, force = item != null)) match {
       case (null, null) =>
       case (null, comp) => nbt.removeTag(slot.toString)
       case (i, _) =>
         val comp = new NBTTagCompound
-        NBTItemCollectionStorage.serialize(i, comp)
+        NBTItemCollectionStorage.serialize(i.toMinecraft.orNull, comp)
         nbt.setTag(slot.toString, comp)
     }
   }

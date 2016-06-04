@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.api.access
 
 import com.itszuvalex.itszulib.api.storage.IItemCollectionStorage
-import net.minecraft.item.ItemStack
+import com.itszuvalex.itszulib.api.wrappers.IItemStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/24/16.
@@ -14,7 +14,7 @@ class StorageItemAccess(private val storage: IItemCollectionStorage, private val
     *
     * @return Backing ItemStack
     */
-  override def get: Option[ItemStack] = if (isValid) Option(storage(index)) else None
+  override def get: Option[IItemStack] = if (isValid) Option(storage(index)) else None
 
   /**
     *
@@ -27,7 +27,7 @@ class StorageItemAccess(private val storage: IItemCollectionStorage, private val
     *
     * @param stack ItemStack to set this to.
     */
-  override def set(stack: ItemStack): Unit = {
+  override def set(stack: IItemStack): Unit = {
     storage(index) = stack
     onChanged()
   }

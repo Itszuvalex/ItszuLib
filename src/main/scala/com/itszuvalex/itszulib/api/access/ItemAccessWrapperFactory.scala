@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api.access
 
+import com.itszuvalex.itszulib.api.wrappers.WrappedItemStack
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
@@ -27,15 +28,20 @@ object ItemAccessWrapperFactory {
   class InventoryWrapper(access: IItemCollectionAccess) extends IItemCollectionAccess with IInventory {
     override def canPlayerAccess(player: EntityPlayer): Boolean = access.canPlayerAccess(player)
 
-    override def decrStackSize(slot: Int, amount: Int): ItemStack = access.apply(slot).split(amount).get.orNull
+    override def decrStackSize(slot: Int, amount: Int): ItemStack = access.apply(slot).split(amount).get.flatMap(_.toMinecraft).orNull
 
     override def setField(id: Int, value: Int): Unit = {}
 
     override def removeStackFromSlot(index: Int): ItemStack = {
       val ia = access(index)
       val item = ia.get.orNull
-      ia.clear()
-      item
+      if (item == null) null
+      else if (!item.canConvertToMinecraft)
+        null
+      else {
+        ia.clear()
+        item.toMinecraft.orNull
+      }
     }
 
     override def getField(id: Int): Int = 0
@@ -56,11 +62,11 @@ object ItemAccessWrapperFactory {
 
     override def markDirty(): Unit = access.onChanged(-1)
 
-    override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = access.apply(slot).canSetTo(stack)
+    override def isItemValidForSlot(slot: Int, stack: ItemStack): Boolean = access.apply(slot).canSetTo(WrappedItemStack(stack))
 
-    override def getStackInSlot(slot: Int): ItemStack = access.apply(slot).get.orNull
+    override def getStackInSlot(slot: Int): ItemStack = access.apply(slot).get.flatMap(_.toMinecraft).orNull
 
-    override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = access(slot).set(stack)
+    override def setInventorySlotContents(slot: Int, stack: ItemStack): Unit = access(slot).set(WrappedItemStack(stack))
 
     override def isUseableByPlayer(player: EntityPlayer): Boolean = access.canPlayerAccess(player)
 

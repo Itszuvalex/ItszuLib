@@ -50,7 +50,7 @@ case class WrappedItemStack(private val stack: ItemStack) extends IItemStack {
 
   override def nbt_=(nbt: NBTTagCompound): Unit = asMinecraft.setTagCompound(nbt)
 
-  override def damageMaximum: Int = item.getMaxDamage(asMinecraft)
+  override def damageMax: Int = item.getMaxDamage(asMinecraft)
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = WrappedItemStack.nbtSelfModifyingDeserializer.apply(this, nbt)
 
@@ -64,4 +64,11 @@ case class WrappedItemStack(private val stack: ItemStack) extends IItemStack {
 
   implicit def asMinecraft: ItemStack = stack
 
+  override def canConvertToMinecraft: Boolean = true
+
+  override def copy: IItemStack = new WrappedItemStack(asMinecraft.copy())
+
+  override def isItemEqual(o: IItemStack): Boolean = o != null && item == o.item && o.damage == damage
+
+  override def toMinecraft: Option[ItemStack] = Option(stack)
 }

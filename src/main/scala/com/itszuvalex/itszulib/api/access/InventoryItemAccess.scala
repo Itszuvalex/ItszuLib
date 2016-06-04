@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.api.access
 
+import com.itszuvalex.itszulib.api.wrappers.{IItemStack, WrappedItemStack}
 import net.minecraft.inventory.IInventory
-import net.minecraft.item.ItemStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/10/16.
@@ -12,7 +12,12 @@ class InventoryItemAccess(private[access] val inventoryAccess: InventoryItemColl
     *
     * @return Backing ItemStack
     */
-  override def get: Option[ItemStack] = if (isValid) Option(inventory.getStackInSlot(index)) else None
+  override def get: Option[IItemStack] = if (isValid) {
+    Option(inventory.getStackInSlot(index)) match {
+      case Some(a) => Option(WrappedItemStack(a))
+      case None => None
+    }
+  } else None
 
   /**
     *
@@ -25,8 +30,10 @@ class InventoryItemAccess(private[access] val inventoryAccess: InventoryItemColl
     *
     * @param stack ItemStack to set this to.
     */
-  override def set(stack: ItemStack): Unit = {
-    inventory.setInventorySlotContents(index, stack)
+  override def set(stack: IItemStack): Unit = {
+    if (!stack.canConvertToMinecraft) return
+
+    inventory.setInventorySlotContents(index, stack.toMinecraft.get)
     super.set(stack)
   }
 
@@ -35,7 +42,7 @@ class InventoryItemAccess(private[access] val inventoryAccess: InventoryItemColl
     * @param amount Amount to remove from this storage and transfer to a new one.
     * @return New item access
     */
-  override def split(amount: Int): IItemAccess = new FloatingItemAccess(inventory.decrStackSize(index, amount))
+  override def split(amount: Int): IItemAccess = new FloatingItemAccess(WrappedItemStack(inventory.decrStackSize(index, amount)))
 
   private[access] def inventory: IInventory = inventoryAccess.inventory
 }

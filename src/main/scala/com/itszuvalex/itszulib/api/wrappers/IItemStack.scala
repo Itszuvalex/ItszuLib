@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.api.wrappers
 
-import net.minecraft.item.Item
+import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.INBTSerializable
 
@@ -25,10 +25,18 @@ trait IItemStack extends INBTSerializable[NBTTagCompound] {
 
   def damage_=(dam: Int): Unit
 
-  def damageMaximum: Int
+  def damageMax: Int
 
   def nbt: NBTTagCompound
 
   def nbt_=(nbt: NBTTagCompound): Unit
+
+  def canConvertToMinecraft: Boolean
+
+  def toMinecraft: Option[ItemStack]
+
+  def copy: IItemStack
+
+  def isItemEqual(o: IItemStack) : Boolean
 
 }

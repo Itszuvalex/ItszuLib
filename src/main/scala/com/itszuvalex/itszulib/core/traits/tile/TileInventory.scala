@@ -34,8 +34,14 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
   override def removeStackFromSlot(index: Int): ItemStack = {
     val i = inventory.getFullAccess(index)
     val ret = i.get.orNull
-    i.clear()
-    ret
+    if (ret == null)
+      null
+    else if (!ret.canConvertToMinecraft)
+      null
+    else {
+      i.clear()
+      ret.toMinecraft.orNull
+    }
   }
 
   override def getDisplayName: IChatComponent = new ChatComponentText("Inventory")
