@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.access
 
 import com.itszuvalex.itszulib.TestBase
+import com.itszuvalex.itszulib.api.wrappers.{IItemStack, WrappedItemStack}
 import com.itszuvalex.itszulib.testing.StubItem
 import net.minecraft.item.ItemStack
 
@@ -13,11 +14,11 @@ class TestIItemAccess extends TestBase {
 
   trait EmptyAccess extends Access {override val access = new StubIItemAccess(null)}
 
-  trait OtherAccess {val other = new StubIItemAccess(new ItemStack(new StubItem, 3, 5))}
+  trait OtherAccess {val other = new StubIItemAccess(WrappedItemStack(new ItemStack(new StubItem, 3, 5)))}
 
-  class DefinedAccess(i: Int = 1) extends Access {override val access = new StubIItemAccess(new ItemStack(new StubItem, i))}
+  class DefinedAccess(i: Int = 1) extends Access {override val access = new StubIItemAccess(WrappedItemStack(new ItemStack(new StubItem, i)))}
 
-  class StubIItemAccess(var itemStack: ItemStack) extends IItemAccess {
+  class StubIItemAccess(var itemStack: IItemStack) extends IItemAccess {
     var changed = false
 
 
@@ -33,14 +34,14 @@ class TestIItemAccess extends TestBase {
       *
       * @return Backing ItemStack
       */
-    override def get: Option[ItemStack] = Option(itemStack)
+    override def get: Option[IItemStack] = Option(itemStack)
 
     /**
       * Sets this item access's storage to the ItemStack.
       *
       * @param stack ItemStack to set this to.
       */
-    override def set(stack: ItemStack): Unit = {
+    override def set(stack: IItemStack): Unit = {
       itemStack = stack
       super.set(stack)
     }
@@ -102,15 +103,15 @@ class TestIItemAccess extends TestBase {
       }
       "maxStorage should be backing itemStack.maxStackSize" in new DefinedAccess {
         access.currentStorage should not be empty
-        access.maxStorage.get shouldEqual access.itemStack.getMaxStackSize
+        access.maxStorage.get shouldEqual access.itemStack.stackSizeMax
       }
       "damage should be itemStack.damage" in new DefinedAccess {
         access.damage should not be empty
-        access.damage.get shouldEqual access.itemStack.getItemDamage
+        access.damage.get shouldEqual access.itemStack.damage
       }
       "maxDamage should be itemStack.damage" in new DefinedAccess {
         access.maxDamage should not be empty
-        access.maxDamage.get shouldEqual access.itemStack.getMaxDamage
+        access.maxDamage.get shouldEqual access.itemStack.damageMax
       }
       "increment" should {
         "return total increment when incrementing less than remaining space" in new DefinedAccess(1) {

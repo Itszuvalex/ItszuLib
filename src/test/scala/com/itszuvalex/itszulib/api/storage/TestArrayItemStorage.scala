@@ -41,7 +41,7 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
       storage.getFullAccess(0) should not be 'Empty
 
       storage.getFullAccess.indices.forall { i =>
-        IDDamageWildCardNBTComparator.compare(storage.getFullAccess(i).get.orNull,
+        IDDamageWildCardNBTComparator.compare(storage.getFullAccess(i).get.flatMap(_.toMinecraft).orNull,
                                               storage.getInventory.getStackInSlot(i)) == 0
                                        }
     }
@@ -56,8 +56,8 @@ class TestArrayItemStorage extends TestBase with BeforeAndAfterAll {
       other.getFullAccess(0) should not be 'Empty
 
       storage.getFullAccess.indices.forall { i =>
-        IDDamageWildCardNBTComparator.compare(storage.getFullAccess(i).get.orNull,
-                                              other.getFullAccess(i).get.orNull) == 0
+        IDDamageWildCardNBTComparator.compare(storage.getFullAccess(i).get.flatMap(_.toMinecraft).orNull,
+                                              other.getFullAccess(i).get.flatMap(_.toMinecraft).orNull) == 0
                                        }
     }
   }
