@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.access
 
 import com.itszuvalex.itszulib.TestBase
+import com.itszuvalex.itszulib.api.wrappers.WrappedItemStack
 import com.itszuvalex.itszulib.testing.StubItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
@@ -20,12 +21,12 @@ object AccessHelpers extends TestBase {
     else if (nbt.hasNoTags)
       null
     else {
-      val item = new ItemStack(stubItem)
+      val item = WrappedItemStack(new ItemStack(stubItem))
       item.stackSize = nbt.getByte("Count")
-      item.setItemDamage(nbt.getShort("Damage"))
+      item.damage = nbt.getShort("Damage")
 
-      if (item.getItemDamage < 0) {
-        item.setItemDamage(0)
+      if (item.damage < 0) {
+        item.damage = 0
       }
       item
     }

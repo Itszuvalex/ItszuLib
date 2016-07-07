@@ -12,8 +12,11 @@ object WrappedItemStack {
 
   def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
 
+  val nbtWriter = new Overridable((c: WrappedItemStack, nbt: NBTTagCompound) =>
+                                    c.toMinecraft.foreach(_.writeToNBT(nbt)))
+
   val nbtSerializer = new Overridable((c: WrappedItemStack) => {
-    c.asMinecraft.serializeNBT()
+    c.toMinecraft.map(_.serializeNBT()).orNull
   })
 
   val nbtDeserializer = new Overridable((n: NBTTagCompound) => {
@@ -69,4 +72,6 @@ case class WrappedItemStack(private val stack: ItemStack) extends IItemStack {
   override def isItemEqual(o: IItemStack): Boolean = o != null && item == o.item && o.damage == damage
 
   override def toMinecraft: Option[ItemStack] = Option(stack)
+
+  override def writeToNBT(nbt: NBTTagCompound): Unit = WrappedItemStack.nbtWriter.apply(this, nbt)
 }

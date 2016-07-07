@@ -45,9 +45,9 @@ class TestInventoryItemAccess extends TestBase {
         "return ItemStack Some(_)" in new Access(0, new PartialCollection) {
           access.get should not be empty
         }
-//        "return ItemStack from backing inventory" in new Access(0, new PartialCollection) {
-//          access.get.get should be theSameInstanceAs collection.inventory.getStackInSlot(0)
-//        }
+        "return ItemStack from backing inventory" in new Access(0, new PartialCollection) {
+          access.get.get.toMinecraft.get should be theSameInstanceAs collection.inventory.getStackInSlot(0)
+        }
       }
       "for currentStorage" must {
         "return CurrentStorage Some(_)" in new Access(0, new PartialCollection) {
@@ -116,8 +116,8 @@ class TestInventoryItemAccess extends TestBase {
         val item = WrappedItemStack(new ItemStack(new StubItem))
         access.set(item)
         access.get shouldBe defined
-//        val out = access.get.get
-//        item should be theSameInstanceAs out
+        val out = access.get.get.toMinecraft.get
+        item.toMinecraft.get should be theSameInstanceAs out
       }
     }
   }

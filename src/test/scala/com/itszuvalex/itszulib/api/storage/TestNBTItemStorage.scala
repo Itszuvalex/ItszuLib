@@ -33,7 +33,6 @@ class TestNBTItemStorage extends TestBase with BeforeAndAfterAll {
                                }
   }
 
-
   override protected def afterAll(): Unit = {
     NBTItemCollectionStorage.restoreDefaultNBTItemDeserializer()
     super.afterAll()
@@ -61,10 +60,10 @@ class TestNBTItemStorage extends TestBase with BeforeAndAfterAll {
       storage.getFullAccess.indices.forall { i =>
         IDDamageWildCardNBTComparator.compare(storage.getFullAccess(i).get.flatMap(_.toMinecraft).orNull,
                                               storage.getInventory.getStackInSlot(i)) == 0
-                                       }
+                                           }
     }
     "correctly serialize and deserialize to NBT" in new PartialStorage {
-      val comp = storage.serializeNBT()
+      val comp  = storage.serializeNBT()
       val other = new ArrayItemCollectionStorage(0)
       other.deserializeNBT(comp)
 
@@ -76,7 +75,7 @@ class TestNBTItemStorage extends TestBase with BeforeAndAfterAll {
       storage.getFullAccess.indices.forall { i =>
         IDDamageWildCardNBTComparator.compare(storage.getFullAccess(i).get.flatMap(_.toMinecraft).orNull,
                                               other.getFullAccess(i).get.flatMap(_.toMinecraft).orNull) == 0
-                                       }
+                                           }
     }
   }
 }

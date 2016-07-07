@@ -31,7 +31,7 @@ class InventoryItemAccess(private[access] val inventoryAccess: InventoryItemColl
     * @param stack ItemStack to set this to.
     */
   override def set(stack: IItemStack): Unit = {
-    inventory.setInventorySlotContents(index, stack.toMinecraft.orNull)
+    inventory.setInventorySlotContents(index, Option(stack).flatMap(_.toMinecraft).orNull)
     super.set(stack)
   }
 

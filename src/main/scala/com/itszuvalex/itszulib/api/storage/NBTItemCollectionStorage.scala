@@ -2,9 +2,8 @@ package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.Overridable
 import com.itszuvalex.itszulib.api.access.{IItemCollectionAccess, ItemAccessWrapperFactory, StorageItemCollectionAccess}
-import com.itszuvalex.itszulib.api.wrappers.{IItemStack, WrappedItemStack}
+import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import net.minecraft.inventory.IInventory
-import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.JavaConversions._
@@ -15,23 +14,23 @@ import scala.collection.JavaConversions._
 object NBTItemCollectionStorage {
   val SIZE_KEY = "Size"
 
-  val itemStackNBTDeserializer = new Overridable(ItemStack.loadItemStackFromNBT _)
-  val itemStackNBTSerializer   = new Overridable((i: ItemStack, n: NBTTagCompound) => {
-    i.writeToNBT(n)
+  val itemStackNBTDeserializer = new Overridable(IItemStack.createFromNBT _)
+  val itemStackNBTSerializer   = new Overridable((i: IItemStack, n: NBTTagCompound) => {
+    Option(i).foreach(_.writeToNBT(n))
     () // Fix Unit.type error
   })
 
-  def setNBTItemSerializer(func: (ItemStack, NBTTagCompound) => Unit) = itemStackNBTSerializer.overrideDefault(func)
+  def setNBTItemSerializer(func: (IItemStack, NBTTagCompound) => Unit) = itemStackNBTSerializer.overrideDefault(func)
 
   def restoreDefaultNBTItemSerializer() = itemStackNBTSerializer.revert()
 
-  def serialize(item: ItemStack, nbt: NBTTagCompound) = itemStackNBTSerializer.apply(item, nbt)
+  def serialize(item: IItemStack, nbt: NBTTagCompound) = itemStackNBTSerializer.apply(item, nbt)
 
-  def setNBTItemDeserializer(func: (NBTTagCompound) => ItemStack) = itemStackNBTDeserializer.overrideDefault(func)
+  def setNBTItemDeserializer(func: (NBTTagCompound) => IItemStack) = itemStackNBTDeserializer.overrideDefault(func)
 
   def restoreDefaultNBTItemDeserializer() = itemStackNBTDeserializer.revert()
 
-  def deserialize(tag: NBTTagCompound): ItemStack = itemStackNBTDeserializer.apply(tag)
+  def deserialize(tag: NBTTagCompound) = itemStackNBTDeserializer.apply(tag)
 }
 
 class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) extends IItemCollectionStorage {
@@ -44,7 +43,6 @@ class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean
   override def getFullAccess: IItemCollectionAccess = access.synchronized(access)
 
   override def getInventory: IInventory = access.synchronized(invWrapper)
-
 
   override def deserializeNBT(compound: NBTTagCompound): Unit =
     access.synchronized {
@@ -82,7 +80,7 @@ class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean
                           compound
                         }
 
-  override def apply(slot: Int): IItemStack = WrappedItemStack(NBTItemCollectionStorage.deserialize(getItemCompound(slot)))
+  override def apply(slot: Int): IItemStack = NBTItemCollectionStorage.deserialize(getItemCompound(slot))
 
   private def getItemCompound(slot: Int, force: Boolean = false): NBTTagCompound = {
     val exists = nbt.hasKey(slot.toString)
@@ -101,7 +99,7 @@ class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean
       case (null, comp) => nbt.removeTag(slot.toString)
       case (i, _) =>
         val comp = new NBTTagCompound
-        NBTItemCollectionStorage.serialize(i.toMinecraft.orNull, comp)
+        NBTItemCollectionStorage.serialize(i, comp)
         nbt.setTag(slot.toString, comp)
     }
   }

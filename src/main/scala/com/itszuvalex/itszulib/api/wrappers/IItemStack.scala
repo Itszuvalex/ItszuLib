@@ -48,4 +48,6 @@ trait IItemStack extends INBTSerializable[NBTTagCompound] {
 
   def isItemEqual(o: IItemStack): Boolean
 
+  def writeToNBT(nbt: NBTTagCompound): Unit
+
 }
