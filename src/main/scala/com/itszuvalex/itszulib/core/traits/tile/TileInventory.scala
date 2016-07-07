@@ -36,8 +36,6 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
     val ret = i.get.orNull
     if (ret == null)
       null
-    else if (!ret.canConvertToMinecraft)
-      null
     else {
       i.clear()
       ret.toMinecraft.orNull

@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api.wrappers
 
+import com.itszuvalex.itszulib.api.Overridable
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.INBTSerializable
@@ -7,6 +8,16 @@ import net.minecraftforge.common.util.INBTSerializable
 /**
   * Created by Chris on 4/17/2016.
   */
+object IItemStack {
+  val nbtLoader = new Overridable((nbt: NBTTagCompound) => {
+    val stack = WrappedItemStack(null)
+    stack.deserializeNBT(nbt)
+    stack.asInstanceOf[IItemStack]
+  })
+
+  def createFromNBT(nbt: NBTTagCompound) = nbtLoader.apply(nbt)
+}
+
 trait IItemStack extends INBTSerializable[NBTTagCompound] {
 
   def item: Item
@@ -31,12 +42,10 @@ trait IItemStack extends INBTSerializable[NBTTagCompound] {
 
   def nbt_=(nbt: NBTTagCompound): Unit
 
-  def canConvertToMinecraft: Boolean
-
   def toMinecraft: Option[ItemStack]
 
   def copy: IItemStack
 
-  def isItemEqual(o: IItemStack) : Boolean
+  def isItemEqual(o: IItemStack): Boolean
 
 }

@@ -64,9 +64,7 @@ case class WrappedItemStack(private val stack: ItemStack) extends IItemStack {
 
   implicit def asMinecraft: ItemStack = stack
 
-  override def canConvertToMinecraft: Boolean = true
-
-  override def copy: IItemStack = new WrappedItemStack(asMinecraft.copy())
+  override def copy: IItemStack = WrappedItemStack(asMinecraft.copy())
 
   override def isItemEqual(o: IItemStack): Boolean = o != null && item == o.item && o.damage == damage
 

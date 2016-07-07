@@ -35,8 +35,7 @@ object ItemAccessWrapperFactory {
     override def removeStackFromSlot(index: Int): ItemStack = {
       val ia = access(index)
       val item = ia.get.orNull
-      if (item == null) null
-      else if (!item.canConvertToMinecraft)
+      if (item == null)
         null
       else {
         ia.clear()
