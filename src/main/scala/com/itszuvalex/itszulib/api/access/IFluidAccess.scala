@@ -1,13 +1,14 @@
 package com.itszuvalex.itszulib.api.access
 
-import net.minecraftforge.fluids.{Fluid, FluidStack}
+import com.itszuvalex.itszulib.api.wrappers.IFluidStack
+import net.minecraftforge.fluids.Fluid
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/12/2016.
   */
-trait IFluidAccess extends IAccess[IFluidAccess, FluidStack] {
+trait IFluidAccess extends IAccess[IFluidAccess, IFluidStack] {
 
-  def getFluid: Option[Fluid] = get.map(_.getFluid)
+  def getFluid: Option[Fluid] = get.map(_.fluid)
 
   def increment(amt: Int): Int = get.map { i =>
     if (amt < 0) return 0
@@ -58,7 +59,7 @@ trait IFluidAccess extends IAccess[IFluidAccess, FluidStack] {
     if (isEmpty)
       0
     else if (other.isEmpty) {
-      val stack = get.get.copy
+      val stack = get.get.copy()
       stack.amount = 0
       if (other.canSetTo(stack)) {
         other.set(stack)

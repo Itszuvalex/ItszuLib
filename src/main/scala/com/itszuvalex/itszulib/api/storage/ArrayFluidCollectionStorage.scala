@@ -1,16 +1,16 @@
 package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.access.{IFluidCollectionAccess, StorageFluidCollectionAccess}
+import com.itszuvalex.itszulib.api.wrappers.IFluidStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fluids.FluidStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/27/16.
   */
-class ArrayFluidCollectionStorage(private var array: Array[FluidStack]) extends IFluidCollectionStorage {
+class ArrayFluidCollectionStorage(private var array: Array[IFluidStack]) extends IFluidCollectionStorage {
   private val access = new StorageFluidCollectionAccess(this)
 
-  def this(size: Int) = this(new Array[FluidStack](size))
+  def this(size: Int) = this(new Array[IFluidStack](size))
 
   def this() = this(0)
 
@@ -30,7 +30,7 @@ class ArrayFluidCollectionStorage(private var array: Array[FluidStack]) extends 
   override def deserializeNBT(compound: NBTTagCompound): Unit =
     access.synchronized {
                           val nbt = new NBTFluidCollectionStorage(compound, false)
-                          updateBackingStore(new Array[FluidStack](nbt.length))
+                          updateBackingStore(new Array[IFluidStack](nbt.length))
                           access.copyFromAccess(nbt.getFullAccess, copy = false)
                         }
 
@@ -43,21 +43,21 @@ class ArrayFluidCollectionStorage(private var array: Array[FluidStack]) extends 
     */
   override def setSize(size: Int, clear: Boolean): Boolean = {
     if (clear)
-      updateBackingStore(new Array[FluidStack](size))
+      updateBackingStore(new Array[IFluidStack](size))
     else {
       updateBackingStore(java.util.Arrays.copyOf(array, size))
     }
     true
   }
 
-  private def updateBackingStore(newArray: Array[FluidStack]): Unit = {
+  private def updateBackingStore(newArray: Array[IFluidStack]): Unit = {
     access.synchronized {
                           incrementRevision()
                           array = newArray
                         }
   }
 
-  override def update(slot: Int, value: FluidStack): Unit = array(slot) = value
+  override def update(slot: Int, value: IFluidStack): Unit = array(slot) = value
 
-  override def apply(slot: Int): FluidStack = array(slot)
+  override def apply(slot: Int): IFluidStack = array(slot)
 }

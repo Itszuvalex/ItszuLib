@@ -28,5 +28,6 @@ class FloatingItemAccess(item: IItemStack) extends IItemAccess {
     */
   override def set(stack: IItemStack): Unit = {
     backingItem = Option(stack)
+    super.set(stack)
   }
 }

@@ -1,9 +1,13 @@
 package com.itszuvalex.itszulib.api.access
 
+import com.itszuvalex.itszulib.api.wrappers.IBattery
+
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/12/2016.
   */
-trait IPowerAccess extends IAccess[IPowerAccess, Double] {
+trait IPowerAccess extends IAccess[IPowerAccess, IBattery] {
+
+  def storage: Option[Double]
 
   def maxStorage: Option[Double]
 
@@ -13,27 +17,33 @@ trait IPowerAccess extends IAccess[IPowerAccess, Double] {
     * @param other
     */
   override def copyFromAccess(other: IPowerAccess, deepCopy: Boolean): Unit = {
-    set(other.get.getOrElse(0d))
+    set(other.get.map(_.copy()).orNull)
   }
 
-  def increment(amt: Double): Double = get.map { cur =>
-    val amount = Math.min(amt, room.get)
-    set(cur + amount)
+  def charge(amt: Int): Double = get.map { i =>
+    if (amt < 0) return 0
+
+    val amount = Math.min(room.get, amt)
+    i.storage += amount
     onChanged()
     amount
-                                               }.getOrElse(0)
+                                         }.getOrElse(0)
 
-  def room = maxStorage.map(_ - get.get)
+  def room = maxStorage.map(_ - storage.getOrElse(0d))
 
-  def decrement(amt: Double): Double = get.map { cur =>
-    val amount = Math.min(amt, cur)
-    set(cur - amount)
+  def drain(amt: Int): Double = get.map { i =>
+    if (amt < 0) return 0
+
+    val amount = Math.min(get.get.storage, amt)
+    i.storage -= amount
+    if (i.storage <= 0)
+      clear()
     onChanged()
     amount
-                                               }.getOrElse(0)
+                                        }.getOrElse(0)
 
   def clear(): Unit = {
-    set(0)
+    get.foreach(_.storage = 0)
   }
 
   def isValid: Boolean

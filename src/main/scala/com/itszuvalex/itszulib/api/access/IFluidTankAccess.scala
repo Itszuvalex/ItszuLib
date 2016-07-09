@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api.access
 
+import com.itszuvalex.itszulib.api.wrappers.WrappedFluidStack
 import net.minecraftforge.fluids.{Fluid, FluidTank}
 
 /**
@@ -12,7 +13,7 @@ trait IFluidTankAccess extends IAccess[IFluidTankAccess, FluidTank] {
   def increment(amt: Int): Int = get.map { i =>
     if (amt < 0) return 0
 
-    val amount = new FloatingFluidAccess(i.getFluid).increment(amt)
+    val amount = new FloatingFluidAccess(WrappedFluidStack(i.getFluid)).increment(amt)
     onChanged()
     amount
                                          }.getOrElse(0)

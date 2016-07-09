@@ -1,11 +1,11 @@
 package com.itszuvalex.itszulib.api.access
 
-import net.minecraftforge.fluids.FluidStack
+import com.itszuvalex.itszulib.api.wrappers.IFluidStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/10/16.
   */
-class FloatingFluidAccess(fluid: FluidStack) extends IFluidAccess {
+class FloatingFluidAccess(fluid: IFluidStack) extends IFluidAccess {
   private[access] var backingFluid = Option(fluid)
 
   /**
@@ -19,14 +19,15 @@ class FloatingFluidAccess(fluid: FluidStack) extends IFluidAccess {
     *
     * @return Backing FluidStack
     */
-  override def get: Option[FluidStack] = backingFluid
+  override def get: Option[IFluidStack] = backingFluid
 
   /**
     * Sets this item access's storage to the FluidStack.
     *
     * @param stack FluidStack to set this to.
     */
-  override def set(stack: FluidStack): Unit = {
+  override def set(stack: IFluidStack): Unit = {
     backingFluid = Option(stack)
+    super.set(stack)
   }
 }

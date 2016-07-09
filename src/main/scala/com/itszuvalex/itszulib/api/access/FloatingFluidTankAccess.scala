@@ -37,5 +37,6 @@ class FloatingFluidTankAccess(item: FluidTank) extends IFluidTankAccess {
     */
   override def set(stack: FluidTank): Unit = {
     backingFluid = Option(stack)
+    super.set(stack)
   }
 }

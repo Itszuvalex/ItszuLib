@@ -32,7 +32,7 @@ trait IFluidStack extends INBTSerializable[NBTTagCompound] {
 
   def toMinecraft: Option[FluidStack]
 
-  def copy: IFluidStack
+  def copy(): IFluidStack
 
   def isFluidEqual(o: IFluidStack): Boolean
 

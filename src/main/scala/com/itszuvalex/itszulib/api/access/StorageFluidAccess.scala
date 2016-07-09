@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.api.access
 
 import com.itszuvalex.itszulib.api.storage.IFluidCollectionStorage
-import net.minecraftforge.fluids.FluidStack
+import com.itszuvalex.itszulib.api.wrappers.IFluidStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/24/16.
@@ -14,7 +14,7 @@ class StorageFluidAccess(private val storage: IFluidCollectionStorage, private v
     *
     * @return Backing FluidStack
     */
-  override def get: Option[FluidStack] = if (isValid) Option(storage(index)) else None
+  override def get: Option[IFluidStack] = if (isValid) Option(storage(index)) else None
 
   /**
     *
@@ -27,7 +27,7 @@ class StorageFluidAccess(private val storage: IFluidCollectionStorage, private v
     *
     * @param stack FluidStack to set this to.
     */
-  override def set(stack: FluidStack): Unit = {
+  override def set(stack: IFluidStack): Unit = {
     storage(index) = stack
     onChanged()
   }
