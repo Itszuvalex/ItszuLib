@@ -23,11 +23,10 @@ package com.itszuvalex.itszulib.core
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.core.traits.tile.TileDescriptionPacket
 import com.itszuvalex.itszulib.util.DataUtils
-import net.minecraft.client.renderer.texture.ITickable
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
+import net.minecraft.util.{EnumFacing, ITickable}
 
 abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with ITickable {
   override def readFromNBT(par1nbtTagCompound: NBTTagCompound) {
@@ -40,7 +39,7 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
     DataUtils.saveObjectToNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
   }
 
-  override def tick(): Unit = {
+  def update(): Unit = {
     if (!getWorld.isRemote) serverUpdate()
     else clientUpdate()
   }

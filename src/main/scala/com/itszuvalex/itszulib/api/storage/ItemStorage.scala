@@ -7,7 +7,7 @@ import net.minecraft.nbt.NBTTagCompound
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/27/16.
   */
-class ItemStackStorage(private var item: IItemStack) extends IStorage[ItemStackStorage, IItemAccess, IItemStack] {
+class ItemStorage(private var item: IItemStack) extends IStorage[ItemStorage, IItemAccess, IItemStack] {
 
   def this() = this(null)
 

@@ -7,9 +7,9 @@ import com.itszuvalex.itszulib.api.wrappers.IBattery
   */
 trait IPowerAccess extends IAccess[IPowerAccess, IBattery] {
 
-  def storage: Option[Double]
+  def storage: Option[Double] = get.map(_.storage)
 
-  def maxStorage: Option[Double]
+  def maxStorage: Option[Double] = get.map(_.maxStorage)
 
   /**
     * Copies all required info from another A
