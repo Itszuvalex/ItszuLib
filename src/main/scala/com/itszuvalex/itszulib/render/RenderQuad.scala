@@ -120,13 +120,13 @@ class RenderQuad(var a: Point3D,
   def draw() {
     import RenderUtils._
     val normal = getNormal
-    drawBlock {
-                setNormal(normal.x, normal.y, normal.z)
-                addVertexUV(a.x, a.y, a.z, minU, maxV)
-                addVertexUV(b.x, b.y, b.z, minU, minV)
-                addVertexUV(c.x, c.y, c.z, maxU, minV)
-                addVertexUV(d.x, d.y, d.z, maxU, maxV)
-              }
+    drawBlock() {
+                  //                setNormal(normal.x, normal.y, normal.z)
+                  addVertexUV(a.x, a.y, a.z, minU, maxV)
+                  addVertexUV(b.x, b.y, b.z, minU, minV)
+                  addVertexUV(c.x, c.y, c.z, maxU, minV)
+                  addVertexUV(d.x, d.y, d.z, maxU, maxV)
+                }
   }
 
   def getNormal = new Vector3(c, b).cross(new Vector3(a, b)).normalize()

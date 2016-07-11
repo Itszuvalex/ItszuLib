@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.gui
 
 import com.itszuvalex.itszulib.render.RenderUtils._
 import net.minecraft.client.gui.{FontRenderer, Gui, GuiScreen}
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ChatAllowedCharacters
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
@@ -489,12 +490,12 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
     GL11.glDisable(GL11.GL_TEXTURE_2D)
     GL11.glEnable(GL11.GL_COLOR_LOGIC_OP)
     GL11.glLogicOp(GL11.GL_OR_REVERSE)
-    drawBlock {
-                addVertex(leftX.toDouble, botY.toDouble, 0.0D)
-                addVertex(rightX.toDouble, botY.toDouble, 0.0D)
-                addVertex(rightX.toDouble, topY.toDouble, 0.0D)
-                addVertex(leftX.toDouble, topY.toDouble, 0.0D)
-              }
+    drawBlock(DefaultVertexFormats.POSITION) {
+                                               addVertex(leftX.toDouble, botY.toDouble, 0.0D).endVertex()
+                                               addVertex(rightX.toDouble, botY.toDouble, 0.0D).endVertex()
+                                               addVertex(rightX.toDouble, topY.toDouble, 0.0D).endVertex()
+                                               addVertex(leftX.toDouble, topY.toDouble, 0.0D).endVertex()
+                                             }
     GL11.glDisable(GL11.GL_COLOR_LOGIC_OP)
     GL11.glEnable(GL11.GL_TEXTURE_2D)
   }
