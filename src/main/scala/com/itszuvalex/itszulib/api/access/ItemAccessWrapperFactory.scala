@@ -5,11 +5,26 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.{ChatComponentText, IChatComponent}
+import net.minecraftforge.items.IItemHandler
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/12/2016.
   */
 object ItemAccessWrapperFactory {
+
+  def wrap(handler: IItemHandler): IItemCollectionAccess = {
+    handler match {
+      case a: ItemHandlerWrapper => a
+      case _ => new ItemHandlerWrapper(new ItemHandlerItemCollectionAccess(handler))
+    }
+  }
+
+  def wrap(access: IItemCollectionAccess): IItemHandler = {
+    access match {
+      case a: ItemHandlerWrapper => a
+      case _ => new ItemHandlerWrapper(access)
+    }
+  }
 
   def wrap(inventory: IInventory): IItemCollectionAccess = {
     inventory match {
@@ -25,7 +40,46 @@ object ItemAccessWrapperFactory {
     }
   }
 
-  class InventoryWrapper(access: IItemCollectionAccess) extends IItemCollectionAccess with IInventory {
+  class ItemHandlerWrapper(private val access: IItemCollectionAccess) extends IItemCollectionAccess with IItemHandler {
+    override def extractItem(i: Int, i1: Int, b: Boolean): ItemStack = {
+      val iaccess = access.apply(i)
+      iaccess.get match {
+        case None => null
+        case Some(a) =>
+          val ret = new FloatingItemAccess(a.copy)
+          val slotCopy = if (b) new FloatingItemAccess(a.copy) else iaccess
+          ret.get.get.stackSize = 0
+          ret.increment(slotCopy.decrement(i1))
+          ret.get.flatMap(_.toMinecraft).orNull
+      }
+    }
+
+    override def getSlots: Int = length
+
+    override def insertItem(i: Int, itemStack: ItemStack, b: Boolean): ItemStack = {
+      val iaccess = access.apply(i)
+      iaccess.get match {
+        case None => itemStack
+        case Some(a) =>
+          val inc = new FloatingItemAccess(WrappedItemStack(Option(itemStack).map(_.copy()).orNull))
+          val target = access(i)
+          val source = if (b) new FloatingItemAccess(inc.get.get.copy) else inc
+          val dest = if (b) new FloatingItemAccess(target.get.get.copy) else target
+          source.transfer(dest, source.currentStorage.get)
+          source.get.get.toMinecraft.orNull
+      }
+    }
+
+    override def getStackInSlot(i: Int): ItemStack = access.apply(i).get.flatMap(_.toMinecraft).orNull
+
+    override def canPlayerAccess(player: EntityPlayer): Boolean = access.canPlayerAccess(player)
+
+    override def length: Int = access.length
+
+    override def apply(idx: Int): IItemAccess = access(idx)
+  }
+
+  class InventoryWrapper(private val access: IItemCollectionAccess) extends IItemCollectionAccess with IInventory {
     override def canPlayerAccess(player: EntityPlayer): Boolean = access.canPlayerAccess(player)
 
     override def decrStackSize(slot: Int, amount: Int): ItemStack = access.apply(slot).split(amount).get.flatMap(_.toMinecraft).orNull

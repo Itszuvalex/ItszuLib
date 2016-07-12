@@ -54,6 +54,13 @@ trait IItemAccess extends IAccess[IItemAccess, IItemStack] {
                                     )
   }
 
+  /**
+    * Transfer an amount of the item in this slot to another access
+    *
+    * @param other IItemAccess to transfer to
+    * @param amt   Amount to attemot to transfer
+    * @return The amount successfully transferred
+    */
   def transfer(other: IItemAccess, amt: Int): Int = {
     if (isEmpty)
       0
@@ -62,6 +69,7 @@ trait IItemAccess extends IAccess[IItemAccess, IItemStack] {
       stack.stackSize = 0
       if (other.canSetTo(stack)) {
         other.set(stack)
+        // Use this over set, due to potentially different max stack sizes
         decrement(other.increment(Math.min(amt, currentStorage.get)))
       }
       else 0
