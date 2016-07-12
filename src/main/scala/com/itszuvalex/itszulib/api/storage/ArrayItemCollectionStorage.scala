@@ -33,7 +33,7 @@ import net.minecraft.nbt.NBTTagCompound
   */
 class ArrayItemCollectionStorage(private var array: Array[IItemStack]) extends IItemCollectionStorage {
   private val access    = new StorageItemCollectionAccess(this)
-  private val invAccess = ItemAccessWrapperFactory.wrap(access)
+  private val invAccess = ItemAccessWrapperFactory.accessToInventory(access)
 
   def this(size: Int) = this(new Array[IItemStack](size))
 

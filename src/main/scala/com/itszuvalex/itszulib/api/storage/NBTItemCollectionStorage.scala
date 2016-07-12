@@ -35,7 +35,7 @@ object NBTItemCollectionStorage {
 
 class NBTItemCollectionStorage(private val nbt: NBTTagCompound, isEmpty: Boolean = false) extends IItemCollectionStorage {
   private val access     = new StorageItemCollectionAccess(this)
-  private val invWrapper = ItemAccessWrapperFactory.wrap(access)
+  private val invWrapper = ItemAccessWrapperFactory.accessToInventory(access)
 
   if (isEmpty)
     initializeEmptyNBT()

@@ -5,42 +5,42 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.{ChatComponentText, IChatComponent}
-import net.minecraftforge.items.IItemHandler
+import net.minecraftforge.items.IItemHandlerModifiable
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/12/2016.
   */
 object ItemAccessWrapperFactory {
 
-  def wrap(handler: IItemHandler): IItemCollectionAccess = {
+  def handlerToAccess(handler: IItemHandlerModifiable): IItemCollectionAccess = {
     handler match {
       case a: ItemHandlerWrapper => a
       case _ => new ItemHandlerWrapper(new ItemHandlerItemCollectionAccess(handler))
     }
   }
 
-  def wrap(access: IItemCollectionAccess): IItemHandler = {
+  def accesToHandler(access: IItemCollectionAccess): IItemHandlerModifiable = {
     access match {
       case a: ItemHandlerWrapper => a
       case _ => new ItemHandlerWrapper(access)
     }
   }
 
-  def wrap(inventory: IInventory): IItemCollectionAccess = {
+  def inventoryToAccess(inventory: IInventory): IItemCollectionAccess = {
     inventory match {
       case a: InventoryWrapper => a
       case _ => new InventoryWrapper(new InventoryItemCollectionAccess(inventory))
     }
   }
 
-  def wrap(access: IItemCollectionAccess): IInventory = {
+  def accessToInventory(access: IItemCollectionAccess): IInventory = {
     access match {
       case a: InventoryWrapper => a
       case _ => new InventoryWrapper(access)
     }
   }
 
-  class ItemHandlerWrapper(private val access: IItemCollectionAccess) extends IItemCollectionAccess with IItemHandler {
+  class ItemHandlerWrapper(private val access: IItemCollectionAccess) extends IItemCollectionAccess with IItemHandlerModifiable {
     override def extractItem(i: Int, i1: Int, b: Boolean): ItemStack = {
       val iaccess = access.apply(i)
       iaccess.get match {
@@ -77,6 +77,8 @@ object ItemAccessWrapperFactory {
     override def length: Int = access.length
 
     override def apply(idx: Int): IItemAccess = access(idx)
+
+    override def setStackInSlot(i: Int, itemStack: ItemStack): Unit = access.apply(i).set(WrappedItemStack(itemStack))
   }
 
   class InventoryWrapper(private val access: IItemCollectionAccess) extends IItemCollectionAccess with IInventory {

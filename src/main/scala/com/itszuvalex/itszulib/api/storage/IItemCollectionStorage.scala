@@ -11,5 +11,5 @@ trait IItemCollectionStorage extends ICollectionStorage[IItemCollectionStorage, 
 
   override def getFullAccess: IItemCollectionAccess = new StorageItemCollectionAccess(this)
 
-  def getInventory: IInventory = ItemAccessWrapperFactory.wrap(getFullAccess)
+  def getInventory: IInventory = ItemAccessWrapperFactory.accessToInventory(getFullAccess)
 }
