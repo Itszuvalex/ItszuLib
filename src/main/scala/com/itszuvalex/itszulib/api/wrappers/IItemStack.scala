@@ -9,13 +9,19 @@ import net.minecraftforge.common.util.INBTSerializable
   * Created by Chris on 4/17/2016.
   */
 object IItemStack {
+  val Empty: IItemStack = WrapperVanillaItemStack(null)
+
   val nbtLoader = new Overridable((nbt: NBTTagCompound) => {
-    val stack = WrappedItemStack(null)
+    val stack = WrapperVanillaItemStack(null)
     stack.deserializeNBT(nbt)
     stack.asInstanceOf[IItemStack]
   })
 
   def createFromNBT(nbt: NBTTagCompound) = nbtLoader.apply(nbt)
+
+  val itemStackEquality = new Overridable((a: IItemStack, b: IItemStack) => {
+    ItemStack.areItemStacksEqual(a.toMinecraft, b.toMinecraft)
+  })
 }
 
 trait IItemStack extends INBTSerializable[NBTTagCompound] {
@@ -42,11 +48,13 @@ trait IItemStack extends INBTSerializable[NBTTagCompound] {
 
   def nbt_=(nbt: NBTTagCompound): Unit
 
-  def toMinecraft: Option[ItemStack]
+  def toMinecraft: ItemStack
 
-  def copy: IItemStack
+  def isEmpty: Boolean
 
-  def isItemEqual(o: IItemStack): Boolean
+  def copy(): IItemStack
+
+  def isItemEqual(o: IItemStack): Boolean = IItemStack.itemStackEquality.apply(this, o)
 
   def writeToNBT(nbt: NBTTagCompound): Unit
 

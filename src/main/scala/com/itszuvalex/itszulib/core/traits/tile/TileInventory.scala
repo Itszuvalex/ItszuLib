@@ -1,7 +1,8 @@
 package com.itszuvalex.itszulib.core.traits.tile
 
 import com.itszuvalex.itszulib.api.core.Saveable
-import com.itszuvalex.itszulib.api.storage.IItemCollectionStorage
+import com.itszuvalex.itszulib.api.storage.IItemStorage
+import com.itszuvalex.itszulib.api.wrappers.{IItemStack, WrapperVanillaItemStack}
 import com.itszuvalex.itszulib.core.TileEntityBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
@@ -15,7 +16,7 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
   @Saveable
   val inventory = defaultStorage
 
-  def defaultStorage: IItemCollectionStorage
+  def defaultStorage: IItemStorage
 
   override def getSlotsForFace(side: EnumFacing): Array[Int] = inventory.indices.toArray
 
@@ -27,19 +28,14 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   override def closeInventory(player: EntityPlayer): Unit = {}
 
-  override def clear(): Unit = inventory.getFullAccess.foreach(_.clear())
+  override def clear(): Unit = inventory.indices.foreach(inventory.update(_, IItemStack.Empty))
 
   override def openInventory(player: EntityPlayer): Unit = {}
 
   override def removeStackFromSlot(index: Int): ItemStack = {
-    val i = inventory.getFullAccess(index)
-    val ret = i.get.orNull
-    if (ret == null)
-      null
-    else {
-      i.clear()
-      ret.toMinecraft.orNull
-    }
+    val ret = inventory(index)
+    inventory.setSlot(index, IItemStack.Empty)
+    ret.toMinecraft
   }
 
   override def getDisplayName: IChatComponent = new ChatComponentText("Inventory")
@@ -48,16 +44,16 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   override def hasCustomName: Boolean = false
 
-  override def decrStackSize(slot: Int, amount: Int) = inventory.getInventory.decrStackSize(slot, amount)
+  override def decrStackSize(slot: Int, amount: Int) = inventory.split(slot, amount).toMinecraft
 
-  override def getSizeInventory = inventory.getFullAccess.length
+  override def getSizeInventory = inventory.length
 
-  override def getInventoryStackLimit = inventory.getInventory.getInventoryStackLimit
+  override def getInventoryStackLimit = 64
 
-  override def isItemValidForSlot(slot: Int, item: ItemStack) = inventory.getInventory.isItemValidForSlot(slot, item)
+  override def isItemValidForSlot(slot: Int, item: ItemStack) = true
 
   override def setInventorySlotContents(slot: Int, item: ItemStack) = {
-    inventory.getInventory.setInventorySlotContents(slot, item)
+    inventory(slot) = WrapperVanillaItemStack(item)
     markDirty()
   }
 
@@ -66,8 +62,8 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
     notifyNeighborsOfChange()
   }
 
-  override def isUseableByPlayer(player: EntityPlayer) = canPlayerUse(player) && inventory.getFullAccess.canPlayerAccess(player)
+  override def isUseableByPlayer(player: EntityPlayer) = canPlayerUse(player)
 
-  override def getStackInSlot(slot: Int) = inventory.getInventory.getStackInSlot(slot)
+  override def getStackInSlot(slot: Int) = inventory(slot).toMinecraft
 
 }

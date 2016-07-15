@@ -8,10 +8,10 @@ import net.minecraft.item.ItemStack
 package object wrappers {
 
   implicit class WrappableItemStack(stack: ItemStack) {
-    def wrap = if (stack == null) null else new WrappedItemStack(stack)
+    def wrap = if (stack == null) null else new WrapperVanillaItemStack(stack)
   }
 
-  implicit def WrapItemStack(item: ItemStack): WrappedItemStack = new WrappedItemStack(item)
+  implicit def WrapItemStack(item: ItemStack): WrapperVanillaItemStack = new WrapperVanillaItemStack(item)
 
-  implicit def WrapItemStackToInterface(item: ItemStack): IItemStack = new WrappedItemStack(item)
+  implicit def WrapItemStackToInterface(item: ItemStack): IItemStack = new WrapperVanillaItemStack(item)
 }

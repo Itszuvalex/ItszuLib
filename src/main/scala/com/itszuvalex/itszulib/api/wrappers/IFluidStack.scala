@@ -9,8 +9,10 @@ import net.minecraftforge.fluids.{Fluid, FluidStack}
   * Created by Chris on 7/6/2016.
   */
 object IFluidStack {
+  val Empty = WrapperVanillaFluidStack(null)
+
   val nbtLoader = new Overridable((nbt: NBTTagCompound) => {
-    val fluidStack = WrappedFluidStack(null)
+    val fluidStack = WrapperVanillaFluidStack(null)
     fluidStack.deserializeNBT(nbt)
     fluidStack.asInstanceOf[IFluidStack]
   })
@@ -26,11 +28,15 @@ trait IFluidStack extends INBTSerializable[NBTTagCompound] {
 
   def amount_=(amount: Int): Unit
 
+  def amountMax: Int
+
   def nbt: NBTTagCompound
 
   def nbt_=(nbt: NBTTagCompound): Unit
 
-  def toMinecraft: Option[FluidStack]
+  def toMinecraft: FluidStack
+
+  def isEmpty: Boolean
 
   def copy(): IFluidStack
 

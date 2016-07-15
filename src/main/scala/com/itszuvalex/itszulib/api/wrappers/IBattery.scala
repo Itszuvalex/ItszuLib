@@ -26,5 +26,7 @@ trait IBattery extends INBTSerializable[NBTTagCompound] {
 
   def copy(): IBattery
 
+  def clear(): Unit
+
   def writeToNBT(nbt: NBTTagCompound): Unit
 }
