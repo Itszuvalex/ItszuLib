@@ -9,7 +9,33 @@ import net.minecraftforge.common.util.INBTSerializable
   * Created by Chris on 4/17/2016.
   */
 object IItemStack {
-  val Empty: IItemStack = WrapperVanillaItemStack(null)
+  val Empty: IItemStack = new WrapperVanillaItemStack() {
+    override def copy(): IItemStack = IItemStack.Empty
+
+    override def damageMax: Int = 0
+
+    override def damage_=(dam: Int): Unit = {}
+
+    override def damage: Int = 0
+
+    override def isEmpty: Boolean = true
+
+    override def item = null
+
+    override def item_=(i: Item): Unit = {}
+
+    override def itemID: Int = 0
+
+    override def nbt: NBTTagCompound = null
+
+    override def nbt_=(nbt: NBTTagCompound): Unit = {}
+
+    override def stackSize: Int = 0
+
+    override def stackSize_=(size: Int): Unit = {}
+
+    override def toMinecraft: ItemStack = null
+  }
 
   val nbtLoader = new Overridable((nbt: NBTTagCompound) => {
     val stack = WrapperVanillaItemStack(null)

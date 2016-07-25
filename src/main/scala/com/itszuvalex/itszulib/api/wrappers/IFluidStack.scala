@@ -9,7 +9,25 @@ import net.minecraftforge.fluids.{Fluid, FluidStack}
   * Created by Chris on 7/6/2016.
   */
 object IFluidStack {
-  val Empty = WrapperVanillaFluidStack(null)
+  val Empty: IFluidStack = new WrapperVanillaFluidStack() {
+    override def amount: Int = 0
+
+    override def amount_=(amount: Int): Unit = {}
+
+    override def amountMax: Int = 0
+
+    override def copy(): IFluidStack = IFluidStack.Empty
+
+    override def fluid: Fluid = null
+
+    override def isEmpty: Boolean = true
+
+    override def nbt: NBTTagCompound = null
+
+    override def nbt_=(nbt: NBTTagCompound): Unit = {}
+
+    override def toMinecraft: FluidStack = null
+  }
 
   val nbtLoader = new Overridable((nbt: NBTTagCompound) => {
     val fluidStack = WrapperVanillaFluidStack(null)

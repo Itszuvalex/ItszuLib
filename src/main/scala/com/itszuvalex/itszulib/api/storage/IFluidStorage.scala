@@ -100,4 +100,26 @@ trait IFluidStorage extends scala.collection.immutable.Seq[IFluidStack] with INB
   def update(i: Int, s: IFluidStack): Unit
 
   override def iterator: Iterator[IFluidStack] = new FluidStorageIterator(this)
+
+  override def deserializeNBT(t: NBTTagCompound): Unit = {
+    indices.
+    filter(i =>
+             t.hasKey(i.toString)).
+    view.
+    foreach(i =>
+              this (i) = IFluidStack.createFromNBT(t.getCompoundTag(i.toString)))
+  }
+
+  override def serializeNBT(): NBTTagCompound = {
+    val ret = new NBTTagCompound
+    zipWithIndex.
+    filterNot { case (it: IFluidStack, i: Int) =>
+      it.isEmpty
+              }
+    .view
+    .foreach { case (it: IFluidStack, i: Int) =>
+      ret.setTag(i.toString, it.serializeNBT())
+             }
+    ret
+  }
 }

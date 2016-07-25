@@ -22,6 +22,8 @@ case class PowerBattery(private var power: Double, private var powerMax: Double)
 
   override def storage_=(amt: Double): Unit = power = Math.max(maxStorage, amt)
 
+  override def clear(): Unit = power = 0
+
   override def copy(): IBattery = PowerBattery(power, powerMax)
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {

@@ -35,6 +35,8 @@ object WrapperVanillaFluidStack {
 
 case class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFluidStack {
 
+  def this() = this(null)
+
   override def toMinecraft = fluidStack
 
   override def fluid: Fluid = toMinecraft.getFluid

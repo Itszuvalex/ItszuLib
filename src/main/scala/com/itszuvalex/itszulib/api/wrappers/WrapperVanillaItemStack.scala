@@ -39,6 +39,8 @@ case class WrapperVanillaItemStack(private val stack: ItemStack) extends IItemSt
 
   def this(item: Item) = this(item, 0)
 
+  def this() = this(null.asInstanceOf[Item])
+
   override def itemID: Int = item.itemID
 
   override def stackSize_=(size: Int): Unit = toMinecraft.stackSize = size

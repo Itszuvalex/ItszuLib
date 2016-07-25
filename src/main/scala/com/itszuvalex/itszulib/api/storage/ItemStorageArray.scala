@@ -29,26 +29,6 @@ class ItemStorageArray(private var storage: Array[IItemStack]) extends IItemStor
 
   override def length: Int = storage.length
 
-  override def deserializeNBT(t: NBTTagCompound): Unit = {
-    storage.indices.
-    filter(i =>
-             t.hasKey(i.toString)).
-    view.
-    foreach(i =>
-              storage(i) = IItemStack.createFromNBT(t.getCompoundTag(i.toString)))
-  }
 
-  override def serializeNBT(): NBTTagCompound = {
-    val ret = new NBTTagCompound
-    storage.zipWithIndex.
-    filterNot { case (it: IItemStack, i: Int) =>
-      it.isEmpty
-              }
-    .view
-    .foreach { case (it: IItemStack, i: Int) =>
-      ret.setTag(i.toString, it.serializeNBT())
-             }
-    ret
-  }
 }
 

@@ -100,4 +100,26 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
   def update(i: Int, s: IItemStack): Unit
 
   override def iterator: Iterator[IItemStack] = new ItemStorageIterator(this)
+
+  override def deserializeNBT(t: NBTTagCompound): Unit = {
+    indices.
+    filter(i =>
+             t.hasKey(i.toString)).
+    view.
+    foreach(i =>
+              this (i) = IItemStack.createFromNBT(t.getCompoundTag(i.toString)))
+  }
+
+  override def serializeNBT(): NBTTagCompound = {
+    val ret = new NBTTagCompound
+    zipWithIndex.
+    filterNot { case (it: IItemStack, i: Int) =>
+      it.isEmpty
+              }
+    .view
+    .foreach { case (it: IItemStack, i: Int) =>
+      ret.setTag(i.toString, it.serializeNBT())
+             }
+    ret
+  }
 }
