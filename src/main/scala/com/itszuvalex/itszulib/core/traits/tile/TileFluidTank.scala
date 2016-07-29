@@ -2,7 +2,7 @@ package com.itszuvalex.itszulib.core.traits.tile
 
 import com.itszuvalex.itszulib.api.core.Saveable
 import com.itszuvalex.itszulib.core.TileEntityBase
-import com.itszuvalex.itszulib.network.PacketHandler
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageFluidTankUpdate
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids._
@@ -34,7 +34,7 @@ trait TileFluidTank extends TileEntityBase with IFluidHandler {
   override def serverUpdate(): Unit = {
     super.serverUpdate()
     if (!updateNeeded) return
-    PacketHandler.INSTANCE.sendToDimension(new MessageFluidTankUpdate(getPos.getX, getPos.getY, getPos.getZ, if (tank.getFluid == null) -1 else tank.getFluid.getFluid.getID, tank.getFluidAmount), getWorld.provider.getDimensionId)
+    ItszuLibPacketHandler.INSTANCE.sendToDimension(new MessageFluidTankUpdate(getPos.getX, getPos.getY, getPos.getZ, if (tank.getFluid == null) -1 else tank.getFluid.getFluid.getID, tank.getFluidAmount), getWorld.provider.getDimensionId)
     updateNeeded = false
   }
 

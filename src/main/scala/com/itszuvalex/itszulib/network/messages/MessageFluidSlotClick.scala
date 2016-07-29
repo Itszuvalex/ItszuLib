@@ -2,18 +2,18 @@ package com.itszuvalex.itszulib.network.messages
 
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.core.traits.tile.{TileFluidTank, TileMultiFluidTank}
-import com.itszuvalex.itszulib.network.PacketHandler
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import io.netty.buffer.ByteBuf
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fluids.{FluidContainerRegistry, IFluidContainerItem}
-import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
+import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}
 
 /**
   * Created by Alex on 11.10.2015.
   */
-class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var manualAccess: Int, var filterFluid: Int) extends IMessage with IMessageHandler[MessageFluidSlotClick, IMessage] {
+class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var manualAccess: Int, var filterFluid: Int) extends MessageBase[MessageFluidSlotClick, IMessage] {
   var tileSingleTank: TileFluidTank      = null
   var tileMultiTank : TileMultiFluidTank = null
 
@@ -62,14 +62,14 @@ class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var
       if (stack != null) {
         stack.writeToNBT(tag)
       }
-      PacketHandler.INSTANCE.sendTo(new MessageUpdateGuiItemStack(tag), player)
+      ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(tag), player)
       return
     }
     stk.stackSize -= 1
     player.inventory.setItemStack(stk)
     val tag = new NBTTagCompound()
     stk.writeToNBT(tag)
-    PacketHandler.INSTANCE.sendTo(new MessageUpdateGuiItemStack(tag), player)
+    ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(tag), player)
     if (player.inventory.addItemStackToInventory(stack)) return
     player.inventory.player.dropPlayerItemWithRandomChoice(stack, false)
   }

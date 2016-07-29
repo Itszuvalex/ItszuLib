@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.gui
 
 import com.itszuvalex.itszulib.core.traits.tile.{TileFluidTank, TileMultiFluidTank}
-import com.itszuvalex.itszulib.network.PacketHandler
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageFluidSlotClick
 import com.itszuvalex.itszulib.render.RenderUtils
 import com.itszuvalex.itszulib.util.Color
@@ -97,9 +97,9 @@ class GuiFluidTank(override var anchorX: Int,
     if (manualAccess != 0 && isMousedOver) {
       tankID match {
         case -1 =>
-          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileSingleTank.getLoc, -1, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
+          ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileSingleTank.getLoc, -1, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
         case _ =>
-          PacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileMultiTank.getLoc, tankID, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
+          ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileMultiTank.getLoc, tankID, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
       }
     }
     super.onMouseClick(mouseX, mouseY, button)

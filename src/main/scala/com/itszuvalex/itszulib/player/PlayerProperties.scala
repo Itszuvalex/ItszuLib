@@ -24,7 +24,7 @@ import java.util
 
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.player.IPlayerProperty
-import com.itszuvalex.itszulib.network.PacketHandler
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessagePlayerProperty
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
@@ -80,7 +80,7 @@ class PlayerProperties(protected final var player: EntityPlayer) extends IExtend
     for (entry <- properties.entrySet) {
       savePropertyToCompound(entry.getKey, compound)
     }
-    PacketHandler.INSTANCE.sendTo(new MessagePlayerProperty(player.getName, compound), player.asInstanceOf[EntityPlayerMP])
+    ItszuLibPacketHandler.INSTANCE.sendTo(new MessagePlayerProperty(player.getName, compound), player.asInstanceOf[EntityPlayerMP])
   }
 
   private def savePropertyToCompound(property: String, packetCompound: NBTTagCompound) {
@@ -97,7 +97,7 @@ class PlayerProperties(protected final var player: EntityPlayer) extends IExtend
     if (FMLCommonHandler.instance.getEffectiveSide.isClient) return
     val packetCompound = new NBTTagCompound
     savePropertyToCompound(property, packetCompound)
-    PacketHandler.INSTANCE.sendTo(new MessagePlayerProperty(player.getName, packetCompound), player.asInstanceOf[EntityPlayerMP])
+    ItszuLibPacketHandler.INSTANCE.sendTo(new MessagePlayerProperty(player.getName, packetCompound), player.asInstanceOf[EntityPlayerMP])
   }
 
   override def saveNBTData(compound: NBTTagCompound) {

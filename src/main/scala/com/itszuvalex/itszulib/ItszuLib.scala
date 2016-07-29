@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib
 
-import com.itszuvalex.itszulib.network.PacketHandler
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.proxy.ProxyCommon
 import com.itszuvalex.itszulib.testing.{BlockLocTrackerTest, BlockPortalTest, BlockTankTest, ItemPreviewable}
 import net.minecraft.creativetab.CreativeTabs
@@ -25,7 +25,7 @@ object ItszuLib {
   var proxy: ProxyCommon = null
 
   @EventHandler def preInit(event: FMLPreInitializationEvent): Unit = {
-    PacketHandler.init()
+    ItszuLibPacketHandler.init()
     //    PlayerUUIDTracker.init()
     //    PlayerUUIDTracker.setFile(new File())
     proxy.init()

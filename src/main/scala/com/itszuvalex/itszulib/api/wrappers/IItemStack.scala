@@ -38,9 +38,7 @@ object IItemStack {
   }
 
   val nbtLoader = new Overridable((nbt: NBTTagCompound) => {
-    val stack = WrapperVanillaItemStack(null)
-    stack.deserializeNBT(nbt)
-    stack.asInstanceOf[IItemStack]
+    WrapperVanillaItemStack.nbtDeserializer.apply(nbt).asInstanceOf[IItemStack]
   })
 
   def createFromNBT(nbt: NBTTagCompound) = nbtLoader.apply(nbt)

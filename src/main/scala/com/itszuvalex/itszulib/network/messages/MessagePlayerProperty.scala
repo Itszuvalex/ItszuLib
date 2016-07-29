@@ -7,13 +7,13 @@ import com.itszuvalex.itszulib.player.PlayerProperties
 import com.itszuvalex.itszulib.util.PlayerUtils
 import io.netty.buffer.ByteBuf
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
-import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
+import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}
 import org.apache.logging.log4j.Level
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 10/22/14.
   */
-class MessagePlayerProperty(private var username: String, private var data: NBTTagCompound) extends IMessage with IMessageHandler[MessagePlayerProperty, IMessage] {
+class MessagePlayerProperty(private var username: String, private var data: NBTTagCompound) extends MessageBase[MessagePlayerProperty, IMessage] {
   def this() = this(null, null)
 
   override def fromBytes(buf: ByteBuf) = {
