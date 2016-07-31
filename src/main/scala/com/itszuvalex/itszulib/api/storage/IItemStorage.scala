@@ -74,11 +74,11 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
         IItemStack.Empty
       }
       else {
-        val slot = s.copy()
-        slot.stackSize += room
+        val slotcopy = slot.copy()
+        slotcopy.stackSize += room
         val ret = s.copy()
         ret.stackSize -= room
-        setSlot(i, slot)
+        setSlot(i, slotcopy)
         ret
       }
     }
