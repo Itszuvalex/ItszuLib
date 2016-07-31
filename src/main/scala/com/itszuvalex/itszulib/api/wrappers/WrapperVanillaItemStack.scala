@@ -10,6 +10,13 @@ import net.minecraft.nbt.NBTTagCompound
   */
 object WrapperVanillaItemStack {
 
+  def apply(stack: ItemStack): IItemStack = {
+    if (stack == null)
+      IItemStack.Empty
+    else
+      new WrapperVanillaItemStack(stack)
+  }
+
   def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
 
   val nbtWriter = new Overridable((c: WrapperVanillaItemStack, nbt: NBTTagCompound) =>
@@ -20,7 +27,7 @@ object WrapperVanillaItemStack {
   })
 
   val nbtDeserializer = new Overridable((n: NBTTagCompound) => {
-    new WrapperVanillaItemStack(ItemStack.loadItemStackFromNBT(n))
+    WrapperVanillaItemStack(ItemStack.loadItemStackFromNBT(n))
   }
                                        )
 
@@ -30,7 +37,7 @@ object WrapperVanillaItemStack {
   })
 }
 
-case class WrapperVanillaItemStack(private val stack: ItemStack) extends IItemStack {
+class WrapperVanillaItemStack(private val stack: ItemStack) extends IItemStack {
   def this(item: Item, amount: Int, damage: Int, nbt: NBTTagCompound) = this(new ItemStack(item, amount, damage, nbt))
 
   def this(item: Item, amount: Int, damage: Int) = this(item, amount, damage, null)
