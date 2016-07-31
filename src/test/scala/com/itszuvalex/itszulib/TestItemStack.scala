@@ -35,7 +35,7 @@ class TestItemStack(var testItem: Int, var testStack: Int, var testDamage: Int) 
 
   override def damage_=(dam: Int): Unit = testDamage = dam
 
-  override def damageMax: Int = damageMax
+  override def damageMax: Int = testDamageMax
 
   override def nbt: NBTTagCompound = testNBT
 

@@ -81,10 +81,10 @@ object RenderUtils {
   def drawTopFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     translationBlock(x, y, z) {
                                 drawBlock() {
-                                              addVertexUV(xmin, yoffset, zmin, minU, maxV)
-                                              addVertexUV(xmin, yoffset, zmax, minU, minV)
-                                              addVertexUV(xmax, yoffset, zmax, maxU, minV)
-                                              addVertexUV(xmax, yoffset, zmin, maxU, maxV)
+                                              addVertexUV(xmax, yoffset, zmax, maxU, maxV)
+                                              addVertexUV(xmax, yoffset, zmin, maxU, minV)
+                                              addVertexUV(xmin, yoffset, zmin, minU, minV)
+                                              addVertexUV(xmin, yoffset, zmax, minU, maxV)
                                             }
                               }
   }
@@ -92,10 +92,10 @@ object RenderUtils {
   def drawBottomFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     translationBlock(x, y, z) {
                                 drawBlock() {
-                                              addVertexUV(xmin, yoffset, zmin, minU, maxV)
-                                              addVertexUV(xmax, yoffset, zmin, minU, minV)
-                                              addVertexUV(xmax, yoffset, zmax, maxU, minV)
                                               addVertexUV(xmin, yoffset, zmax, maxU, maxV)
+                                              addVertexUV(xmin, yoffset, zmin, maxU, minV)
+                                              addVertexUV(xmax, yoffset, zmin, minU, minV)
+                                              addVertexUV(xmax, yoffset, zmax, minU, maxV)
                                             }
                               }
   }
@@ -103,10 +103,10 @@ object RenderUtils {
   def drawNorthFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     translationBlock(x, y, z) {
                                 drawBlock() {
-                                              addVertexUV(xmin, ymin, zoffset, minU, maxV)
-                                              addVertexUV(xmin, ymax, zoffset, minU, minV)
-                                              addVertexUV(xmax, ymax, zoffset, maxU, minV)
-                                              addVertexUV(xmax, ymin, zoffset, maxU, maxV)
+                                              addVertexUV(xmin, ymin, zoffset, maxU, maxV)
+                                              addVertexUV(xmin, ymax, zoffset, maxU, minV)
+                                              addVertexUV(xmax, ymax, zoffset, minU, minV)
+                                              addVertexUV(xmax, ymin, zoffset, minU, maxV)
                                             }
                               }
   }
@@ -114,10 +114,10 @@ object RenderUtils {
   def drawEastFace(x: Float, y: Float, z: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     translationBlock(x, y, z) {
                                 drawBlock() {
-                                              addVertexUV(xoffset, ymin, zmin, minU, maxV)
-                                              addVertexUV(xoffset, ymax, zmin, minU, minV)
-                                              addVertexUV(xoffset, ymax, zmax, maxU, minV)
-                                              addVertexUV(xoffset, ymin, zmax, maxU, maxV)
+                                              addVertexUV(xoffset, ymin, zmin, maxU, maxV)
+                                              addVertexUV(xoffset, ymax, zmin, maxU, minV)
+                                              addVertexUV(xoffset, ymax, zmax, minU, minV)
+                                              addVertexUV(xoffset, ymin, zmax, minU, maxV)
                                             }
                               }
   }
@@ -125,10 +125,10 @@ object RenderUtils {
   def drawSouthFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     translationBlock(x, y, z) {
                                 drawBlock() {
-                                              addVertexUV(xmin, ymin, zoffset, minU, maxV)
-                                              addVertexUV(xmax, ymin, zoffset, minU, minV)
+                                              addVertexUV(xmax, ymin, zoffset, maxU, maxV)
                                               addVertexUV(xmax, ymax, zoffset, maxU, minV)
-                                              addVertexUV(xmin, ymax, zoffset, maxU, maxV)
+                                              addVertexUV(xmin, ymax, zoffset, minU, minV)
+                                              addVertexUV(xmin, ymin, zoffset, minU, maxV)
                                             }
                               }
   }
@@ -136,10 +136,10 @@ object RenderUtils {
   def drawWestFace(x: Float, y: Float, z: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     translationBlock(x, y, z) {
                                 drawBlock() {
-                                              addVertexUV(xoffset, ymin, zmin, minU, maxV)
-                                              addVertexUV(xoffset, ymin, zmax, minU, minV)
+                                              addVertexUV(xoffset, ymin, zmax, maxU, maxV)
                                               addVertexUV(xoffset, ymax, zmax, maxU, minV)
-                                              addVertexUV(xoffset, ymax, zmin, maxU, maxV)
+                                              addVertexUV(xoffset, ymax, zmin, minU, minV)
+                                              addVertexUV(xoffset, ymin, zmin, minU, maxV)
                                             }
                               }
   }

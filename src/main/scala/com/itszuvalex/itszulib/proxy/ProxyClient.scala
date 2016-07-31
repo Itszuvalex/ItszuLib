@@ -27,7 +27,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.client.registry.{ClientRegistry, RenderingRegistry}
+import net.minecraftforge.fml.client.registry.ClientRegistry
 
 
 class ProxyClient extends ProxyCommon {
@@ -40,6 +40,7 @@ class ProxyClient extends ProxyCommon {
     PreviewableIDs.testID = PreviewableRendererRegistry.bindRenderer(new TestPreviewableRenderer)
 
     ClientRegistry.bindTileEntitySpecialRenderer[PortalTileTest](classOf[PortalTileTest], new RenderPortalTest)
+    ClientRegistry.bindTileEntitySpecialRenderer[TileTankTest](classOf[TileTankTest], new RenderSidedCubeTest)
 
     GuiStack.init()
   }

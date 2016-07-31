@@ -92,7 +92,7 @@ class TestItemStorageArray extends TestBase {
         cur.stackSize shouldBe 8
       }
       "when inserting an itemstack that matches in a slot with limited room, add until at max and return the remains" in new withStorage {
-        val ins = new TestItemStack(1, 64)
+        val ins = new TestItemStack(1, 63)
         val cur = storage(1)
         cur.stackSize shouldBe 5
         ins.isItemEqual(cur) shouldBe true
@@ -101,7 +101,7 @@ class TestItemStorageArray extends TestBase {
         ins.isItemEqual(ret) shouldBe true
         storage(1) should not be 'Empty
         storage(1).stackSize shouldBe 64
-        ret.stackSize shouldBe 5
+        ret.stackSize shouldBe 4
       }
       "when inserting an itemstack into an empty slot with greater than the amount of room, set the slot with as much as can fit return the remains" in new withStorage {
         val ins = new TestItemStack(1, 200)
