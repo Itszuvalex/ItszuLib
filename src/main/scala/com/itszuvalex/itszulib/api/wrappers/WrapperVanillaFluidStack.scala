@@ -8,6 +8,12 @@ import net.minecraftforge.fluids.{Fluid, FluidStack}
   * Created by Chris on 7/6/2016.
   */
 object WrapperVanillaFluidStack {
+  def apply(fluid: FluidStack) = {
+    if (fluid == null)
+      IFluidStack.Empty
+    else new WrapperVanillaFluidStack(fluid)
+  }
+
   def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
 
   val nbtWriter = new Overridable((c: WrapperVanillaFluidStack, nbt: NBTTagCompound) =>
@@ -33,7 +39,7 @@ object WrapperVanillaFluidStack {
   })
 }
 
-case class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFluidStack {
+class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFluidStack {
 
   def this() = this(null)
 

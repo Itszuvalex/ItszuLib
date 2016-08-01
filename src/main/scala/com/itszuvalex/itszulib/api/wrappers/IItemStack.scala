@@ -38,13 +38,13 @@ object IItemStack {
   }
 
   val nbtLoader = new Overridable((nbt: NBTTagCompound) => {
-    WrapperVanillaItemStack.nbtDeserializer.apply(nbt).asInstanceOf[IItemStack]
+    WrapperVanillaItemStack.nbtDeserializer.apply(nbt)
   })
 
   def createFromNBT(nbt: NBTTagCompound) = nbtLoader.apply(nbt)
 
   val itemStackEquality = new Overridable((a: IItemStack, b: IItemStack) => {
-    ItemStack.areItemStacksEqual(a.toMinecraft, b.toMinecraft)
+    ItemStack.areItemsEqual(a.toMinecraft, b.toMinecraft) && ItemStack.areItemStackTagsEqual(a.toMinecraft, b.toMinecraft)
   })
 }
 
