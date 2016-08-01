@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.core.traits.tile
 
+import com.itszuvalex.itszulib.api.Capabilities
 import com.itszuvalex.itszulib.api.core.Saveable
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.wrappers.Converter
@@ -66,6 +67,9 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
   override def getCapability[T](capability: net.minecraftforge.common.capabilities.Capability[T], facing: net.minecraft.util.EnumFacing): T = {
     if (capability == net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
       Converter.IItemHandlerModifiableFromIItemStorage(storage).asInstanceOf[T]
+    }
+    else if (capability == Capabilities.ITEM_STORAGE) {
+      storage.asInstanceOf[T]
     }
     else
       super.getCapability[T](capability, facing)
