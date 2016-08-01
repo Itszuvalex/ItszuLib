@@ -74,11 +74,11 @@ trait IFluidStorage extends scala.collection.immutable.Seq[IFluidStack] with INB
         IFluidStack.Empty
       }
       else {
-        val slot = s.copy()
-        slot.amount += room
+        val slotcopy = slot.copy()
+        slotcopy.amount += room
         val ret = s.copy()
         ret.amount -= room
-        setSlot(i, slot)
+        setSlot(i, slotcopy)
         ret
       }
     }

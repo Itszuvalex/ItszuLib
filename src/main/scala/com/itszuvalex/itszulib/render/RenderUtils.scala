@@ -26,7 +26,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.client.renderer.vertex.{DefaultVertexFormats, VertexFormat}
-import net.minecraft.client.renderer.{ActiveRenderInfo, GlStateManager, Tessellator}
+import net.minecraft.client.renderer.{ActiveRenderInfo, Tessellator}
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumFacing._
 import org.lwjgl.opengl.GL11
@@ -360,17 +360,12 @@ object RenderUtils {
 
   private def drawTexturedModalRectFromIcon(zheight: Float, x: Int, y: Int, width: Int, height: Int, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     //Taken from net.minecraft.client.Gui
-    GlStateManager.enableBlend()
-    GlStateManager.disableTexture2D()
-    GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
     drawBlock() {
                   addVertexUV(x.toDouble, (y + height).toDouble, zheight.toDouble, minU.toDouble, maxV.toDouble)
                   addVertexUV((x + width).toDouble, (y + height).toDouble, zheight.toDouble, maxU.toDouble, maxV.toDouble)
                   addVertexUV((x + width).toDouble, y.toDouble, zheight.toDouble, maxU.toDouble, minV.toDouble)
                   addVertexUV(x.toDouble, y.toDouble, zheight.toDouble, minU.toDouble, minV.toDouble)
                 }
-    GlStateManager.enableTexture2D()
-    GlStateManager.disableBlend()
   }
 
   def bindBlockTextures(): Unit = {

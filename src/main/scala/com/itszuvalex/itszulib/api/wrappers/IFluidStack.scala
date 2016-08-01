@@ -36,6 +36,15 @@ object IFluidStack {
   })
 
   def createFromNBT(nbt: NBTTagCompound): IFluidStack = nbtLoader.apply(nbt)
+
+  val fluidEquality = new Overridable((a: IFluidStack, b: IFluidStack) => {
+    if (a == null)
+      b == null
+    else if (a.toMinecraft == null)
+      b.toMinecraft == null
+    else
+      a.toMinecraft.isFluidEqual(b.toMinecraft)
+  })
 }
 
 trait IFluidStack extends INBTSerializable[NBTTagCompound] {
@@ -58,7 +67,7 @@ trait IFluidStack extends INBTSerializable[NBTTagCompound] {
 
   def copy(): IFluidStack
 
-  def isFluidEqual(o: IFluidStack): Boolean
+  def isFluidEqual(o: IFluidStack): Boolean = IFluidStack.fluidEquality.apply(this, o)
 
   def writeToNBT(nbt: NBTTagCompound): Unit
 
