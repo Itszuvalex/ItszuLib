@@ -33,7 +33,7 @@ class RenderPortalTest extends TileEntitySpecialRenderer[PortalTileTest] {
     //    GL11.glAlphaFunc(GL11.GL_ALWAYS, 1)
     //    GL11.glEnable(GL11.GL_DEPTH)
     //    GL11.glEnable(GL11.GL_DEPTH_TEST)
-    val icon = RenderUtils.getDefaultTextureForBlock(Blocks.fire)
+    val icon = RenderUtils.getDefaultTextureForBlock(Blocks.FIRE)
     //    drawBillboard(x + 0.5, y + 0.5, z + 0.5, 0, .5, icon.getMinU, icon.getMaxU, icon.getMinV, icon.getMaxV)
     GL11.glPopAttrib()
     //

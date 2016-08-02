@@ -23,7 +23,6 @@ package com.itszuvalex.itszulib.util
 import java.io.File
 
 import net.minecraft.client.Minecraft
-import net.minecraft.server.MinecraftServer
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.relauncher.Side
@@ -41,9 +40,7 @@ object FileUtils {
     dir.getPath
   }
 
-  def savePath(world: World) = if (!MinecraftServer.getServer.isDedicatedServer) {
-    Minecraft.getMinecraft.mcDataDir + "/saves/" + world.getSaveHandler.getWorldDirectoryName
-  } else {MinecraftServer.getServer.getFile(world.getSaveHandler.getWorldDirectoryName).getPath}
+  def savePath(world: World) = world.getSaveHandler.getWorldDirectory.getAbsolutePath
 
   def configFolder(modID: String): File = {
     val path = configPath(modID)
@@ -55,7 +52,7 @@ object FileUtils {
   }
 
   def configPath(modID: String) = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
-    MinecraftServer.getServer.getFile(MinecraftServer.getServer.getFolderName + "/config/" + modID + "/").getPath + "/"
+    FMLCommonHandler.instance.getMinecraftServerInstance.getFile(FMLCommonHandler.instance().getMinecraftServerInstance.getFolderName + "/config/" + modID + "/").getPath + "/"
   } else {Minecraft.getMinecraft.mcDataDir + "/config/" + modID + "/"}
 
   def customConfigPath(modID: String) = configPath(modID) + "custom/"

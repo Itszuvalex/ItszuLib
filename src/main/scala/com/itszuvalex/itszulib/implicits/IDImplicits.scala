@@ -2,7 +2,6 @@ package com.itszuvalex.itszulib.implicits
 
 import net.minecraft.block.Block
 import net.minecraft.item.{Item, ItemStack}
-import net.minecraftforge.fluids.{Fluid, FluidStack}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 10/19/14.

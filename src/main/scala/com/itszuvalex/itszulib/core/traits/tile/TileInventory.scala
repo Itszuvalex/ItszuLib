@@ -8,7 +8,7 @@ import com.itszuvalex.itszulib.core.TileEntityBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{EnumFacing, IChatComponent}
+import net.minecraft.util.EnumFacing
 
 /**
   * Created by Chris on 11/29/2014.

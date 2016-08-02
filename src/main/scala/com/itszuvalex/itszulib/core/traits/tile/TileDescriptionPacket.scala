@@ -2,7 +2,6 @@ package com.itszuvalex.itszulib.core.traits.tile
 
 import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity
 import net.minecraft.network.{NetworkManager, Packet}
 import net.minecraft.tileentity.TileEntity
 

@@ -97,7 +97,7 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
 
   def setRenderUpdate() = if (getWorld != null) getWorld.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
 
-  def setUpdate() = if (getWorld != null) getWorld.markBlockForUpdate(getPos)
+  def setUpdate() = if (getWorld != null) getWorld.markBlocksDirtyVertical(getPos.getX, getPos.getZ, getPos.getX, getPos.getZ)
 
   def notifyNeighborsOfChange() = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType)
 

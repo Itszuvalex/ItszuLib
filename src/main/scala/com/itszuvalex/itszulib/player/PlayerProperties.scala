@@ -30,7 +30,6 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
-import net.minecraftforge.common.IExtendedEntityProperties
 import net.minecraftforge.fml.common.FMLCommonHandler
 import org.apache.logging.log4j.Level
 

@@ -3,7 +3,7 @@ package com.itszuvalex.itszulib.container
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageContainerUpdate
 import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.inventory.{Container, ICrafting}
+import net.minecraft.inventory.Container
 
 /**
   * Created by Chris on 8/29/2014.

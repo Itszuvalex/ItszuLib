@@ -23,7 +23,8 @@ package com.itszuvalex.itszulib.api.core
 import com.itszuvalex.itszulib.api.Overridable
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{BlockPos, EnumFacing}
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
@@ -33,7 +34,7 @@ import net.minecraftforge.common.util.INBTSerializable
   * Created by Christopher Harris (Itszuvalex) on 5/9/14.
   */
 object Loc4 {
-  val worldIntMapper = new Overridable((w: World) => w.provider.getDimensionId)
+  val worldIntMapper = new Overridable((w: World) => w.provider.getDimension)
   val intWorldMapper = new Overridable[(Int) => _ <: World](DimensionManager.getWorld _)
 
   val ORIGIN = Loc4(0, 0, 0, 0)

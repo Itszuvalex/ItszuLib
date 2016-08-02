@@ -2,12 +2,9 @@ package com.itszuvalex.itszulib.testing
 
 import com.itszuvalex.itszulib.api.IPreviewableRenderer
 import com.itszuvalex.itszulib.api.core.Loc4
-import com.itszuvalex.itszulib.render.RenderUtils
 import com.itszuvalex.itszulib.render.RenderUtils._
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
-import net.minecraft.world.World
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 8/26/15.

@@ -8,6 +8,6 @@ import net.minecraft.world.World
 /**
   * Created by Christopher Harris (Itszuvalex) on 8/3/15.
   */
-class BlockLocTrackerTest extends TileContainer(Material.iron) {
+class BlockLocTrackerTest extends TileContainer(Material.IRON) {
   override def createNewTileEntity(p_149915_1_ : World, p_149915_2_ : Int): TileEntity = new TileLocTrackerTest
 }

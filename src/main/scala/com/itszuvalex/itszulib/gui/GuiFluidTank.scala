@@ -7,7 +7,6 @@ import com.itszuvalex.itszulib.render.RenderUtils
 import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
-import net.minecraft.util.EnumChatFormatting
 import net.minecraftforge.fluids._
 
 import scala.collection.mutable.ListBuffer

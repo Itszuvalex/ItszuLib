@@ -13,8 +13,8 @@ trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
 
   def formMultiBlock(loc: Loc4): Boolean = {
     val result = info.formMultiBlock(loc)
-    getWorld.markBlockForUpdate(loc.getPos)
-    getWorld.notifyNeighborsOfStateChange(loc.getPos, getWorld.getBlockState(loc.getPos).getBlock)
+    setUpdate()
+    notifyNeighborsOfChange()
     result
   }
 
@@ -25,8 +25,8 @@ trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
 
   override def breakMultiBlock(loc: Loc4): Boolean = {
     val result = info.breakMultiBlock(loc)
-    getWorld.markBlockForUpdate(loc.getPos)
-    getWorld.notifyNeighborsOfStateChange(loc.getPos, getWorld.getBlockState(loc.getPos).getBlock)
+    setUpdate()
+    notifyNeighborsOfChange()
     result
   }
 

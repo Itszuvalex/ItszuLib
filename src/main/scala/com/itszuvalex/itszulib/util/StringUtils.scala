@@ -3,8 +3,7 @@ package com.itszuvalex.itszulib.util
 import java.util.regex.{Matcher, Pattern}
 
 import com.itszuvalex.itszulib.ItszuLib
-import net.minecraft.block.Block
-import net.minecraft.item.{Item, ItemBlock, ItemStack}
+import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.fml.common.registry.GameRegistry
 import org.apache.logging.log4j.Level
 
@@ -63,25 +62,25 @@ object StringUtils {
   }
 
   def itemStackToString(s: ItemStack): String = {
-    var id: GameRegistry.UniqueIdentifier = null
-    if (s != null) {
-      if (s.getItem.isInstanceOf[ItemBlock]) {
-        id = GameRegistry.findUniqueIdentifierFor(Block.getBlockFromItem(s.getItem))
-      } else {
-        id = GameRegistry.findUniqueIdentifierFor(s.getItem)
-      }
-    }
-    if (s == null) {
-      ""
-    } else {
-      var result: String = null
-      if (id == null) {
-        result = String.valueOf(Item.getIdFromItem(s.getItem))
-      } else {
-        result = id.modId + ":" + id.name
-      }
-      result + ":" + s.getItemDamage + "-" + s.stackSize
-    }
+    //    var id: GameRegistry.ItemStackHolder = null
+    //    if (s != null) {
+    //      if (s.getItem.isInstanceOf[ItemBlock]) {
+    //        id = GameRegistry.findUniqueIdentifierFor(Block.getBlockFromItem(s.getItem))
+    //      } else {
+    //        id = GameRegistry.findUniqueIdentifierFor(s.getItem)
+    //      }
+    //    }
+    //    if (s == null) {
+    //      ""
+    //    } else {
+    //      var result: String = null
+    //      if (id == null) {
+    //        result = String.valueOf(Item.getIdFromItem(s.getItem))
+    //      } else {
+    //        result = id.modId + ":" + id.name
+    //      }
+    //      result + ":" + s.getItemDamage + "-" + s.stackSize
+    null
   }
 
   /**

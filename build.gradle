@@ -14,7 +14,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
         //Check for the latest version here: http://plugins.gradle.org/plugin/com.jfrog.artifactory
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
     }
@@ -22,6 +22,7 @@ buildscript {
 
 plugins {
     id "com.github.maiflai.scalatest" version "0.11"
+    id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 
 allprojects{
@@ -54,7 +55,7 @@ project.ext {
     massive = "0"
     major = "1"
     minor = "0"
-    mcVersion = "1.8.9"
+    mcVersion = "1.10.2"
 }
 
 version = "${project.ext.mcVersion}-${project.ext.massive}.${project.ext.major}.${project.minor}"
@@ -86,9 +87,9 @@ group = "com.itszuvalex.itszulib" // http://maven.apache.org/guides/mini/guide-n
 archivesBaseName = "itszulib"
 
 minecraft {
-    version = "${project.ext.mcVersion}-11.15.1.1722"
+    version = "${project.ext.mcVersion}-12.18.1.2011"
     runDir = "run"
-    mappings = "stable_20"
+    mappings = "snapshot_20160518"
 // replacing stuff in the source
     replace '@MASSIVE@', project.massive
     replace '@MAJOR@', project.major

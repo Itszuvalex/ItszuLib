@@ -4,7 +4,7 @@ import com.itszuvalex.itszulib.api.core.Loc4
 import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.INBTSerializable
@@ -42,7 +42,7 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
 
   def world = DimensionManager.getWorld(dimensionID)
 
-  def world_=(world: World) = _dimensionID = world.provider.getDimensionId
+  def world_=(world: World) = _dimensionID = world.provider.getDimension
 
   def this(dimensionID: Int, pos: BlockPos, state: IBlockState, te: NBTTagCompound) =
     this(dimensionID,

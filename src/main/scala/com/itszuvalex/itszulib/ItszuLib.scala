@@ -36,11 +36,11 @@ object ItszuLib {
   }
 
   @EventHandler def load(event: FMLInitializationEvent): Unit = {
-    GameRegistry.registerBlock(new BlockPortalTest, "BlockPortalTest").setCreativeTab(CreativeTabs.tabBlock)
-    GameRegistry.registerBlock(new BlockLocTrackerTest, "BlockLocTrackerTest").setCreativeTab(CreativeTabs.tabBlock)
-    GameRegistry.registerBlock(new BlockTankTest, "BlockTankTest").setCreativeTab(CreativeTabs.tabBlock)
+    GameRegistry.registerBlock(new BlockPortalTest, "BlockPortalTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
+    GameRegistry.registerBlock(new BlockLocTrackerTest, "BlockLocTrackerTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
+    GameRegistry.registerBlock(new BlockTankTest, "BlockTankTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
     val prev = new ItemPreviewable
-    prev.setCreativeTab(CreativeTabs.tabDecorations)
+    prev.setCreativeTab(CreativeTabs.DECORATIONS)
     GameRegistry.registerItem(prev, "TilePreviewable")
   }
 

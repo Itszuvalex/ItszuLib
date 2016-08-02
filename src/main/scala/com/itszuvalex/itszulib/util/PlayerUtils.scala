@@ -25,9 +25,8 @@ import java.util.UUID
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.{ChatComponentText, EnumChatFormatting}
-
-import scala.collection.JavaConversions._
+import net.minecraft.util.text.{TextComponentBase, TextComponentString}
+import net.minecraftforge.fml.common.FMLCommonHandler
 
 object PlayerUtils {
   /**
@@ -35,7 +34,7 @@ object PlayerUtils {
     * @param username
     * @return True if MinecraftServer sees the player as online.
     */
-  def isPlayerOnline(username: String) = MinecraftServer.getServer.getAllUsernames.contains(username)
+  def isPlayerOnline(username: String) = FMLCommonHandler.instance().getMinecraftServerInstance.getAllUsernames.contains(username)
 
   /**
     *
@@ -46,7 +45,7 @@ object PlayerUtils {
 
   //  def getServerPlayer(username: String): EntityPlayerMP = MinecraftServer.getServer.getConfigurationManager.func_152612_a(username)
 
-  def getServerPlayer(uuid: UUID): EntityPlayerMP = MinecraftServer.getServer.getConfigurationManager.playerEntityList.collectFirst { case player: EntityPlayerMP if player.getUniqueID.equals(uuid) => player }.orNull
+  def getServerPlayer(uuid: UUID): EntityPlayerMP = FMLCommonHandler.instance().getMinecraftServerInstance.getConfigurationManager.playerEntityList.collectFirst { case player: EntityPlayerMP if player.getUniqueID.equals(uuid) => player }.orNull
 
   def sendMessageToPlayer(username: String, modID: String, message: String): Boolean = sendMessageToPlayer(username, modID, message, "")
 
@@ -72,15 +71,15 @@ object PlayerUtils {
   def sendMessageToPlayer(player: EntityPlayer, modID: String, message: String, formatting: String): Boolean = {
     if (player != null) {
       player
-      .addChatMessage(new ChatComponentText(new StringBuilder()
-                                            .append(EnumChatFormatting.GOLD)
-                                            .append(modID)
-                                            .append(EnumChatFormatting.RESET)
-                                            .append(": ")
-                                            .append(formatting)
-                                            .append(message)
-                                            .append(EnumChatFormatting.RESET)
-                                            .toString()))
+      .addChatMessage(new TextComponentString(new StringBuilder()
+                                              .append(EnumChatFormatting.GOLD)
+                                              .append(modID)
+                                              .append(EnumChatFormatting.RESET)
+                                              .append(": ")
+                                              .append(formatting)
+                                              .append(message)
+                                              .append(EnumChatFormatting.RESET)
+                                              .toString()))
       return true
     }
     false

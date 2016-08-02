@@ -4,7 +4,7 @@ import com.itszuvalex.itszulib.api.storage.IItemStorage
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{ChatComponentText, IChatComponent}
+import net.minecraft.util.text.{ITextComponent, TextComponentString}
 
 /**
   * Created by Chris on 7/31/2016.
@@ -23,7 +23,7 @@ class WrapperIItemStorage(storage: IItemStorage) extends IInventory {
     ret.toMinecraft
   }
 
-  override def getDisplayName: IChatComponent = new ChatComponentText("Inventory")
+  override def getDisplayName: ITextComponent = new TextComponentString("Inventory")
 
   override def getName: String = "storage"
 

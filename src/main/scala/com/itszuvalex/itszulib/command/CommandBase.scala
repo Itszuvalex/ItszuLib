@@ -7,7 +7,7 @@ import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.util.PlayerUtils
 import net.minecraft.command.{ICommand, ICommandSender, WrongUsageException}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.{BlockPos, EnumChatFormatting}
+import net.minecraft.util.math.BlockPos
 import org.apache.logging.log4j.Level
 
 import scala.collection.JavaConversions._
