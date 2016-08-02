@@ -46,6 +46,28 @@ abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id:
 
   val connectionMap = mutable.HashMap[Loc4, mutable.HashSet[Loc4]]()
 
+  override def addConnection(a: Loc4, b: Loc4): Unit = {
+    addConnectionSilently(a, b)
+    (a.getTileEntity().orNull, b.getTileEntity().orNull) match {
+      case (nodeA: INetworkNode[N], nodeB: INetworkNode[N]) =>
+        if (nodeA.getNetwork != nodeB.getNetwork) {
+          if (nodeA.getNetwork == this) takeover(nodeB.getNetwork)
+          else takeover(nodeA.getNetwork)
+        }
+        nodeA.connect(b)
+        nodeB.connect(a)
+      case _ =>
+    }
+  }
+
+  protected def addConnectionSilently(a: Loc4, b: Loc4): Unit =
+    connectionMap.synchronized {
+                                 connectionMap.getOrElseUpdate(a, mutable.HashSet[Loc4]()) += b
+                                 connectionMap.getOrElseUpdate(b, mutable.HashSet[Loc4]()) += a
+
+                               }
+
+
   override def canConnect(a: Loc4, b: Loc4): Boolean = (a.getTileEntity().orNull, b.getTileEntity().orNull) match {
     case (nodeA: INetworkNode[N], nodeB: INetworkNode[N]) => nodeA.canConnect(b) && nodeB.canConnect(a)
     case _ => false
