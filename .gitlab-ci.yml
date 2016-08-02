@@ -12,7 +12,7 @@ full_build:
 #    - apt-get update
 #    - apt-get install --yes --force-yes gradle
     - rm -rf build/libs/*
-    - chown root ./gradlew.bat
+    - chmod +x ./gradlew.bat
     - ./gradlew.bat setupCIWorkspace
     - ./gradlew.bat build
     - ./gradlew.bat artifactoryPublish
