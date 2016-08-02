@@ -9,6 +9,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.text.ITextComponent
 
 /**
   * Created by Chris on 11/29/2014.
@@ -36,7 +37,7 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   override def removeStackFromSlot(index: Int): ItemStack = inventory.removeStackFromSlot(index)
 
-  override def getDisplayName: IChatComponent = inventory.getDisplayName
+  override def getDisplayName: ITextComponent = inventory.getDisplayName
 
   override def getName: String = inventory.getName
 

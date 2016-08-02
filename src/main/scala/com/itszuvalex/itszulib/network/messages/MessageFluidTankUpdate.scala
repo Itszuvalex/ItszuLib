@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.network.messages
 import com.itszuvalex.itszulib.core.traits.tile.{TileFluidTank, TileMultiFluidTank}
 import io.netty.buffer.ByteBuf
 import net.minecraft.client.Minecraft
+import net.minecraft.util.math.BlockPos
 import net.minecraftforge.fluids.{FluidRegistry, FluidStack}
 import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}
 

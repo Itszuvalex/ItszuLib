@@ -20,6 +20,6 @@ class TestPreviewableRenderer extends IPreviewableRenderer {
     * @param z     Z Location
     */
   override def renderAtLocation(stack: ItemStack, loc: Loc4, rx: Double, ry: Double, rz: Double): Unit = {
-    renderCube(rx.toFloat, ry.toFloat, rz.toFloat, 0, 0, 0, 1, 1, 1, getDefaultTextureForBlock(Blocks.diamond_ore))
+    renderCube(rx.toFloat, ry.toFloat, rz.toFloat, 0, 0, 0, 1, 1, 1, getDefaultTextureForBlock(Blocks.DIAMOND_ORE))
   }
 }

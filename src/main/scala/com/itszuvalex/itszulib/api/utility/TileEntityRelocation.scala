@@ -4,6 +4,7 @@ import com.itszuvalex.itszulib.api.events.EventTileEntityRelocation
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.{World, WorldServer}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.BlockSnapshot
