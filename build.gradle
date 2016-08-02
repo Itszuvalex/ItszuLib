@@ -1,12 +1,8 @@
 buildscript {
     repositories {
-//        maven {
-//            url 'http://artifactory.itszuvalex.com/plugins-release'
-//            credentials {
-//                username = System.getenv("ARTIFACTORY_USER")
-//                password = System.getenv("ARTIFACTORY_PASS")
-//            }
-//        }
+        maven {
+            url 'http://artifactory.itszuvalex.com/plugins-release'
+        }
         jcenter()
         maven {
             name = "forge"
@@ -14,7 +10,7 @@ buildscript {
         }
         maven {
             name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+            url = "http://oss.sonatype.org/content/repositories/snapshots/"
         }
     }
     dependencies {
@@ -29,14 +25,16 @@ plugins {
 }
 
 allprojects{
+    apply plugin: 'com.jfrog.artifactory'
+
     repositories {
-//        maven {
-//            url 'http://artifactory.itszuvalex.com/plugins-release'
-//            credentials {
-//                username = System.getenv("ARTIFACTORY_USER")
-//                password = System.getenv("ARTIFACTORY_PASS")
-//            }
-//        }
+        maven {
+            url 'http://artifactory.itszuvalex.com/plugins-release'
+            credentials {
+                username = System.getenv("ARTIFACTORY_USER")
+                password = System.getenv("ARTIFACTORY_PASS")
+            }
+        }
     }
 }
 
@@ -51,7 +49,6 @@ dependencies {
 apply plugin: 'scala'
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.artifactory'
 
 project.ext {
     massive = "0"
