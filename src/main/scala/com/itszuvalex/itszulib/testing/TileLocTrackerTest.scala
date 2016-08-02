@@ -5,6 +5,7 @@ import com.itszuvalex.itszulib.core.TileEntityBase
 import com.itszuvalex.itszulib.logistics.LocationTracker
 import com.itszuvalex.itszulib.util.PlayerUtils
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.EnumFacing
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 8/3/15.
@@ -28,7 +29,7 @@ class TileLocTrackerTest extends TileEntityBase {
     TileLocTrackerTest.tracker.trackLocation(getLoc)
   }
 
-  override def onSideActivate(par5EntityPlayer: EntityPlayer, side: Int): Boolean = {
+  override def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {
     super.onSideActivate(par5EntityPlayer, side)
     val start = System.nanoTime()
     val locs = TileLocTrackerTest.tracker.getLocationsInRange(getLoc, TileLocTrackerTest.range)

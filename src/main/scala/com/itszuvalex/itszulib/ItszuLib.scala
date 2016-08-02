@@ -1,14 +1,15 @@
 package com.itszuvalex.itszulib
 
-import com.itszuvalex.itszulib.network.PacketHandler
+import com.itszuvalex.itszulib.api.Capabilities
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.proxy.ProxyCommon
 import com.itszuvalex.itszulib.testing.{BlockLocTrackerTest, BlockPortalTest, BlockTankTest, ItemPreviewable}
-import cpw.mods.fml.common.Mod.EventHandler
-import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLInterModComms, FMLPostInitializationEvent, FMLPreInitializationEvent}
-import cpw.mods.fml.common.network.NetworkRegistry
-import cpw.mods.fml.common.registry.GameRegistry
-import cpw.mods.fml.common.{Mod, SidedProxy}
 import net.minecraft.creativetab.CreativeTabs
+import net.minecraftforge.fml.common.Mod.EventHandler
+import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLInterModComms, FMLPostInitializationEvent, FMLPreInitializationEvent}
+import net.minecraftforge.fml.common.network.NetworkRegistry
+import net.minecraftforge.fml.common.registry.GameRegistry
+import net.minecraftforge.fml.common.{Mod, SidedProxy}
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -25,11 +26,13 @@ object ItszuLib {
   var proxy: ProxyCommon = null
 
   @EventHandler def preInit(event: FMLPreInitializationEvent): Unit = {
-    PacketHandler.init()
+    ItszuLibPacketHandler.init()
     //    PlayerUUIDTracker.init()
     //    PlayerUUIDTracker.setFile(new File())
     proxy.init()
     NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy)
+
+    Capabilities.register()
   }
 
   @EventHandler def load(event: FMLInitializationEvent): Unit = {

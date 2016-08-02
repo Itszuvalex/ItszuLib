@@ -26,8 +26,9 @@ import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.{EnumFacing, ITickable}
 
-abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
+abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with ITickable {
   override def readFromNBT(par1nbtTagCompound: NBTTagCompound) {
     super.readFromNBT(par1nbtTagCompound)
     DataUtils.loadObjectFromNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
@@ -38,9 +39,8 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
     DataUtils.saveObjectToNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
   }
 
-  override def updateEntity() {
-    super.updateEntity()
-    if (!worldObj.isRemote) serverUpdate()
+  def update(): Unit = {
+    if (!getWorld.isRemote) serverUpdate()
     else clientUpdate()
   }
 
@@ -72,9 +72,9 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
     DataUtils.saveObjectToNBT(compound, this, DataUtils.EnumSaveType.ITEM)
   }
 
-  def onSideActivate(par5EntityPlayer: EntityPlayer, side: Int): Boolean = {
+  def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {
     if (hasGUI) {
-      par5EntityPlayer.openGui(getMod, getGuiID, worldObj, xCoord, yCoord, zCoord)
+      par5EntityPlayer.openGui(getMod, getGuiID, getWorld, getPos.getX, getPos.getY, getPos.getZ)
       return true
     }
     false
@@ -93,13 +93,13 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket {
 
   @Deprecated def onInventoryChanged() = setModified()
 
-  def setModified() = if (worldObj != null) worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+  def setModified() = if (getWorld != null) getWorld.markChunkDirty(getPos, this)
 
-  def setRenderUpdate() = if (worldObj != null) worldObj.markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord)
+  def setRenderUpdate() = if (getWorld != null) getWorld.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
 
-  def setUpdate() = if (worldObj != null) worldObj.markBlockForUpdate(xCoord, yCoord, zCoord)
+  def setUpdate() = if (getWorld != null) getWorld.markBlockForUpdate(getPos)
 
-  def notifyNeighborsOfChange() = if (worldObj != null) worldObj.func_147453_f(xCoord, yCoord, zCoord, getBlockType)
+  def notifyNeighborsOfChange() = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType)
 
   def onBlockBreak(): Unit = {}
 

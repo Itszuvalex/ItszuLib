@@ -1,9 +1,9 @@
 package com.itszuvalex.itszulib.gui
 
-import cpw.mods.fml.common.Mod.EventHandler
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import net.minecraft.client.Minecraft
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.Mod.EventHandler
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.collection.mutable
 

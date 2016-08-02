@@ -21,6 +21,6 @@ class GuiLabel(override var anchorX: Int,
 
   override def render(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)
-    Minecraft.getMinecraft.fontRenderer.drawSplitString(text, screenX + xPadding, screenY + yPadding, panelWidth - 2 * xPadding, colorFont)
+    Minecraft.getMinecraft.fontRendererObj.drawSplitString(text, screenX + xPadding, screenY + yPadding, panelWidth - 2 * xPadding, colorFont)
   }
 }

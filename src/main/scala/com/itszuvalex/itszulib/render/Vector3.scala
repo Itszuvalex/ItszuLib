@@ -20,14 +20,15 @@
  */
 package com.itszuvalex.itszulib.render
 
-import com.itszuvalex.itszulib.api.core.{NBTSerializable, Saveable}
+import com.itszuvalex.itszulib.api.core.Saveable
 import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.INBTSerializable
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 5/16/14.
   */
-case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable var z: Double) extends NBTSerializable {
+case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable var z: Double) extends INBTSerializable[NBTTagCompound] {
 
   def this(a: Point3D, b: Point3D) =
     this(a.x - b.x, a.y - b.y, a.z - b.z)
@@ -94,11 +95,13 @@ case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable v
   def dot(vector: Vector3) = x * vector.x + y * vector.y + z * vector.z
 
 
-  def saveToNBT(compound: NBTTagCompound) {
+  override def serializeNBT(): NBTTagCompound = {
+    val compound = new NBTTagCompound
     DataUtils.saveObjectToNBT(compound, this, DataUtils.EnumSaveType.WORLD)
+    compound
   }
 
-  def loadFromNBT(compound: NBTTagCompound) {
+  override def deserializeNBT(compound: NBTTagCompound) {
     DataUtils.loadObjectFromNBT(compound, this, DataUtils.EnumSaveType.WORLD)
   }
 }

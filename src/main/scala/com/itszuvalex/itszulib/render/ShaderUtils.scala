@@ -5,8 +5,8 @@ import java.nio.{FloatBuffer, IntBuffer}
 import java.util
 
 import com.itszuvalex.itszulib.ItszuLib
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import net.minecraft.client.renderer.OpenGlHelper
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.apache.logging.log4j.Level
 import org.lwjgl.opengl.{ARBFragmentShader, ARBShaderObjects, ARBVertexShader, GL11}
 
@@ -103,7 +103,6 @@ import scala.collection.JavaConverters._
         try {reader.close()}
         catch {case ex: Exception => if (innere == null) innere = ex else ex.printStackTrace()}
       }
-      if (innere != null) throw innere
     } catch {case ex: Exception => e = ex}
     finally {
       try in.close()
@@ -129,7 +128,7 @@ import scala.collection.JavaConverters._
 
       shaderParameterMap.get(shader) match {
         case Some(a) => a.foreach { case (name, vfun) =>
-          val loc = ARBShaderObjects.glGetUniformLocationARB(shader, name);
+          val loc = ARBShaderObjects.glGetUniformLocationARB(shader, name)
           vfun(Unit) match {
             case i: Int => ARBShaderObjects.glUniform1iARB(loc, i)
             case f: Float => ARBShaderObjects.glUniform1fARB(loc, f)

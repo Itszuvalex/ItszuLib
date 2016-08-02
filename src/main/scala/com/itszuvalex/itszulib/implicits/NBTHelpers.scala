@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.implicits
 
-import com.itszuvalex.itszulib.api.core.NBTSerializable
 import net.minecraft.nbt.{NBTBase, NBTTagCompound, NBTTagList}
+import net.minecraftforge.common.util.INBTSerializable
 
 import scala.collection.JavaConversions._
 import scala.collection.TraversableOnce
@@ -13,11 +13,7 @@ object NBTHelpers {
 
   object NBTLiterals {
 
-    def NBTCompound(serializable: NBTSerializable) = {
-      val compound = new NBTTagCompound
-      serializable.saveToNBT(compound)
-      compound
-    }
+    def NBTCompound(serializable: INBTSerializable[NBTTagCompound]) = serializable.serializeNBT()
 
     def NBTCompound(elems: (String, Any)*): NBTTagCompound = NBTAdditions.NBTCompoundAdding(new NBTTagCompound)(elems: _*)
 
@@ -75,7 +71,7 @@ object NBTHelpers {
           case s: Short => compound.setShort(key, s)
           case s: String => compound.setString(key, s)
           case n: NBTBase => compound.setTag(key, n)
-          case save: NBTSerializable =>
+          case save: INBTSerializable[NBTTagCompound] =>
             compound.setTag(key, NBTLiterals.NBTCompound(save))
           case _ =>
         }
@@ -89,7 +85,11 @@ object NBTHelpers {
           case n: NBTTagCompound =>
             if (compound.hasKey(key)) {
               val nc = compound.getCompoundTag(key)
-              nc.merge(n.func_150296_c().collect { case key: String => (key, n.getTag(key)) }.toSeq: _*)
+              nc.seqMerge(
+                        n.getKeySet.map { key =>
+                          (key, n.getTag(key).asInstanceOf[Any])
+                                        }.toSeq
+                      )
             }
             else {
               compound.setTag(key, n)
@@ -99,6 +99,8 @@ object NBTHelpers {
                       }
         compound
       }
+
+      def seqMerge(elems: Seq[(String, Any)]): NBTTagCompound = merge(elems: _*)
     }
 
 
@@ -123,6 +125,8 @@ object NBTHelpers {
       def Short(key: String) = compound.getShort(key)
 
       def String(key: String) = if (compound.hasKey(key)) compound.getString(key) else null
+
+      def Compound(key: String) = if (compound.hasKey(key)) compound.getCompoundTag(key) else null
 
       def NBTCompound[T <: AnyRef](key: String)(callback: NBTTagCompound => T): T = if (compound != null) {
         if (compound.hasKey(key)) {

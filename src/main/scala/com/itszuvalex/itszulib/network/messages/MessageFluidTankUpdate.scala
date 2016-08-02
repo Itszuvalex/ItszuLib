@@ -1,15 +1,16 @@
 package com.itszuvalex.itszulib.network.messages
 
 import com.itszuvalex.itszulib.core.traits.tile.{TileFluidTank, TileMultiFluidTank}
-import cpw.mods.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
 import io.netty.buffer.ByteBuf
 import net.minecraft.client.Minecraft
+import net.minecraft.util.BlockPos
 import net.minecraftforge.fluids.{FluidRegistry, FluidStack}
+import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}
 
 /**
   * Created by Alex on 11.10.2015.
   */
-class MessageFluidTankUpdate(var x: Int, var y: Int, var z: Int, var tankID: Int, var fluidID: Int, var amount: Int) extends IMessage with IMessageHandler[MessageFluidTankUpdate, IMessage] {
+class MessageFluidTankUpdate(var x: Int, var y: Int, var z: Int, var tankID: Int, var fluidID: Int, var amount: Int) extends MessageBase[MessageFluidTankUpdate, IMessage] {
   def this() = this(0, 0, 0, -1, -1, -1)
 
   def this(_x: Int, _y: Int, _z: Int, fID: Int, amt: Int) = this(_x, _y, _z, -1, fID, amt)
@@ -34,7 +35,7 @@ class MessageFluidTankUpdate(var x: Int, var y: Int, var z: Int, var tankID: Int
 
   override def onMessage(message: MessageFluidTankUpdate, ctx: MessageContext): IMessage = {
     val world = Minecraft.getMinecraft.theWorld
-    world.getTileEntity(message.x, message.y, message.z) match {
+    world.getTileEntity(new BlockPos(message.x, message.y, message.z)) match {
       case tank: TileFluidTank =>
         tank.tank.setFluid(if (message.fluidID == -1) null else new FluidStack(FluidRegistry.getFluid(message.fluidID), message.amount))
       case tank: TileMultiFluidTank =>

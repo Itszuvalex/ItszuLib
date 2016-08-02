@@ -1,13 +1,13 @@
 package com.itszuvalex.itszulib.render
 
 import com.itszuvalex.itszulib.api.IPreviewable
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import com.itszuvalex.itszulib.api.core.Loc4
 import net.minecraft.client.Minecraft
 import net.minecraft.init.Blocks
-import net.minecraft.util.MovingObjectPosition
+import net.minecraft.util.{EnumFacing, MovingObjectPosition}
 import net.minecraftforge.client.event.RenderWorldLastEvent
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 8/26/15.
@@ -28,29 +28,24 @@ class PreviewableRenderHandler {
               case null =>
               case vec if vec.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK =>
                 val world = player.getEntityWorld
-                val hitX = vec.blockX
-                val hitY = vec.blockY
-                val hitZ = vec.blockZ
+                val hitPos = vec.getBlockPos
                 var side = vec.sideHit
-                val block = world.getBlock(hitX, hitY, hitZ)
+                val state = world.getBlockState(hitPos)
+                val block = state.getBlock
 
-                var dir = ForgeDirection.UNKNOWN
-                if (block == Blocks.snow_layer && (world.getBlockMetadata(hitX, hitY, hitZ) & 7) < 1) {
-                  side = 1
-                } else if (block != Blocks.vine && block != Blocks.tallgrass && block != Blocks.deadbush
-                           && !block.isReplaceable(world, hitX, hitY, hitZ)) {
-                  dir = ForgeDirection.getOrientation(side)
+                var dir = EnumFacing.DOWN
+                if (block == Blocks.snow_layer && (block.getMetaFromState(world.getBlockState(hitPos)) & 7) < 1) {
+                  side = EnumFacing.UP
+                } else if (block != Blocks.vine && block != Blocks.tallgrass && block != Blocks.deadbush && !block.isReplaceable(world, hitPos)) {
+                  dir = side
                 }
 
-                val bx = hitX + dir.offsetX
-                val by = hitY + dir.offsetY
-                val bz = hitZ + dir.offsetZ
+                val bPos = hitPos.offset(dir)
                 val px = player.prevPosX + (player.posX - player.prevPosX) * event.partialTicks
                 val py = player.prevPosY + (player.posY - player.prevPosY) * event.partialTicks
                 val pz = player.prevPosZ + (player.posZ - player.prevPosZ) * event.partialTicks
 
-                renderer.renderAtLocation(stack, world, bx, by, bz,
-                                          bx - px, by - py, bz - pz)
+                renderer.renderAtLocation(stack, new Loc4(world, bPos), bPos.getX - px, bPos.getY - py, bPos.getZ - pz)
               case _ =>
             }
           case None =>

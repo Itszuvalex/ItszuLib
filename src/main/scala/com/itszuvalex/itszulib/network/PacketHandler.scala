@@ -1,22 +1,29 @@
 package com.itszuvalex.itszulib.network
 
-import com.itszuvalex.itszulib.ItszuLib
-import com.itszuvalex.itszulib.network.messages._
-import cpw.mods.fml.common.network.NetworkRegistry
-import cpw.mods.fml.relauncher.Side
+import net.minecraftforge.fml.common.network.NetworkRegistry
+import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, IMessageHandler}
+import net.minecraftforge.fml.relauncher.Side
 
 /**
-  * Created by Christopher Harris (Itszuvalex) on 4/6/15.
+  * Created by Christopher Harris (Itszuvalex) on 7/29/16.
   */
-object PacketHandler {
-  val INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(ItszuLib.ID.toLowerCase)
+abstract class PacketHandler(val channel: String) {
+  val INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(channel)
 
-  def init(): Unit = {
-    INSTANCE.registerMessage(classOf[MessageContainerUpdate], classOf[MessageContainerUpdate], 0, Side.CLIENT)
-    INSTANCE.registerMessage(classOf[MessagePlayerProperty], classOf[MessagePlayerProperty], 1, Side.CLIENT)
-    INSTANCE.registerMessage(classOf[MessageFluidSlotClick], classOf[MessageFluidSlotClick], 2, Side.SERVER)
-    INSTANCE.registerMessage(classOf[MessageFluidTankUpdate], classOf[MessageFluidTankUpdate], 3, Side.CLIENT)
-    INSTANCE.registerMessage(classOf[MessageUpdateGuiItemStack], classOf[MessageUpdateGuiItemStack], 4, Side.CLIENT)
+  var nextIdentifier: Int = 0
+
+  def getIdentifier: Int = {
+    if (nextIdentifier > (Byte.MaxValue.toInt & 0x000F)) {
+      throw new RuntimeException("Ran out of Packet Identifiers for channel:" + channel)
+    }
+
+    val ret = nextIdentifier
+    nextIdentifier += 1
+    ret
+  }
+
+  def register[HANDLER <: IMessageHandler[HANDLER, IMessage] with IMessage](clazz: Class[HANDLER], receiver: Side): Unit = {
+    INSTANCE.registerMessage[HANDLER, IMessage](clazz, clazz, getIdentifier, receiver)
   }
 
 }

@@ -92,7 +92,7 @@ object Comparators {
         case (null, null) => 0
         case (null, _) => -1
         case (_, null) => 1
-        case (f1, f2) => f1.getFluidID - f2.getFluidID
+        case (f1, f2) => f1.getFluid.getID - f2.getFluid.getID
       }
     }
 
@@ -117,7 +117,7 @@ object Comparators {
         case (null, null) => 0
         case (null, _) => -1
         case (_, null) => 1
-        case (c1, c2) => c1.func_150296_c().size() - c2.func_150296_c().size()
+        case (c1, c2) => c1.getKeySet().size() - c2.getKeySet().size()
       }
     }
 

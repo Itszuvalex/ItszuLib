@@ -69,7 +69,7 @@ object ConfigHelper {
         superclass = superclass.getSuperclass
       }
     }
-    fieldsList.foreach(field => {
+    fieldsList.foreach { field =>
       if (!(field.getDeclaringClass.ne(clazz) && obj == null)) {
         val accessible = field.isAccessible
         if (!accessible) field.setAccessible(true)
@@ -91,7 +91,7 @@ object ConfigHelper {
           field.setAccessible(false)
         }
       }
-    })
+                       }
   }
 
   def init() {
@@ -200,9 +200,9 @@ object ConfigHelper {
 
       def getValue(key: String, default: Array[ItemStack], section: String, anno: Configurable, config: Configuration): Array[ItemStack] = {
         val defsar = if (default == null) new Array[String](0) else new Array[String](default.length)
-        for (i <- 0 until defsar.length) {
+        defsar.indices.foreach { i =>
           defsar(i) = default(i).toModQualifiedString
-        }
+                               }
         val sar = config.get(section, key, defsar, anno.comment).getStringList
         val ret = if (sar == null) new Array[ItemStack](0) else new Array[ItemStack](sar.length)
         for (i <- 0 until sar.length) {

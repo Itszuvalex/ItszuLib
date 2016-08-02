@@ -36,11 +36,13 @@ class GuiButton(override var anchorX: Int,
 
   override def onMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean = {
     if (!isDisabled && isLocationInside(mouseX, mouseY)) {
-      Minecraft.getMinecraft.getSoundHandler.playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F))
+      Minecraft.getMinecraft.getSoundHandler.playSound(PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F))
       true
     }
     else false
   }
+
+  def isDisabled = disabled
 
   override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
   }
@@ -64,8 +66,8 @@ class GuiButton(override var anchorX: Int,
     if (!isDisabled && isMousedOver)
       Gui.drawRect(screenX, screenY, screenX + panelWidth, screenY + panelHeight, colorHighlight)
 
-    val fr = Minecraft.getMinecraft.fontRenderer
-    val lines = fr.listFormattedStringToWidth(text, panelWidth - 2).asInstanceOf[java.util.List[String]]
+    val fr = Minecraft.getMinecraft.fontRendererObj
+    val lines = fr.listFormattedStringToWidth(text, panelWidth - 2)
     var height = 0
     lines.foreach { _ =>
       if (height == 0 || !((height + fr.FONT_HEIGHT) < (panelHeight - 2))) height += fr.FONT_HEIGHT
@@ -78,6 +80,4 @@ class GuiButton(override var anchorX: Int,
       yOffset += fr.FONT_HEIGHT
                   }
   }
-
-  def isDisabled = disabled
 }

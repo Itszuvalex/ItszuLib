@@ -21,12 +21,13 @@
 package com.itszuvalex.itszulib.proxy
 
 import com.itszuvalex.itszulib.gui.GuiStack
-import com.itszuvalex.itszulib.render.{PreviewableRenderHandler, PreviewableRendererRegistry, RenderSimpleMachine, ShaderUtils}
+import com.itszuvalex.itszulib.render.{PreviewableRenderHandler, PreviewableRendererRegistry, ShaderUtils}
 import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
-import cpw.mods.fml.client.registry.{ClientRegistry, RenderingRegistry}
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.client.registry.ClientRegistry
 
 
 class ProxyClient extends ProxyCommon {
@@ -37,16 +38,15 @@ class ProxyClient extends ProxyCommon {
 
     // Previewable Rendering Test
     PreviewableIDs.testID = PreviewableRendererRegistry.bindRenderer(new TestPreviewableRenderer)
-    RenderSimpleMachine.renderID = RenderingRegistry.getNextAvailableRenderId
-    RenderingRegistry.registerBlockHandler(RenderSimpleMachine.renderID, new RenderSimpleMachine)
 
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[PortalTileTest], new RenderPortalTest)
+    ClientRegistry.bindTileEntitySpecialRenderer[PortalTileTest](classOf[PortalTileTest], new RenderPortalTest)
+    ClientRegistry.bindTileEntitySpecialRenderer[TileTankTest](classOf[TileTankTest], new RenderSidedCubeTest)
 
     GuiStack.init()
   }
 
   override def getClientGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
-    (ID, world.getTileEntity(x, y, z)) match {
+    (ID, world.getTileEntity(new BlockPos(x, y, z))) match {
       case (0, te: TileTankTest) => new GuiTankTest(player, player.inventory, te)
       case (_, _) => null
     }

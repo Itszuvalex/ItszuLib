@@ -1,8 +1,8 @@
 package com.itszuvalex.itszulib.api
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import com.itszuvalex.itszulib.api.core.Loc4
 import net.minecraft.item.ItemStack
-import net.minecraft.world.World
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 8/26/15.
@@ -14,15 +14,11 @@ trait IPreviewableRenderer {
     * Coordinates are the location to render at.  This is usually the facing off-set location that, if the player right-clicked, a block would be placed at.
     *
     * @param stack ItemStack of IPreviewable Item
-    * @param world World
-    * @param x     X Location
-    * @param y     Y Location
-    * @param z     Z Location
+    * @param loc   Loc
     * @param rx    X Render location
     * @param ry    Y Render location
     * @param rz    Z Render location
     */
-  def renderAtLocation(stack: ItemStack, world: World, x: Int, y: Int, z: Int,
-                       rx: Double, ry: Double, rz: Double): Unit
+  def renderAtLocation(stack: ItemStack, loc: Loc4, rx: Double, ry: Double, rz: Double): Unit
 
 }

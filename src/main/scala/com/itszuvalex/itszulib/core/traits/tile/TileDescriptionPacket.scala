@@ -10,13 +10,13 @@ import net.minecraft.tileentity.TileEntity
   * Created by Christopher on 2/20/2015.
   */
 trait TileDescriptionPacket extends TileEntity {
-  override def getDescriptionPacket: Packet = {
+  override def getDescriptionPacket: Packet[_] = {
     if (!hasDescription) {
       return null
     }
     val compound: NBTTagCompound = new NBTTagCompound
     saveToDescriptionCompound(compound)
-    new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 1, compound)
+    new S35PacketUpdateTileEntity(getPos, getBlockType.getMetaFromState(getWorld.getBlockState(getPos)), compound)
   }
 
   def saveToDescriptionCompound(compound: NBTTagCompound) {
@@ -27,7 +27,7 @@ trait TileDescriptionPacket extends TileEntity {
 
   override def onDataPacket(net: NetworkManager, pkt: S35PacketUpdateTileEntity) {
     super.onDataPacket(net, pkt)
-    handleDescriptionNBT(pkt.func_148857_g)
+    handleDescriptionNBT(pkt.getNbtCompound)
   }
 
   def handleDescriptionNBT(compound: NBTTagCompound) {

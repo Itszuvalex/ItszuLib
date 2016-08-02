@@ -21,10 +21,11 @@
 package com.itszuvalex.itszulib.proxy
 
 import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
-import cpw.mods.fml.common.network.IGuiHandler
-import cpw.mods.fml.common.registry.GameRegistry
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.fml.common.network.IGuiHandler
+import net.minecraftforge.fml.common.registry.GameRegistry
 
 class ProxyCommon extends IGuiHandler {
   def init(): Unit = {
@@ -46,7 +47,7 @@ class ProxyCommon extends IGuiHandler {
   }
 
   override def getServerGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
-    (ID, world.getTileEntity(x, y, z)) match {
+    (ID, world.getTileEntity(new BlockPos(x, y, z))) match {
       case (0, te: TileTankTest) => new ContainerTankTest(player, player.inventory, te)
       case (_, _) => null
     }

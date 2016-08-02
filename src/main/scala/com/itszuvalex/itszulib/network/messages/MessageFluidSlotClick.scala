@@ -1,27 +1,29 @@
 package com.itszuvalex.itszulib.network.messages
 
+import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.core.traits.tile.{TileFluidTank, TileMultiFluidTank}
-import com.itszuvalex.itszulib.network.PacketHandler
-import cpw.mods.fml.common.network.simpleimpl.{IMessage, IMessageHandler, MessageContext}
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import io.netty.buffer.ByteBuf
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fluids.{FluidContainerRegistry, IFluidContainerItem}
+import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}
 
 /**
   * Created by Alex on 11.10.2015.
   */
-class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int, var button: Int, var manualAccess: Int, var filterFluid: Int) extends IMessage with IMessageHandler[MessageFluidSlotClick, IMessage] {
+class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var manualAccess: Int, var filterFluid: Int) extends MessageBase[MessageFluidSlotClick, IMessage] {
   var tileSingleTank: TileFluidTank      = null
   var tileMultiTank : TileMultiFluidTank = null
 
-  def this() = this(0, 0, 0, -1, -1, 0, -1)
+  def this() = this(Loc4(0, 0, 0, 0), -1, -1, 0, -1)
 
   override def toBytes(buf: ByteBuf): Unit = {
-    buf.writeInt(x)
-    buf.writeShort(y)
-    buf.writeInt(z)
+    buf.writeInt(loc.x)
+    buf.writeShort(loc.y)
+    buf.writeInt(loc.z)
+    buf.writeInt(loc.dim)
     buf.writeInt(tankID)
     buf.writeByte(button)
     buf.writeByte(manualAccess)
@@ -29,9 +31,10 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
   }
 
   override def fromBytes(buf: ByteBuf): Unit = {
-    x = buf.readInt()
-    y = buf.readShort()
-    z = buf.readInt()
+    loc.x = buf.readInt()
+    loc.y = buf.readShort()
+    loc.z = buf.readInt()
+    loc.dim = buf.readInt()
     tankID = buf.readInt()
     button = buf.readByte()
     manualAccess = buf.readByte()
@@ -40,7 +43,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
 
   override def onMessage(message: MessageFluidSlotClick, ctx: MessageContext): IMessage = {
     val player = ctx.getServerHandler.playerEntity
-    player.worldObj.getTileEntity(message.x, message.y, message.z) match {
+    player.worldObj.getTileEntity(message.loc.getPos) match {
       case tank: TileFluidTank => tileSingleTank = tank; tankID = -1
       case tank: TileMultiFluidTank => tileMultiTank = tank
       case _ => return null
@@ -59,14 +62,14 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
       if (stack != null) {
         stack.writeToNBT(tag)
       }
-      PacketHandler.INSTANCE.sendTo(new MessageUpdateGuiItemStack(tag), player)
+      ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(tag), player)
       return
     }
     stk.stackSize -= 1
     player.inventory.setItemStack(stk)
     val tag = new NBTTagCompound()
     stk.writeToNBT(tag)
-    PacketHandler.INSTANCE.sendTo(new MessageUpdateGuiItemStack(tag), player)
+    ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(tag), player)
     if (player.inventory.addItemStackToInventory(stack)) return
     player.inventory.player.dropPlayerItemWithRandomChoice(stack, false)
   }
@@ -81,7 +84,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
             if ((message.manualAccess & 1) == 0) return item
             if (!FluidContainerRegistry.isFilledContainer(item)) return item
             val itemFluid = FluidContainerRegistry.getFluidForFilledItem(item)
-            if (itemFluid.getFluidID != message.filterFluid && message.filterFluid != -1) return item
+            if (itemFluid.getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
             val amt = tileSingleTank.tank.fill(itemFluid, false)
             if (amt < itemFluid.amount) return item
             tileSingleTank.tank.fill(itemFluid, true)
@@ -102,7 +105,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
             if ((message.manualAccess & 1) == 0) return item
             if (!FluidContainerRegistry.isFilledContainer(item)) return item
             val itemFluid = FluidContainerRegistry.getFluidForFilledItem(item)
-            if (itemFluid.getFluidID != message.filterFluid && message.filterFluid != -1) return item
+            if (itemFluid.getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
             val amt = tileMultiTank.tanks(message.tankID).fill(itemFluid, false)
             if (amt < itemFluid.amount) return item
             tileMultiTank.tanks(message.tankID).fill(itemFluid, true)
@@ -130,7 +133,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
             if ((message.manualAccess & 1) == 0) return item
             if (tileSingleTank.tank.getCapacity - tileSingleTank.tank.getFluidAmount == 0) return item
             if (item2.getFluid(item) == null) return item
-            if (item2.getFluid(item).getFluidID != message.filterFluid && message.filterFluid != -1) return item
+            if (item2.getFluid(item).getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
             tileSingleTank.tank.fill(item2.drain(item, tileSingleTank.tank.getCapacity - tileSingleTank.tank.getFluidAmount, true), true)
             tileSingleTank.setUpdateTank()
             item
@@ -149,7 +152,7 @@ class MessageFluidSlotClick(var x: Int, var y: Int, var z: Int, var tankID: Int,
             if ((message.manualAccess & 1) == 0) return item
             if (tileMultiTank.tanks(message.tankID).getCapacity - tileMultiTank.tanks(message.tankID).getFluidAmount == 0) return item
             if (item2.getFluid(item) == null) return item
-            if (item2.getFluid(item).getFluidID != message.filterFluid && message.filterFluid != -1) return item
+            if (item2.getFluid(item).getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
             tileMultiTank.tanks(message.tankID).fill(item2.drain(item, tileMultiTank.tanks(message.tankID).getCapacity - tileMultiTank.tanks(message.tankID).getFluidAmount, true), true)
             tileMultiTank.setUpdateTanks()
             item

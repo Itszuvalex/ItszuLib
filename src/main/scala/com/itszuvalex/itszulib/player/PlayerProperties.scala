@@ -24,14 +24,14 @@ import java.util
 
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.player.IPlayerProperty
-import com.itszuvalex.itszulib.network.PacketHandler
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessagePlayerProperty
-import cpw.mods.fml.common.FMLCommonHandler
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.IExtendedEntityProperties
+import net.minecraftforge.fml.common.FMLCommonHandler
 import org.apache.logging.log4j.Level
 
 import scala.collection.JavaConversions._
@@ -60,7 +60,7 @@ class PlayerProperties(protected final var player: EntityPlayer) extends IExtend
     }
     catch {
       case e: InstantiationException =>
-        ItszuLib.logger.log(Level.ERROR, "Failed to create new instance of " + entry.getKey + " on creating PlayerProperties for player: " + player + " name: " + player.getCommandSenderName)
+        ItszuLib.logger.log(Level.ERROR, "Failed to create new instance of " + entry.getKey + " on creating PlayerProperties for player: " + player + " name: " + player.getName)
         e.printStackTrace()
       case e: IllegalAccessException =>
         e.printStackTrace()
@@ -80,14 +80,7 @@ class PlayerProperties(protected final var player: EntityPlayer) extends IExtend
     for (entry <- properties.entrySet) {
       savePropertyToCompound(entry.getKey, compound)
     }
-    PacketHandler.INSTANCE.sendTo(new MessagePlayerProperty(player.getCommandSenderName, compound), player.asInstanceOf[EntityPlayerMP])
-  }
-
-  def sync(property: String) {
-    if (FMLCommonHandler.instance.getEffectiveSide.isClient) return
-    val packetCompound = new NBTTagCompound
-    savePropertyToCompound(property, packetCompound)
-    PacketHandler.INSTANCE.sendTo(new MessagePlayerProperty(player.getCommandSenderName, packetCompound), player.asInstanceOf[EntityPlayerMP])
+    ItszuLibPacketHandler.INSTANCE.sendTo(new MessagePlayerProperty(player.getName, compound), player.asInstanceOf[EntityPlayerMP])
   }
 
   private def savePropertyToCompound(property: String, packetCompound: NBTTagCompound) {
@@ -100,31 +93,37 @@ class PlayerProperties(protected final var player: EntityPlayer) extends IExtend
     }
   }
 
+  def sync(property: String) {
+    if (FMLCommonHandler.instance.getEffectiveSide.isClient) return
+    val packetCompound = new NBTTagCompound
+    savePropertyToCompound(property, packetCompound)
+    ItszuLibPacketHandler.INSTANCE.sendTo(new MessagePlayerProperty(player.getName, packetCompound), player.asInstanceOf[EntityPlayerMP])
+  }
+
   override def saveNBTData(compound: NBTTagCompound) {
     val propTag = new NBTTagCompound
     for (entry <- properties.entrySet) {
       val entryComp = new NBTTagCompound
-      entry.getValue.saveToNBT(entryComp)
-      propTag.setTag(entry.getKey, entryComp)
+      propTag.setTag(entry.getKey, entry.getValue.serializeNBT())
     }
     compound.setTag(PlayerProperties.PROP_TAG, propTag)
   }
 
   override def loadNBTData(compound: NBTTagCompound) {
     val propTag = compound.getCompoundTag(PlayerProperties.PROP_TAG)
-    for (entry <- properties.entrySet) {
-      entry.getValue.loadFromNBT(propTag.getCompoundTag(entry.getKey))
-    }
+    properties.entrySet().foreach { entry =>
+      entry.getValue.deserializeNBT(propTag.getCompoundTag(entry.getKey))
+                                  }
   }
 
   override def init(entity: Entity, world: World) {
   }
 
   def handlePacket(compound: NBTTagCompound) {
-    for (entry <- properties.entrySet) {
+    properties.entrySet().foreach { entry =>
       if (compound.hasKey(entry.getKey)) {
         entry.getValue.loadFromDescPacket(compound.getCompoundTag(entry.getKey))
       }
-    }
+                                  }
   }
 }

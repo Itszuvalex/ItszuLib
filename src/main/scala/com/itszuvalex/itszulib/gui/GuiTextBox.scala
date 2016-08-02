@@ -1,9 +1,10 @@
 package com.itszuvalex.itszulib.gui
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import com.itszuvalex.itszulib.render.RenderUtils._
 import net.minecraft.client.gui.{FontRenderer, Gui, GuiScreen}
-import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ChatAllowedCharacters
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
 
 /**
@@ -72,7 +73,7 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
     */
   def writeText(itext: String) {
     var s1 = ""
-    val s2 = ChatAllowedCharacters.filerAllowedCharacters(itext)
+    val s2 = ChatAllowedCharacters.filterAllowedCharacters(itext)
     val i = if (cursorPosition < selectionEnd) cursorPosition else selectionEnd
     val j = if (cursorPosition < selectionEnd) selectionEnd else cursorPosition
     val k = maxStringLength - textString.length - (i - selectionEnd)
@@ -485,17 +486,16 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
     if (leftX > anchorX + width) {
       leftX = anchorX + width
     }
-    val tessellator: Tessellator = Tessellator.instance
     GL11.glColor4f(0.0F, 0.0F, 255.0F, 255.0F)
     GL11.glDisable(GL11.GL_TEXTURE_2D)
     GL11.glEnable(GL11.GL_COLOR_LOGIC_OP)
     GL11.glLogicOp(GL11.GL_OR_REVERSE)
-    tessellator.startDrawingQuads()
-    tessellator.addVertex(leftX.toDouble, botY.toDouble, 0.0D)
-    tessellator.addVertex(rightX.toDouble, botY.toDouble, 0.0D)
-    tessellator.addVertex(rightX.toDouble, topY.toDouble, 0.0D)
-    tessellator.addVertex(leftX.toDouble, topY.toDouble, 0.0D)
-    tessellator.draw()
+    drawBlock(DefaultVertexFormats.POSITION) {
+                                               addVertex(leftX.toDouble, botY.toDouble, 0.0D).endVertex()
+                                               addVertex(rightX.toDouble, botY.toDouble, 0.0D).endVertex()
+                                               addVertex(rightX.toDouble, topY.toDouble, 0.0D).endVertex()
+                                               addVertex(leftX.toDouble, topY.toDouble, 0.0D).endVertex()
+                                             }
     GL11.glDisable(GL11.GL_COLOR_LOGIC_OP)
     GL11.glEnable(GL11.GL_TEXTURE_2D)
   }

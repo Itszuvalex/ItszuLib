@@ -1,11 +1,10 @@
 package com.itszuvalex.itszulib.testing
 
+import com.itszuvalex.itszulib.render.RenderUtils._
 import com.itszuvalex.itszulib.render.{RenderUtils, ShaderUtils}
-import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.init.Blocks
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
@@ -17,14 +16,14 @@ object RenderPortalTest {
   private val pictureLocation: ResourceLocation = new ResourceLocation("textures/entity/end_portal.png")
 }
 
-class RenderPortalTest extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(p_147500_1_ : TileEntity, x: Double, y: Double, z: Double, p_147500_8_ : Float): Unit = {
-    //    renderBackground(x, y, z)
+class RenderPortalTest extends TileEntitySpecialRenderer[PortalTileTest] {
+
+  override def renderTileEntityAt(te: PortalTileTest, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int): Unit = {
+    renderBackground(x, y, z)
 
     //    bindTexture(RenderPortalTest.skyLocation)
 
-    val man = Minecraft.getMinecraft.getTextureManager
-    man.bindTexture(man.getResourceLocation(0))
+    RenderUtils.bindBlockTextures()
 
     //    GL11.glPushMatrix()
 
@@ -34,8 +33,8 @@ class RenderPortalTest extends TileEntitySpecialRenderer {
     //    GL11.glAlphaFunc(GL11.GL_ALWAYS, 1)
     //    GL11.glEnable(GL11.GL_DEPTH)
     //    GL11.glEnable(GL11.GL_DEPTH_TEST)
-    val icon = Blocks.fire.getFireIcon(0)
-    RenderUtils.drawBillboard(x + 0.5, y + 0.5, z + 0.5, 0, .5, icon.getMinU, icon.getMaxU, icon.getMinV, icon.getMaxV)
+    val icon = RenderUtils.getDefaultTextureForBlock(Blocks.fire)
+    //    drawBillboard(x + 0.5, y + 0.5, z + 0.5, 0, .5, icon.getMinU, icon.getMaxU, icon.getMinV, icon.getMaxV)
     GL11.glPopAttrib()
     //
     //    GL11.glPopMatrix()
@@ -49,46 +48,44 @@ class RenderPortalTest extends TileEntitySpecialRenderer {
   }
 
   def addBoxVerts(x: Double, y: Double, z: Double): Unit = {
-    val tes = Tessellator.instance
     val xmin = 0
     val xmax = 1
     val ymin = 0
     val ymax = 1
     val zmin = 0
     val zmax = 1
-    tes.addTranslation(x.toFloat, y.toFloat, z.toFloat)
-    tes.startDrawingQuads()
-    //    tes.setColorRGBA_F(.1f, .1f, .1f, 1.0F)
-    tes.addVertex(xmin, ymax, zmin)
-    tes.addVertex(xmin, ymax, zmax)
-    tes.addVertex(xmax, ymax, zmax)
-    tes.addVertex(xmax, ymax, zmin)
+    translationBlock(x, y, z) {
+                                drawBlock(DefaultVertexFormats.POSITION) {
+                                                                           addVertex(xmin, ymax, zmin).endVertex()
+                                                                           addVertex(xmin, ymax, zmax).endVertex()
+                                                                           addVertex(xmax, ymax, zmax).endVertex()
+                                                                           addVertex(xmax, ymax, zmin).endVertex()
 
-    tes.addVertex(xmin, ymin, zmin)
-    tes.addVertex(xmax, ymin, zmin)
-    tes.addVertex(xmax, ymin, zmax)
-    tes.addVertex(xmin, ymin, zmax)
+                                                                           addVertex(xmin, ymin, zmin).endVertex()
+                                                                           addVertex(xmax, ymin, zmin).endVertex()
+                                                                           addVertex(xmax, ymin, zmax).endVertex()
+                                                                           addVertex(xmin, ymin, zmax).endVertex()
 
-    tes.addVertex(xmin, ymin, zmin)
-    tes.addVertex(xmin, ymax, zmin)
-    tes.addVertex(xmax, ymax, zmin)
-    tes.addVertex(xmax, ymin, zmin)
+                                                                           addVertex(xmin, ymin, zmin).endVertex()
+                                                                           addVertex(xmin, ymax, zmin).endVertex()
+                                                                           addVertex(xmax, ymax, zmin).endVertex()
+                                                                           addVertex(xmax, ymin, zmin).endVertex()
 
-    tes.addVertex(xmax, ymin, zmin)
-    tes.addVertex(xmax, ymax, zmin)
-    tes.addVertex(xmax, ymax, zmax)
-    tes.addVertex(xmax, ymin, zmax)
+                                                                           addVertex(xmax, ymin, zmin).endVertex()
+                                                                           addVertex(xmax, ymax, zmin).endVertex()
+                                                                           addVertex(xmax, ymax, zmax).endVertex()
+                                                                           addVertex(xmax, ymin, zmax).endVertex()
 
-    tes.addVertex(xmin, ymin, zmax)
-    tes.addVertex(xmax, ymin, zmax)
-    tes.addVertex(xmax, ymax, zmax)
-    tes.addVertex(xmin, ymax, zmax)
+                                                                           addVertex(xmin, ymin, zmax).endVertex()
+                                                                           addVertex(xmax, ymin, zmax).endVertex()
+                                                                           addVertex(xmax, ymax, zmax).endVertex()
+                                                                           addVertex(xmin, ymax, zmax).endVertex()
 
-    tes.addVertex(xmin, ymin, zmin)
-    tes.addVertex(xmin, ymin, zmax)
-    tes.addVertex(xmin, ymax, zmax)
-    tes.addVertex(xmin, ymax, zmin)
-    tes.addTranslation(-x.toFloat, -y.toFloat, -z.toFloat)
-    tes.draw()
+                                                                           addVertex(xmin, ymin, zmin).endVertex()
+                                                                           addVertex(xmin, ymin, zmax).endVertex()
+                                                                           addVertex(xmin, ymax, zmax).endVertex()
+                                                                           addVertex(xmin, ymax, zmin).endVertex()
+                                                                         }
+                              }
   }
 }

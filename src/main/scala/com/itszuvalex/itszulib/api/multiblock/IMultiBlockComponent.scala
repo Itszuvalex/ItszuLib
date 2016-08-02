@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.api.multiblock
 
-import net.minecraft.world.World
+import com.itszuvalex.itszulib.api.core.Loc4
 
 /**
   * @author Itszuvalex
@@ -13,20 +13,16 @@ trait IMultiBlockComponent {
   def isValidMultiBlock: Boolean
 
   /**
-    * @param x
-    * @param y
-    * @param z
+    * @param loc
     * @return True if correctly forms, given controller block at x,y,z.
     */
-  def formMultiBlock(world: World, x: Int, y: Int, z: Int): Boolean
+  def formMultiBlock(loc: Loc4): Boolean
 
   /**
-    * @param x
-    * @param y
-    * @param z
+    * @param loc
     * @return True if breaks without errors, given controller block at x,y,z.
     */
-  def breakMultiBlock(world: World, x: Int, y: Int, z: Int): Boolean
+  def breakMultiBlock(loc: Loc4): Boolean
 
   /**
     * @return MultiBlockInfo associated with this MultiBlockComponent
