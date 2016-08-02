@@ -213,5 +213,7 @@ mcp/eclipse/.metadata/*
 !/build.gradle
 !/gradlew
 !/gradlew.bat
+!/.gitlab-ci.yml
+!/.gitignore
 !/build.gradle.token
 !/ReplaceToken.sh
