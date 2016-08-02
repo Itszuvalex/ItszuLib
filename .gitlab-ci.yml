@@ -12,9 +12,9 @@ full_build:
 #    - apt-get update
 #    - apt-get install --yes --force-yes gradle
     - rm -rf build/libs/*
-    - ./gradlew.bat setupCIWorkspace
-    - ./gradlew.bat build
-    - ./gradlew.bat artifactoryPublish
+    - sudo ./gradlew.bat setupCIWorkspace
+    - sudo ./gradlew.bat build
+    - sudo ./gradlew.bat artifactoryPublish
   cache:
     untracked: true
     key: "$CI_BUILD_NAME"
