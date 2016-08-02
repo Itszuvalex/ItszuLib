@@ -211,5 +211,7 @@ mcp/eclipse/.metadata/*
 !/art/
 !/art/*
 !/build.gradle
+!/gradlew
+!/gradlew.bat
 !/build.gradle.token
 !/ReplaceToken.sh
