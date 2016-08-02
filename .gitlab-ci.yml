@@ -9,12 +9,12 @@ full_build:
     - master
     - develop
   script:
-    - apt-get update
-    - apt-get install --yes --force-yes gradle
+#    - apt-get update
+#    - apt-get install --yes --force-yes gradle
     - rm -rf build/libs/*
-    - gradle setupCIWorkspace
-    - gradle build
-    - gradle artifactoryPublish
+    - gradlew setupCIWorkspace
+    - gradlew build
+    - gradlew artifactoryPublish
   cache:
     untracked: true
     key: "$CI_BUILD_NAME"
