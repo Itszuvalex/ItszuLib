@@ -24,8 +24,7 @@ import java.util.UUID
 
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
-import net.minecraft.server.MinecraftServer
-import net.minecraft.util.text.{TextComponentBase, TextComponentString, TextFormatting}
+import net.minecraft.util.text.{TextComponentString, TextFormatting}
 import net.minecraftforge.fml.common.FMLCommonHandler
 
 object PlayerUtils {
@@ -45,14 +44,15 @@ object PlayerUtils {
 
   //  def getServerPlayer(username: String): EntityPlayerMP = MinecraftServer.getServer.getConfigurationManager.func_152612_a(username)
 
-  def getServerPlayer(uuid: UUID): EntityPlayerMP = FMLCommonHandler.instance().getMinecraftServerInstance.getConfigurationManager.playerEntityList.collectFirst { case player: EntityPlayerMP if player.getUniqueID.equals(uuid) => player }.orNull
+  def getServerPlayer(uuid: UUID): EntityPlayerMP = FMLCommonHandler.instance().getMinecraftServerInstance.getPlayerList.getPlayerByUUID(uuid)
 
   def sendMessageToPlayer(username: String, modID: String, message: String): Boolean = sendMessageToPlayer(username, modID, message, "")
 
   def sendMessageToPlayer(username: String, modID: String, message: String,
-                          formatting: String): Boolean = sendMessageToPlayer(MinecraftServer
-                                                                             .getServer
-                                                                             .getConfigurationManager
+                          formatting: String): Boolean = sendMessageToPlayer(FMLCommonHandler
+                                                                             .instance()
+                                                                             .getMinecraftServerInstance
+                                                                             .getPlayerList
                                                                              .getPlayerByUsername(username),
                                                                              modID,
                                                                              message,
