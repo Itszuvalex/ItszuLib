@@ -53,7 +53,7 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
          te)
 
   def this(world: World, pos: BlockPos, te: NBTTagCompound) =
-    this(world.provider.getDimensionId,
+    this(world.provider.getDimension,
          pos,
          world.getBlockState(pos),
          te)

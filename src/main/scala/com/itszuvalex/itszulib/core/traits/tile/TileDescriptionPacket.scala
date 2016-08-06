@@ -2,20 +2,21 @@ package com.itszuvalex.itszulib.core.traits.tile
 
 import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.network.{NetworkManager, Packet}
+import net.minecraft.network.NetworkManager
+import net.minecraft.network.play.server.SPacketUpdateTileEntity
 import net.minecraft.tileentity.TileEntity
 
 /**
   * Created by Christopher on 2/20/2015.
   */
 trait TileDescriptionPacket extends TileEntity {
-  override def getDescriptionPacket: Packet[_] = {
+  override def getUpdatePacket: SPacketUpdateTileEntity = {
     if (!hasDescription) {
       return null
     }
     val compound: NBTTagCompound = new NBTTagCompound
     saveToDescriptionCompound(compound)
-    new S35PacketUpdateTileEntity(getPos, getBlockType.getMetaFromState(getWorld.getBlockState(getPos)), compound)
+    new SPacketUpdateTileEntity(getPos, getBlockType.getMetaFromState(getWorld.getBlockState(getPos)), compound)
   }
 
   def saveToDescriptionCompound(compound: NBTTagCompound) {
@@ -24,7 +25,7 @@ trait TileDescriptionPacket extends TileEntity {
 
   def hasDescription: Boolean
 
-  override def onDataPacket(net: NetworkManager, pkt: S35PacketUpdateTileEntity) {
+  override def onDataPacket(net: NetworkManager, pkt: SPacketUpdateTileEntity) {
     super.onDataPacket(net, pkt)
     handleDescriptionNBT(pkt.getNbtCompound)
   }

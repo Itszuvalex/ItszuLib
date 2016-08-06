@@ -25,7 +25,7 @@ import java.util.UUID
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.text.{TextComponentBase, TextComponentString}
+import net.minecraft.util.text.{TextComponentBase, TextComponentString, TextFormatting}
 import net.minecraftforge.fml.common.FMLCommonHandler
 
 object PlayerUtils {
@@ -72,13 +72,13 @@ object PlayerUtils {
     if (player != null) {
       player
       .addChatMessage(new TextComponentString(new StringBuilder()
-                                              .append(EnumChatFormatting.GOLD)
+                                              .append(TextFormatting.GOLD)
                                               .append(modID)
-                                              .append(EnumChatFormatting.RESET)
+                                              .append(TextFormatting.RESET)
                                               .append(": ")
                                               .append(formatting)
                                               .append(message)
-                                              .append(EnumChatFormatting.RESET)
+                                              .append(TextFormatting.RESET)
                                               .toString()))
       return true
     }

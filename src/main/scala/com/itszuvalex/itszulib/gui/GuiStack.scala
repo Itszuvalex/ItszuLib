@@ -27,7 +27,7 @@ object GuiStack {
 
   @EventHandler
   def handleScreen(event: net.minecraftforge.client.event.GuiOpenEvent): Unit = {
-    if (event.gui == null)
+    if (event.getGui == null)
       clearStack()
     GuiTextBox.activeTextBox = null // Don't carry over focus between GUIs
   }

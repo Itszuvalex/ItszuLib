@@ -7,7 +7,9 @@ import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.util.PlayerUtils
 import net.minecraft.command.{ICommand, ICommandSender, WrongUsageException}
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.server.MinecraftServer
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.text.TextFormatting
 import org.apache.logging.log4j.Level
 
 import scala.collection.JavaConversions._
@@ -31,47 +33,47 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
 
   override def getCommandAliases: java.util.List[String] = aliases
 
-  override def processCommand(icommandsender: ICommandSender, astring: Array[String]) {
-    if (icommandsender.getEntityWorld.isRemote) {
+  override def execute(server: MinecraftServer, sender: ICommandSender, args: Array[String]): Unit = {
+    if (sender.getEntityWorld.isRemote) {
       ItszuLib.logger.log(Level.WARN, "Not processing commands Client-side")
       return
     }
-    if (astring.length > 0) {
-      getSubCommand(astring(0)) match {
+    if (args.length > 0) {
+      getSubCommand(args(0)) match {
         case Some(sub) =>
-          sub.processCommand(icommandsender, util.Arrays.copyOfRange(astring, 1, astring.length))
+          sub.execute(server, sender, util.Arrays.copyOfRange(args, 1, args.length))
           return
         case None =>
       }
     }
-    throw new WrongUsageException(getCommandUsage(icommandsender))
+    throw new WrongUsageException(getCommandUsage(sender))
   }
 
   override def getCommandUsage(sender: ICommandSender): String = {
     sender match {
       case player: EntityPlayer =>
         val output = new StringBuilder
-        output.append(EnumChatFormatting.YELLOW)
+        output.append(TextFormatting.YELLOW)
         output.append(getCommandName)
         PlayerUtils.sendMessageToPlayer(player, getModName, output.toString)
         output.setLength(0)
-        output.append(EnumChatFormatting.BOLD).append("aliases").append(EnumChatFormatting.RESET)
+        output.append(TextFormatting.BOLD).append("aliases").append(TextFormatting.RESET)
         PlayerUtils.sendMessageToPlayer(player, getModName, output.toString)
         output.setLength(0)
-        aliases.foreach(alias => PlayerUtils.sendMessageToPlayer(player, getModName, EnumChatFormatting.YELLOW + alias))
-        output.append(EnumChatFormatting.BOLD).append("subcommands").append(EnumChatFormatting.RESET)
+        aliases.foreach(alias => PlayerUtils.sendMessageToPlayer(player, getModName, TextFormatting.YELLOW + alias))
+        output.append(TextFormatting.BOLD).append("subcommands").append(TextFormatting.RESET)
         PlayerUtils.sendMessageToPlayer(player, getModName, output.toString)
         output.setLength(0)
         subcmds.keySet.foreach { subcommand =>
-          output.append(EnumChatFormatting.YELLOW)
+          output.append(TextFormatting.YELLOW)
           val com = getSubCommand(subcommand).get
-          output.append(EnumChatFormatting.RED).append(subcommand).append(EnumChatFormatting.YELLOW)
+          output.append(TextFormatting.RED).append(subcommand).append(TextFormatting.YELLOW)
           com.getCommandAliases.foreach { alias =>
-            output.append(EnumChatFormatting.BLUE).append("|").append(EnumChatFormatting.GRAY)
+            output.append(TextFormatting.BLUE).append("|").append(TextFormatting.GRAY)
             output.append(alias)
                                         }
           com match {
-            case base: CommandBase => output.append(EnumChatFormatting.WHITE).append(" - ").append(base.getDescription).append(EnumChatFormatting.YELLOW)
+            case base: CommandBase => output.append(TextFormatting.WHITE).append(" - ").append(base.getDescription).append(TextFormatting.YELLOW)
             case _ =>
           }
           PlayerUtils.sendMessageToPlayer(player, getModName, output.toString)
@@ -86,13 +88,13 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
 
   def getDescription = ""
 
-  override def canCommandSenderUseCommand(icommandsender: ICommandSender) = true
+  override def checkPermission(server: MinecraftServer, sender: ICommandSender): Boolean = true
 
-  override def addTabCompletionOptions(sender: ICommandSender, args: Array[String], pos: BlockPos): util.List[String] = {
+  override def getTabCompletionOptions(server: MinecraftServer, sender: ICommandSender, args: Array[String], pos: BlockPos): util.List[String] = {
     if (args.length > 0) {
       getSubCommand(args(0)) match {
         case Some(sub) =>
-          return sub.addTabCompletionOptions(sender, util.Arrays.copyOfRange(args, 1, args.length), pos)
+          return sub.getTabCompletionOptions(server, sender, util.Arrays.copyOfRange(args, 1, args.length), pos)
         case None =>
       }
     }

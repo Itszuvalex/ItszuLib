@@ -7,6 +7,7 @@ import com.itszuvalex.itszulib.render.RenderUtils
 import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
+import net.minecraft.util.text.TextFormatting
 import net.minecraftforge.fluids._
 
 import scala.collection.mutable.ListBuffer
@@ -82,12 +83,12 @@ class GuiFluidTank(override var anchorX: Int,
     }
     if ((manualAccess & 1) == 1) {
       if (filterFluid != null) ret :+= ("Accepts: " + filterFluid.getLocalizedName(new FluidStack(filterFluid, 0)))
-      ret :+= (EnumChatFormatting.ITALIC + EnumChatFormatting.AQUA.toString + "Left click with fluid" + EnumChatFormatting.RESET)
-      ret :+= (EnumChatFormatting.ITALIC + EnumChatFormatting.AQUA.toString + " container to fill tank" + EnumChatFormatting.RESET)
+      ret :+= (TextFormatting.ITALIC + TextFormatting.AQUA.toString + "Left click with fluid" + TextFormatting.RESET)
+      ret :+= (TextFormatting.ITALIC + TextFormatting.AQUA.toString + " container to fill tank" + TextFormatting.RESET)
     }
     if ((manualAccess & 2) == 2) {
-      ret :+= (EnumChatFormatting.ITALIC + EnumChatFormatting.LIGHT_PURPLE.toString + "Right click with fluid" + EnumChatFormatting.RESET)
-      ret :+= (EnumChatFormatting.ITALIC + EnumChatFormatting.LIGHT_PURPLE.toString + " container to drain tank" + EnumChatFormatting.RESET)
+      ret :+= (TextFormatting.ITALIC + TextFormatting.LIGHT_PURPLE.toString + "Right click with fluid" + TextFormatting.RESET)
+      ret :+= (TextFormatting.ITALIC + TextFormatting.LIGHT_PURPLE.toString + " container to drain tank" + TextFormatting.RESET)
     }
     ret
   }
