@@ -47,7 +47,7 @@ class TestItemStack(var testItem: Int, var testStack: Int, var testDamage: Int) 
 
   override def copy(): IItemStack = {
     val ret = new TestItemStack(testItem, testStack, testDamage)
-    ret.nbt = Option(testNBT).map(_.copy().asInstanceOf[NBTTagCompound]).orNull
+    ret.nbt = Option(testNBT).map(_.copy()).orNull
     ret
   }
 

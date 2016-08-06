@@ -20,13 +20,14 @@
  */
 package com.itszuvalex.itszulib.render
 
+import com.itszuvalex.itszulib.util.Color
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.renderer._
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.client.renderer.vertex.{DefaultVertexFormats, VertexFormat}
-import net.minecraft.client.renderer.{ActiveRenderInfo, Tessellator}
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumFacing._
 import org.lwjgl.opengl.GL11
@@ -79,68 +80,86 @@ object RenderUtils {
   }
 
   def drawTopFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.UP.getFrontOffsetX.toFloat
+    val ny = EnumFacing.UP.getFrontOffsetY.toFloat
+    val nz = EnumFacing.UP.getFrontOffsetZ.toFloat
     translationBlock(x, y, z) {
-                                drawBlock() {
-                                              addVertexUV(xmax, yoffset, zmax, maxU, maxV)
-                                              addVertexUV(xmax, yoffset, zmin, maxU, minV)
-                                              addVertexUV(xmin, yoffset, zmin, minU, minV)
-                                              addVertexUV(xmin, yoffset, zmax, minU, maxV)
-                                            }
+                                drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+                                                                                      addVertexUVNormal(xmax, yoffset, zmax, maxU, maxV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmax, yoffset, zmin, maxU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmin, yoffset, zmin, minU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmin, yoffset, zmax, minU, maxV, nx, ny, nz)
+                                                                                    }
                               }
   }
 
   def drawBottomFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.DOWN.getFrontOffsetX.toFloat
+    val ny = EnumFacing.DOWN.getFrontOffsetY.toFloat
+    val nz = EnumFacing.DOWN.getFrontOffsetZ.toFloat
     translationBlock(x, y, z) {
-                                drawBlock() {
-                                              addVertexUV(xmin, yoffset, zmax, maxU, maxV)
-                                              addVertexUV(xmin, yoffset, zmin, maxU, minV)
-                                              addVertexUV(xmax, yoffset, zmin, minU, minV)
-                                              addVertexUV(xmax, yoffset, zmax, minU, maxV)
-                                            }
+                                drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+                                                                                      addVertexUVNormal(xmin, yoffset, zmax, maxU, maxV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmin, yoffset, zmin, maxU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmax, yoffset, zmin, minU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmax, yoffset, zmax, minU, maxV, nx, ny, nz)
+                                                                                    }
                               }
   }
 
   def drawNorthFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.NORTH.getFrontOffsetX.toFloat
+    val ny = EnumFacing.NORTH.getFrontOffsetY.toFloat
+    val nz = EnumFacing.NORTH.getFrontOffsetZ.toFloat
     translationBlock(x, y, z) {
-                                drawBlock() {
-                                              addVertexUV(xmin, ymin, zoffset, maxU, maxV)
-                                              addVertexUV(xmin, ymax, zoffset, maxU, minV)
-                                              addVertexUV(xmax, ymax, zoffset, minU, minV)
-                                              addVertexUV(xmax, ymin, zoffset, minU, maxV)
-                                            }
+                                drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+                                                                                      addVertexUVNormal(xmin, ymin, zoffset, maxU, maxV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmin, ymax, zoffset, maxU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmax, ymax, zoffset, minU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmax, ymin, zoffset, minU, maxV, nx, ny, nz)
+                                                                                    }
                               }
   }
 
   def drawEastFace(x: Float, y: Float, z: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.EAST.getFrontOffsetX.toFloat
+    val ny = EnumFacing.EAST.getFrontOffsetY.toFloat
+    val nz = EnumFacing.EAST.getFrontOffsetZ.toFloat
     translationBlock(x, y, z) {
-                                drawBlock() {
-                                              addVertexUV(xoffset, ymin, zmin, maxU, maxV)
-                                              addVertexUV(xoffset, ymax, zmin, maxU, minV)
-                                              addVertexUV(xoffset, ymax, zmax, minU, minV)
-                                              addVertexUV(xoffset, ymin, zmax, minU, maxV)
-                                            }
+                                drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+                                                                                      addVertexUVNormal(xoffset, ymin, zmin, maxU, maxV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xoffset, ymax, zmin, maxU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xoffset, ymax, zmax, minU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xoffset, ymin, zmax, minU, maxV, nx, ny, nz)
+                                                                                    }
                               }
   }
 
   def drawSouthFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.SOUTH.getFrontOffsetX.toFloat
+    val ny = EnumFacing.SOUTH.getFrontOffsetY.toFloat
+    val nz = EnumFacing.SOUTH.getFrontOffsetZ.toFloat
     translationBlock(x, y, z) {
-                                drawBlock() {
-                                              addVertexUV(xmax, ymin, zoffset, maxU, maxV)
-                                              addVertexUV(xmax, ymax, zoffset, maxU, minV)
-                                              addVertexUV(xmin, ymax, zoffset, minU, minV)
-                                              addVertexUV(xmin, ymin, zoffset, minU, maxV)
-                                            }
+                                drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+                                                                                      addVertexUVNormal(xmax, ymin, zoffset, maxU, maxV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmax, ymax, zoffset, maxU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmin, ymax, zoffset, minU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xmin, ymin, zoffset, minU, maxV, nx, ny, nz)
+                                                                                    }
                               }
   }
 
   def drawWestFace(x: Float, y: Float, z: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.WEST.getFrontOffsetX.toFloat
+    val ny = EnumFacing.WEST.getFrontOffsetY.toFloat
+    val nz = EnumFacing.WEST.getFrontOffsetZ.toFloat
     translationBlock(x, y, z) {
-                                drawBlock() {
-                                              addVertexUV(xoffset, ymin, zmax, maxU, maxV)
-                                              addVertexUV(xoffset, ymax, zmax, maxU, minV)
-                                              addVertexUV(xoffset, ymax, zmin, minU, minV)
-                                              addVertexUV(xoffset, ymin, zmin, minU, maxV)
-                                            }
+                                drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+                                                                                      addVertexUVNormal(xoffset, ymin, zmax, maxU, maxV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xoffset, ymax, zmax, maxU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xoffset, ymax, zmin, minU, minV, nx, ny, nz)
+                                                                                      addVertexUVNormal(xoffset, ymin, zmin, minU, maxV, nx, ny, nz)
+                                                                                    }
                               }
   }
 
@@ -324,13 +343,35 @@ object RenderUtils {
     Tessellator.getInstance().getBuffer.begin(7, format)
   }
 
-  def addVertex(x: Double, y: Double, z: Double) = {
+  def addVertex(x: Double, y: Double, z: Double): VertexBuffer = {
     Tessellator.getInstance().getBuffer.pos(x, y, z)
   }
 
-  def addVertexUV(x: Double, y: Double, z: Double, u: Double, v: Double) = {
+  def addVertex(point: Point3D): VertexBuffer = addVertex(point.x, point.y, point.z)
+
+  def addVertexUV(x: Double, y: Double, z: Double, u: Double, v: Double): Unit = {
     addVertex(x, y, z).tex(u, v).endVertex()
   }
+
+  def addVertexUV(point: Point3D, u: Double, v: Double): Unit = addVertexUV(point.x, point.y, point.z, u, v)
+
+  def addVertexUVColor(x: Double, y: Double, z: Double, u: Double, v: Double, color: Color): Unit = {
+    addVertex(x, y, z).tex(u, v).color(color.red, color.green, color.blue, color.alpha).endVertex()
+  }
+
+  def addVertexUVColor(point: Point3D, u: Double, v: Double, color: Color): Unit = addVertexUVColor(point.x, point.y, point.z, u, v, color)
+
+  def addVertexUVNormal(x: Double, y: Double, z: Double, u: Double, v: Double, nx: Float, ny: Float, nz: Float): Unit = {
+    addVertex(x, y, z).tex(u, v).normal(nx, ny, nz).endVertex()
+  }
+
+  def addVertexUVNormal(point: Point3D, u: Double, v: Double, normal: Vector3): Unit = addVertexUVNormal(point.x, point.y, point.z, u, v, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat)
+
+  def addVertexUVColorNormal(x: Double, y: Double, z: Double, u: Double, v: Double, color: Color, nx: Float, ny: Float, nz: Float): Unit = {
+    addVertex(x, y, z).tex(u, v).color(color.red, color.green, color.blue, color.alpha).normal(nx, ny, nz).endVertex()
+  }
+
+  def addVertexUVColorNormal(point: Point3D, u: Double, v: Double, color: Color, normal: Vector3): Unit = addVertexUVColorNormal(point.x, point.y, point.z, u, v, color, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat)
 
   def finishDrawing(): Unit = {
     Tessellator.getInstance().draw()
