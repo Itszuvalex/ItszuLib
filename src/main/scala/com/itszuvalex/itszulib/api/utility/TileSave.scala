@@ -47,8 +47,8 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
   def this(dimensionID: Int, pos: BlockPos, state: IBlockState, te: NBTTagCompound) =
     this(dimensionID,
          pos,
-         GameRegistry.findUniqueIdentifierFor(state.getBlock).modId,
-         GameRegistry.findUniqueIdentifierFor(state.getBlock).name,
+         state.getBlock.getRegistryName.getResourceDomain,
+         state.getBlock.getRegistryName.getResourcePath,
          state,
          te)
 

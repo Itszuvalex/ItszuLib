@@ -5,7 +5,7 @@ import com.itszuvalex.itszulib.core.TileEntityBase
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageFluidTankUpdate
 import net.minecraft.util.EnumFacing
-import net.minecraftforge.fluids.{FluidStack, FluidTank, FluidTankInfo, IFluidHandler}
+import net.minecraftforge.fluids._
 
 /**
   * Created by Alex on 04.10.2015.
@@ -39,7 +39,7 @@ trait TileMultiFluidTank extends TileEntityBase with IFluidHandler {
     if (!updateNeeded) return
     tanks.indices.foreach { i =>
       val tank = tanks(i)
-      ItszuLibPacketHandler.INSTANCE.sendToDimension(new MessageFluidTankUpdate(getPos.getX, getPos.getY, getPos.getZ, i, if (tank.getFluid == null) -1 else tank.getFluid.getFluid.getID, tank.getFluidAmount), getWorld.provider.getDimension)
+      ItszuLibPacketHandler.INSTANCE.sendToDimension(new MessageFluidTankUpdate(getPos.getX, getPos.getY, getPos.getZ, i, if (tank.getFluid == null) null else FluidRegistry.getFluidName(tank.getFluid.getFluid), tank.getFluidAmount), getWorld.provider.getDimension)
                           }
     updateNeeded = false
   }

@@ -7,20 +7,22 @@ import net.minecraft.util.math.BlockPos
 import net.minecraftforge.fluids.{FluidRegistry, FluidStack}
 import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}
 
+import com.itszuvalex.itszulib.implicits.SerializationImplicits._
+
 /**
   * Created by Alex on 11.10.2015.
   */
-class MessageFluidTankUpdate(var x: Int, var y: Int, var z: Int, var tankID: Int, var fluidID: Int, var amount: Int) extends MessageBase[MessageFluidTankUpdate, IMessage] {
-  def this() = this(0, 0, 0, -1, -1, -1)
+class MessageFluidTankUpdate(var x: Int, var y: Int, var z: Int, var tankID: Int, var fluidName: String, var amount: Int) extends MessageBase[MessageFluidTankUpdate, IMessage] {
+  def this() = this(0, 0, 0, -1, null, -1)
 
-  def this(_x: Int, _y: Int, _z: Int, fID: Int, amt: Int) = this(_x, _y, _z, -1, fID, amt)
+  def this(_x: Int, _y: Int, _z: Int, fID: String, amt: Int) = this(_x, _y, _z, -1, fID, amt)
 
   override def toBytes(buf: ByteBuf): Unit = {
     buf.writeInt(x)
     buf.writeShort(y)
     buf.writeInt(z)
     buf.writeInt(tankID)
-    buf.writeInt(fluidID)
+    buf.writeString(fluidName)
     buf.writeInt(amount)
   }
 
@@ -29,7 +31,7 @@ class MessageFluidTankUpdate(var x: Int, var y: Int, var z: Int, var tankID: Int
     y = buf.readShort()
     z = buf.readInt()
     tankID = buf.readInt()
-    fluidID = buf.readInt()
+    fluidName = buf.readString()
     amount = buf.readInt()
   }
 
@@ -37,9 +39,9 @@ class MessageFluidTankUpdate(var x: Int, var y: Int, var z: Int, var tankID: Int
     val world = Minecraft.getMinecraft.theWorld
     world.getTileEntity(new BlockPos(message.x, message.y, message.z)) match {
       case tank: TileFluidTank =>
-        tank.tank.setFluid(if (message.fluidID == -1) null else new FluidStack(FluidRegistry.getFluid(message.fluidID), message.amount))
+        tank.tank.setFluid(if (message.fluidName == null || message.fluidName.isEmpty) null else new FluidStack(FluidRegistry.getFluid(message.fluidName), message.amount))
       case tank: TileMultiFluidTank =>
-        tank.tanks(message.tankID).setFluid(if (message.fluidID == -1) null else new FluidStack(FluidRegistry.getFluid(message.fluidID), message.amount))
+        tank.tanks(message.tankID).setFluid(if (message.fluidName == null || message.fluidName.isEmpty) null else new FluidStack(FluidRegistry.getFluid(message.fluidName), message.amount))
       case _ =>
     }
     null

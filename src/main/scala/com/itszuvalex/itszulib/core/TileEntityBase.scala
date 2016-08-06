@@ -34,9 +34,10 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
     DataUtils.loadObjectFromNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
   }
 
-  override def writeToNBT(par1nbtTagCompound: NBTTagCompound) {
+  override def writeToNBT(par1nbtTagCompound: NBTTagCompound): NBTTagCompound = {
     super.writeToNBT(par1nbtTagCompound)
     DataUtils.saveObjectToNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
+    par1nbtTagCompound
   }
 
   def update(): Unit = {

@@ -11,7 +11,6 @@ object ItszuLibPacketHandler extends PacketHandler(ItszuLib.ID.toLowerCase) {
 
   def init(): Unit = {
     register(classOf[MessageContainerUpdate], Side.CLIENT)
-    register(classOf[MessagePlayerProperty], Side.CLIENT)
     register(classOf[MessageFluidSlotClick], Side.SERVER)
     register(classOf[MessageFluidTankUpdate], Side.CLIENT)
     register(classOf[MessageUpdatePlayerInventory], Side.CLIENT)

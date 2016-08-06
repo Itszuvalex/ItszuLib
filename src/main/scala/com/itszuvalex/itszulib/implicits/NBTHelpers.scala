@@ -71,8 +71,8 @@ object NBTHelpers {
           case s: Short => compound.setShort(key, s)
           case s: String => compound.setString(key, s)
           case n: NBTBase => compound.setTag(key, n)
-          case save: INBTSerializable[NBTTagCompound] =>
-            compound.setTag(key, NBTLiterals.NBTCompound(save))
+          case save: INBTSerializable[_] =>
+            compound.setTag(key, save.serializeNBT())
           case _ =>
         }
                       }
@@ -86,10 +86,10 @@ object NBTHelpers {
             if (compound.hasKey(key)) {
               val nc = compound.getCompoundTag(key)
               nc.seqMerge(
-                        n.getKeySet.map { key =>
-                          (key, n.getTag(key).asInstanceOf[Any])
-                                        }.toSeq
-                      )
+                           n.getKeySet.map { key =>
+                             (key, n.getTag(key).asInstanceOf[Any])
+                                           }.toSeq
+                         )
             }
             else {
               compound.setTag(key, n)

@@ -4,7 +4,7 @@ import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.client.gui.Gui
-import net.minecraft.util.ResourceLocation
+import net.minecraft.init.SoundEvents
 import org.lwjgl.opengl.GL11
 
 import scala.collection.JavaConversions._
@@ -36,7 +36,7 @@ class GuiButton(override var anchorX: Int,
 
   override def onMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean = {
     if (!isDisabled && isLocationInside(mouseX, mouseY)) {
-      Minecraft.getMinecraft.getSoundHandler.playSound(PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F))
+      Minecraft.getMinecraft.getSoundHandler.playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F))
       true
     }
     else false

@@ -321,11 +321,11 @@ object RenderUtils {
   }
 
   def startDrawing(format: VertexFormat) {
-    Tessellator.getInstance().getWorldRenderer.begin(7, format)
+    Tessellator.getInstance().getBuffer.begin(7, format)
   }
 
   def addVertex(x: Double, y: Double, z: Double) = {
-    Tessellator.getInstance().getWorldRenderer.pos(x, y, z)
+    Tessellator.getInstance().getBuffer.pos(x, y, z)
   }
 
   def addVertexUV(x: Double, y: Double, z: Double, u: Double, v: Double) = {
@@ -369,8 +369,8 @@ object RenderUtils {
   }
 
   def bindBlockTextures(): Unit = {
-    Minecraft.getMinecraft.getTextureManager.bindTexture(TextureMap.locationBlocksTexture)
-    Minecraft.getMinecraft.getTextureManager.getTexture(TextureMap.locationBlocksTexture).setBlurMipmap(false, false)
+    Minecraft.getMinecraft.getTextureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE)
+    Minecraft.getMinecraft.getTextureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).setBlurMipmap(false, false)
   }
 }
 

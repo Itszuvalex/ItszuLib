@@ -58,13 +58,13 @@ class GuiFluidTank(override var anchorX: Int,
     * Constructor that only uses a TileFluidTank. See main constructor for param description.
     */
   def this(x: Int, y: Int, guiObj: GuiBase, tile: TileFluidTank, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
-    this(x, y, guiObj, tile, null, -1, manAccess, filtFluid, _drawTank)
+  this(x, y, guiObj, tile, null, -1, manAccess, filtFluid, _drawTank)
 
   /**
     * Constructor that only uses a TileMultiFluidTank and Tank ID. See main constructor for param description.
     */
   def this(x: Int, y: Int, guiObj: GuiBase, tile: TileMultiFluidTank, _tankID: Int, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
-    this(x, y, guiObj, null, tile, _tankID, manAccess, filtFluid, _drawTank)
+  this(x, y, guiObj, null, tile, _tankID, manAccess, filtFluid, _drawTank)
 
   override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
     super.addTooltip(mouseX, mouseY, tooltip)
@@ -97,9 +97,9 @@ class GuiFluidTank(override var anchorX: Int,
     if (manualAccess != 0 && isMousedOver) {
       tankID match {
         case -1 =>
-          ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileSingleTank.getLoc, -1, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
+          ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileSingleTank.getLoc, -1, button, manualAccess, if (filterFluid == null) null else FluidRegistry.getFluidName(filterFluid)))
         case _ =>
-          ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileMultiTank.getLoc, tankID, button, manualAccess, if (filterFluid == null) -1 else filterFluid.getID))
+          ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileMultiTank.getLoc, tankID, button, manualAccess, if (filterFluid == null) null else FluidRegistry.getFluidName(filterFluid)))
       }
     }
     super.onMouseClick(mouseX, mouseY, button)
