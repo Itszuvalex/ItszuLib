@@ -30,6 +30,10 @@ trait TileDescriptionPacket extends TileEntity {
     handleDescriptionNBT(pkt.getNbtCompound)
   }
 
+  override def handleUpdateTag(tag: NBTTagCompound): Unit = {
+    handleDescriptionNBT(tag)
+  }
+
   def handleDescriptionNBT(compound: NBTTagCompound) {
     DataUtils.loadObjectFromNBT(compound, this, DataUtils.EnumSaveType.DESCRIPTION)
   }
