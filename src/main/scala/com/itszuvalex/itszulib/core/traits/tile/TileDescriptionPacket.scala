@@ -14,9 +14,14 @@ trait TileDescriptionPacket extends TileEntity {
     if (!hasDescription) {
       return null
     }
-    val compound: NBTTagCompound = new NBTTagCompound
+    new SPacketUpdateTileEntity(getPos, getBlockType.getMetaFromState(getWorld.getBlockState(getPos)), getUpdateTag)
+  }
+
+
+  override def getUpdateTag: NBTTagCompound = {
+    val compound = super.getUpdateTag
     saveToDescriptionCompound(compound)
-    new SPacketUpdateTileEntity(getPos, getBlockType.getMetaFromState(getWorld.getBlockState(getPos)), compound)
+    compound
   }
 
   def saveToDescriptionCompound(compound: NBTTagCompound) {
