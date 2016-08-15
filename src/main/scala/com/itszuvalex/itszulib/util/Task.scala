@@ -38,6 +38,7 @@ abstract class Task(var baseGoal: Double, var minTicks: Int) extends INBTSeriali
   /**
     *
     * @param power Power to contribute
+    *
     * @return Power used out of power
     */
   def contribute(power: Double, speed: Double, efficiency: Double): Double = {
@@ -50,6 +51,8 @@ abstract class Task(var baseGoal: Double, var minTicks: Int) extends INBTSeriali
   def progressRemaining(efficiency: Double) = Math.max(adjustedMax(efficiency) - progress, 0)
 
   def completed(efficiency: Double) = progressRemaining(efficiency) <= 0
+
+  def reset() = progress = 0
 
   override def deserializeNBT(t: NBTTagCompound): Unit = {
     progress = t.getDouble(Task.PROGRESS_KEY)
