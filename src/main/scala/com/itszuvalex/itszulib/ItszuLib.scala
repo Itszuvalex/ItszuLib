@@ -4,7 +4,9 @@ import com.itszuvalex.itszulib.api.Capabilities
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.proxy.ProxyCommon
 import com.itszuvalex.itszulib.testing.{BlockLocTrackerTest, BlockPortalTest, BlockTankTest, ItemPreviewable}
+import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
+import net.minecraft.item.ItemBlock
 import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLInterModComms, FMLPostInitializationEvent, FMLPreInitializationEvent}
 import net.minecraftforge.fml.common.network.NetworkRegistry
@@ -21,27 +23,33 @@ object ItszuLib {
   final val VERSION = Version.FULL_VERSION
   final val logger  = LogManager.getLogger(ID)
 
+  var blockTankTest: Block = _
+
   @SidedProxy(clientSide = "com.itszuvalex.itszulib.proxy.ProxyClient",
-              serverSide = "com.itszuvalex.itszulib.proxy.ProxyServer")
+    serverSide = "com.itszuvalex.itszulib.proxy.ProxyServer")
   var proxy: ProxyCommon = null
 
   @EventHandler def preInit(event: FMLPreInitializationEvent): Unit = {
     ItszuLibPacketHandler.init()
     //    PlayerUUIDTracker.init()
     //    PlayerUUIDTracker.setFile(new File())
-    proxy.init()
     NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy)
 
     Capabilities.register()
   }
 
   @EventHandler def load(event: FMLInitializationEvent): Unit = {
+
     GameRegistry.registerBlock(new BlockPortalTest, "BlockPortalTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
     GameRegistry.registerBlock(new BlockLocTrackerTest, "BlockLocTrackerTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
-    GameRegistry.registerBlock(new BlockTankTest, "BlockTankTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
+    blockTankTest = new BlockTankTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS).setRegistryName(ItszuLib.ID.toLowerCase(), "BlockTankTest").setUnlocalizedName("BlockTankTest")
+    GameRegistry.register(blockTankTest)
+    GameRegistry.register(new ItemBlock(blockTankTest).setRegistryName(blockTankTest.getRegistryName).setUnlocalizedName("BlockTankTest"))
     val prev = new ItemPreviewable
     prev.setCreativeTab(CreativeTabs.DECORATIONS)
     GameRegistry.registerItem(prev, "TilePreviewable")
+
+    proxy.init()
   }
 
   @EventHandler def postInit(event: FMLPostInitializationEvent): Unit = {

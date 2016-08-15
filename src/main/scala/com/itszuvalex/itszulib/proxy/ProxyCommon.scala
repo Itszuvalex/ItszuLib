@@ -28,6 +28,8 @@ import net.minecraftforge.fml.common.network.IGuiHandler
 import net.minecraftforge.fml.common.registry.GameRegistry
 
 class ProxyCommon extends IGuiHandler {
+  def preInit() = {}
+
   def init(): Unit = {
     registerRendering()
     registerTileEntities()

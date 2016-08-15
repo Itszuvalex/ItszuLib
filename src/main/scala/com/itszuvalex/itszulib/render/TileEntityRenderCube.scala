@@ -9,7 +9,7 @@ import org.lwjgl.opengl.GL11
   * Created by Chris on 7/31/2016.
   */
 abstract class TileEntityRenderCube[T <: TileEntity](modName: String, val sides: Array[ResourceLocation], texName: String) extends TileEntityCombinedRenderer[T] {
-  var facing = EnumFacing.EAST
+  var facing = EnumFacing.NORTH
 
   def this(modName: String, texName: String) = this(modName, new Array[ResourceLocation](6), texName)
 
