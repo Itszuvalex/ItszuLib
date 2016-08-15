@@ -15,7 +15,6 @@ abstract class TileEntityCombinedRenderer[T <: TileEntity] extends TileEntitySpe
   }
 
   def renderTileEntityAsItem(x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int): Unit = {
-    super.renderTileEntityAt(null.asInstanceOf[T], x, y, z, partialTicks, destroyStage)
   }
 
   def renderTileEntityInWorld(te: T, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int): Unit = {
