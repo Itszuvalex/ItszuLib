@@ -24,6 +24,7 @@ object ItszuLib {
   final val logger  = LogManager.getLogger(ID)
 
   var blockTankTest: Block = _
+  var blockPortalTest: Block = _
 
   @SidedProxy(clientSide = "com.itszuvalex.itszulib.proxy.ProxyClient",
     serverSide = "com.itszuvalex.itszulib.proxy.ProxyServer")
@@ -40,11 +41,14 @@ object ItszuLib {
 
   @EventHandler def load(event: FMLInitializationEvent): Unit = {
 
-    GameRegistry.registerBlock(new BlockPortalTest, "BlockPortalTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
+    //GameRegistry.registerBlock(new BlockPortalTest, "BlockPortalTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
     GameRegistry.registerBlock(new BlockLocTrackerTest, "BlockLocTrackerTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
     blockTankTest = new BlockTankTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS).setRegistryName(ItszuLib.ID.toLowerCase(), "BlockTankTest").setUnlocalizedName("BlockTankTest")
+    blockPortalTest = new BlockPortalTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS).setRegistryName(ItszuLib.ID.toLowerCase(), "BlockPortalTest").setUnlocalizedName("BlockPortalTest")
     GameRegistry.register(blockTankTest)
+    GameRegistry.register(blockPortalTest)
     GameRegistry.register(new ItemBlock(blockTankTest).setRegistryName(blockTankTest.getRegistryName).setUnlocalizedName("BlockTankTest"))
+    GameRegistry.register(new ItemBlock(blockPortalTest).setRegistryName(blockPortalTest.getRegistryName).setUnlocalizedName("BlockPortalTest"))
     val prev = new ItemPreviewable
     prev.setCreativeTab(CreativeTabs.DECORATIONS)
     GameRegistry.registerItem(prev, "TilePreviewable")

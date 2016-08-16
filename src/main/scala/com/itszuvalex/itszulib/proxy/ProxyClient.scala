@@ -48,7 +48,9 @@ class ProxyClient extends ProxyCommon {
     ClientRegistry.bindTileEntitySpecialRenderer[TileTankTest](classOf[TileTankTest], new RenderSidedCubeTest)
 
     ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ItszuLib.blockTankTest), 0, classOf[TileTankTest])
+    ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ItszuLib.blockPortalTest), 0, classOf[PortalTileTest])
     Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(ItszuLib.blockTankTest), 0, new ModelResourceLocation(ItszuLib.ID.toLowerCase() + ":" + "BlockTankTest", "inventory"))
+    Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(ItszuLib.blockPortalTest), 0, new ModelResourceLocation(ItszuLib.ID.toLowerCase() + ":" + "BlockPortalTest", "inventory"))
 
     GuiStack.init()
   }

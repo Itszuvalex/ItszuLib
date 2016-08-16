@@ -19,8 +19,8 @@ abstract class TileEntityRenderCube[T <: TileEntity](modName: String, val sides:
     sides(i) = new ResourceLocation(modName, "textures/blocks/" + texName + "_" + EnumFacing.values()(i).toString + ".png")
   }
 
-  override def renderTileEntityAsItem(x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int): Unit = {
-    super.renderTileEntityAsItem(x, y, z, partialTicks, destroyStage)
+  override def renderTileEntityAsItem(x: Double, y: Double, z: Double, partialTicks: Float): Unit = {
+    super.renderTileEntityAsItem(x, y, z, partialTicks)
     translationBlock(x, y, z) {
       renderCube()
     }
