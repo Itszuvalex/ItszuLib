@@ -43,8 +43,8 @@ abstract class Task(var baseGoal: Double, var minTicks: Int) extends INBTSeriali
     */
   def contribute(power: Double, speed: Double, efficiency: Double): Double = {
     val take = Math.min(progressRemaining(efficiency), powerPerTick(speed, efficiency))
-    progress += take
-    val ret = power - take
+    val ret = Math.min(power, take)
+    progress += ret
     ret
   }
 
