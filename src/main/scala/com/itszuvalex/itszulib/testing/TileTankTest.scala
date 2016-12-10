@@ -48,5 +48,5 @@ class TileTankTest extends TileEntityBase with TileMultiFluidTank {
 
   override def drain(id: Int, from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = null
 
-  override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = null
+  def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = null
 }
