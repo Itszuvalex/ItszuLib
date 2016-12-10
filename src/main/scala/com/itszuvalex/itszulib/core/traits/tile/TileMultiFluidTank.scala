@@ -6,6 +6,7 @@ import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageFluidTankUpdate
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids._
+import net.minecraftforge.fluids.capability.IFluidHandler
 
 /**
   * Created by Alex on 04.10.2015.
@@ -17,18 +18,18 @@ trait TileMultiFluidTank extends TileEntityBase with IFluidHandler {
 
   def defaultTanks: Array[FluidTank]
 
-  override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int
+  override def fill(resource: FluidStack, doFill: Boolean): Int
 
   def fill(id: Int, from: EnumFacing, resource: FluidStack, doFill: Boolean) = tanks(id).fill(resource, doFill)
 
-  override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack
+  override def drain(resource: FluidStack, doDrain: Boolean): FluidStack
 
   def drain(id: Int, from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = {
     if (resource == null || !resource.isFluidEqual(tanks(id).getFluid)) null
     else tanks(id).drain(resource.amount, doDrain)
   }
 
-  override def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = tanks.map(_.getInfo)
+  def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = tanks.map(_.getInfo)
 
   /**
     * If you change your tanks in serverUpdate, make sure to change them *BEFORE* calling super.serverUpdate().

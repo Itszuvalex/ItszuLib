@@ -23,6 +23,8 @@ class WrapperIItemStorage(storage: IItemStorage) extends IInventory {
     ret.toMinecraft
   }
 
+  override def func_191420_l(): Boolean = false
+
   override def getDisplayName: ITextComponent = new TextComponentString("Inventory")
 
   override def getName: String = "storage"

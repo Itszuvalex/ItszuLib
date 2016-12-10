@@ -583,7 +583,7 @@ public class DataUtils {
                                                        IllegalAccessException {
                 Saveable anno = saveable.getAnnotation(Saveable.class);
                 NBTTagCompound item = compound.getCompoundTag(anno.tag().isEmpty() ? saveable.getName() : anno.tag());
-                saveable.set(obj, ItemStack.loadItemStackFromNBT(item));
+                saveable.set(obj, new ItemStack(item));
             }
         });
 
@@ -635,8 +635,7 @@ public class DataUtils {
                 Arrays.fill(retarray, null);
                 for (int i = 0; i < list.tagCount(); ++i) {
                     NBTTagCompound item = list.getCompoundTagAt(i);
-                    retarray[item.getInteger("index")] = ItemStack
-                            .loadItemStackFromNBT(item);
+                    retarray[item.getInteger("index")] = new ItemStack(item);
                 }
                 saveable.set(obj, retarray);
             }

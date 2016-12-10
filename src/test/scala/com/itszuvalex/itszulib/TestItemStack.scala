@@ -3,6 +3,8 @@ package com.itszuvalex.itszulib
 import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.capabilities.Capability
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 7/31/16.
@@ -20,8 +22,6 @@ class TestItemStack(var testItem: Int, var testStack: Int, var testDamage: Int) 
   var testNBT            = new NBTTagCompound
 
   override def item: Item = null
-
-  override def item_=(i: Item): Unit = null
 
   override def itemID: Int = testItem
 
@@ -42,6 +42,10 @@ class TestItemStack(var testItem: Int, var testStack: Int, var testDamage: Int) 
   override def nbt_=(nbt: NBTTagCompound): Unit = testNBT = nbt
 
   override def toMinecraft: ItemStack = null
+
+  override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = toMinecraft.getCapability(capability, facing)
+
+  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = toMinecraft.hasCapability(capability, facing)
 
   override def isEmpty: Boolean = testItem == -1
 

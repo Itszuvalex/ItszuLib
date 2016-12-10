@@ -21,7 +21,7 @@ class ItemStorageItemHandler(handler: IItemHandler) extends IItemStorage {
     * @param s IItemStack to set
     */
   override def update(i: Int, s: IItemStack): Unit = {
-    handler.extractItem(i, handler.getStackInSlot(i).stackSize, false)
+    handler.extractItem(i, handler.getStackInSlot(i).func_190916_E, false)
     handler.insertItem(i, s.toMinecraft, false)
   }
 

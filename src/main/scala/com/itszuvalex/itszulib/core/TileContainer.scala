@@ -15,7 +15,7 @@ abstract class TileContainer(material: Material) extends BlockContainer(material
   setResistance(3f)
 
 
-  override def onBlockActivated(worldIn: World, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, heldItem: ItemStack, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onBlockActivated(worldIn: World, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, side: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     worldIn.getTileEntity(pos) match {
       case null =>
       case base: TileEntityBase =>
@@ -24,7 +24,7 @@ abstract class TileContainer(material: Material) extends BlockContainer(material
         }
       case _ =>
     }
-    super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ)
+    super.onBlockActivated(worldIn, pos, state, playerIn, hand, side, hitX, hitY, hitZ)
   }
 
   override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit = {

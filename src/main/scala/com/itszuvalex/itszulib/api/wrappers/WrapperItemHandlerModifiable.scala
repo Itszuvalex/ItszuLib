@@ -10,6 +10,8 @@ import net.minecraftforge.items.IItemHandlerModifiable
 class WrapperItemHandlerModifiable(storage: IItemStorage) extends IItemHandlerModifiable {
   override def setStackInSlot(slot: Int, stack: ItemStack): Unit = storage(slot) = WrapperVanillaItemStack(stack)
 
+  override def getSlotLimit(slot: Int): Int = 64
+
   override def getSlots: Int = storage.length
 
   override def insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack = {
@@ -21,11 +23,11 @@ class WrapperItemHandlerModifiable(storage: IItemStorage) extends IItemHandlerMo
           stack
         }
         else {
-          val room = storage.maxStackSize(slot) - islot.stackSize
-          if (room >= stack.stackSize) null
+          val room = storage.maxStackSize(slot) - islot.func_190916_E
+          if (room >= stack.func_190916_E) null
           else {
             val ret = stack.copy()
-            ret.stackSize = ret.stackSize - room
+            ret.func_190920_e(ret.func_190916_E - room)
             ret
           }
         }
@@ -43,7 +45,7 @@ class WrapperItemHandlerModifiable(storage: IItemStorage) extends IItemHandlerMo
       if (storage(slot).isEmpty) null
       else {
         val ret = storage(slot).copy().toMinecraft
-        ret.stackSize = Math.min(ret.stackSize, amount)
+        ret.func_190920_e(Math.min(ret.func_190916_E(), amount))
         ret
       }
     }

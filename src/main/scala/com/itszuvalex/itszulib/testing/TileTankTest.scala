@@ -5,6 +5,7 @@ import com.itszuvalex.itszulib.core.TileEntityBase
 import com.itszuvalex.itszulib.core.traits.tile.TileMultiFluidTank
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.EnumFacing
+import net.minecraftforge.fluids.capability.IFluidTankProperties
 import net.minecraftforge.fluids.{Fluid, FluidStack, FluidTank, FluidTankInfo}
 
 /**
@@ -12,17 +13,19 @@ import net.minecraftforge.fluids.{Fluid, FluidStack, FluidTank, FluidTankInfo}
   */
 class TileTankTest extends TileEntityBase with TileMultiFluidTank {
 
-  override def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = null
+  override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = null
 
   override def defaultTanks: Array[FluidTank] = Array(new FluidTank(10000), new FluidTank(5000), new FluidTank(2000))
 
-  override def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = 0
+  override def fill(resource: FluidStack, doFill: Boolean): Int = 0
 
-  override def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean): FluidStack = null
+  override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = null
 
-  override def canFill(from: EnumFacing, fluid: Fluid): Boolean = false
+  def canFill(from: EnumFacing, fluid: Fluid): Boolean = false
 
-  override def canDrain(from: EnumFacing, fluid: Fluid): Boolean = false
+  def canDrain(from: EnumFacing, fluid: Fluid): Boolean = false
+
+  override def getTankProperties: Array[IFluidTankProperties] = null
 
   override def hasDescription: Boolean = true
 

@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.api.wrappers
 import com.itszuvalex.itszulib.api.Overridable
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.INBTSerializable
 
 /**
@@ -21,8 +22,6 @@ object IItemStack {
     override def isEmpty: Boolean = true
 
     override def item = null
-
-    override def item_=(i: Item): Unit = {}
 
     override def itemID: Int = 0
 
@@ -48,11 +47,9 @@ object IItemStack {
   })
 }
 
-trait IItemStack extends INBTSerializable[NBTTagCompound] {
+trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
 
   def item: Item
-
-  def item_=(i: Item): Unit
 
   def itemID: Int
 

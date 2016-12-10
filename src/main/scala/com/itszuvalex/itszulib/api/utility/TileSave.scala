@@ -1,14 +1,16 @@
 package com.itszuvalex.itszulib.api.utility
 
 import com.itszuvalex.itszulib.api.core.Loc4
+import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.INBTSerializable
-import net.minecraftforge.fml.common.registry.GameRegistry
+import net.minecraftforge.fml.common.registry.{GameData, GameRegistry}
 
 object TileSave {
   def apply(nBTTagCompound: NBTTagCompound) = loadFromNBT(nBTTagCompound)
@@ -29,7 +31,7 @@ object TileSave {
 class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: String,
                var blockID: String, var meta: Int, var te: NBTTagCompound) extends INBTSerializable[NBTTagCompound] {
 
-  lazy val block = GameRegistry.findBlock(modID, blockID)
+  lazy val block = Block.REGISTRY.getObject(new ResourceLocation(modID, blockID))
 
   def this(dim: Int, x: Int, y: Int, z: Int, modID: String, blockID: String, meta: Int, nbt: NBTTagCompound) =
     this(dim, new BlockPos(x, y, z), modID, blockID, meta, nbt)
