@@ -6,7 +6,7 @@ import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageFluidTankUpdate
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids._
-import net.minecraftforge.fluids.capability.IFluidHandler
+import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties}
 
 /**
   * Created by Alex on 04.10.2015.
@@ -28,8 +28,6 @@ trait TileMultiFluidTank extends TileEntityBase with IFluidHandler {
     if (resource == null || !resource.isFluidEqual(tanks(id).getFluid)) null
     else tanks(id).drain(resource.amount, doDrain)
   }
-
-  def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = tanks.map(_.getInfo)
 
   /**
     * If you change your tanks in serverUpdate, make sure to change them *BEFORE* calling super.serverUpdate().

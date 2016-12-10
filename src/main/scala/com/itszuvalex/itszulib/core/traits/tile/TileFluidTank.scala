@@ -6,7 +6,7 @@ import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageFluidTankUpdate
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids._
-import net.minecraftforge.fluids.capability.IFluidHandler
+import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties}
 
 /**
   * Created by Chris on 11/30/2014.
@@ -17,16 +17,16 @@ trait TileFluidTank extends TileEntityBase with IFluidHandler {
 
   def defaultTank: FluidTank
 
-  def fill(from: EnumFacing, resource: FluidStack, doFill: Boolean): Int = tank.fill(resource, doFill)
+  override def fill(resource: FluidStack, doFill: Boolean): Int = tank.fill(resource, doFill)
 
-  def drain(from: EnumFacing, resource: FluidStack, doDrain: Boolean): FluidStack = {
+  override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = {
     if (resource == null || !resource.isFluidEqual(tank.getFluid)) null
     else tank.drain(resource.amount, doDrain)
   }
 
-  def drain(from: EnumFacing, maxDrain: Int, doDrain: Boolean): FluidStack = tank.drain(maxDrain, doDrain)
+  override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = tank.drain(maxDrain, doDrain)
 
-  def getTankInfo(from: EnumFacing): Array[FluidTankInfo] = Array(tank.getInfo)
+  override def getTankProperties: Array[IFluidTankProperties] = tank.getTankProperties
 
   /**
     * If you change your tanks in serverUpdate, make sure to change them *BEFORE* calling super.serverUpdate().
