@@ -102,7 +102,7 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
     getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
   }
 
-  def notifyNeighborsOfChange() = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType)
+  def notifyNeighborsOfChange() = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, true)
 
   def onBlockBreak(): Unit = {}
 

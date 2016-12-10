@@ -7,6 +7,7 @@ import com.itszuvalex.itszulib.testing.{BlockLocTrackerTest, BlockPortalTest, Bl
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.ItemBlock
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLInterModComms, FMLPostInitializationEvent, FMLPreInitializationEvent}
 import net.minecraftforge.fml.common.network.NetworkRegistry
@@ -42,7 +43,7 @@ object ItszuLib {
   @EventHandler def load(event: FMLInitializationEvent): Unit = {
 
     //GameRegistry.registerBlock(new BlockPortalTest, "BlockPortalTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
-    GameRegistry.registerBlock(new BlockLocTrackerTest, "BlockLocTrackerTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
+    GameRegistry.register(new BlockLocTrackerTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS), new ResourceLocation("BlockLocTrackerTest"))
     blockTankTest = new BlockTankTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS).setRegistryName(ItszuLib.ID.toLowerCase(), "BlockTankTest").setUnlocalizedName("BlockTankTest")
     blockPortalTest = new BlockPortalTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS).setRegistryName(ItszuLib.ID.toLowerCase(), "BlockPortalTest").setUnlocalizedName("BlockPortalTest")
     GameRegistry.register(blockTankTest)
@@ -51,8 +52,7 @@ object ItszuLib {
     GameRegistry.register(new ItemBlock(blockPortalTest).setRegistryName(blockPortalTest.getRegistryName).setUnlocalizedName("BlockPortalTest"))
     val prev = new ItemPreviewable
     prev.setCreativeTab(CreativeTabs.DECORATIONS)
-    GameRegistry.registerItem(prev, "TilePreviewable")
-
+    GameRegistry.register(prev, new ResourceLocation("TilePreviewable"))
     proxy.init()
   }
 

@@ -28,7 +28,7 @@ object InventoryUtils {
     if (item == null) {
       return true
     }
-    var amount = item.stackSize
+    var amount = item.func_190916_E
     if (restrictions != null) {
       util.Arrays.sort(restrictions)
     }
@@ -36,12 +36,12 @@ object InventoryUtils {
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) != null && compareItem(slots(i), item) == 0) {
           val slot = slots(i)
-          val room = slot.getMaxStackSize - slot.stackSize
+          val room = slot.getMaxStackSize - slot.func_190916_E
           if (room < amount) {
-            slot.stackSize += room
+            slot.func_190920_e(slot.func_190916_E() + room)
             amount -= room
           } else {
-            slot.stackSize += amount
+            slot.func_190920_e(slot.func_190916_E() + amount)
             return true
           }
         }
@@ -51,7 +51,7 @@ object InventoryUtils {
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) == null) {
           slots(i) = item.copy
-          slots(i).stackSize = amount
+          slots(i).func_190920_e(amount)
           return true
         }
       }
@@ -101,12 +101,12 @@ object InventoryUtils {
     val f = rand.nextFloat * 0.8F + 0.1F
     val f1 = rand.nextFloat * 0.8F + 0.1F
     val f2 = rand.nextFloat * 0.8F + 0.1F
-    while (item.stackSize > 0) {
+    while (item.func_190916_E > 0) {
       var k1 = rand.nextInt(21) + 10
-      if (k1 > item.stackSize) {
-        k1 = item.stackSize
+      if (k1 > item.func_190916_E) {
+        k1 = item.func_190916_E
       }
-      item.stackSize -= k1
+      item.func_190920_e(item.func_190916_E() - k1)
       val entityitem = new EntityItem(loc.getWorld.get,
                                       (loc.getPos.getX.toFloat + f).toDouble,
                                       (loc.getPos.getY.toFloat + f1).toDouble,
@@ -136,7 +136,7 @@ object InventoryUtils {
     if (item == null) {
       return true
     }
-    var amountLeftToRemove: Int = item.stackSize
+    var amountLeftToRemove: Int = item.func_190916_E
     if (amountLeftToRemove <= 0) return true
     if (restrictions != null) {
       util.Arrays.sort(restrictions)
@@ -145,7 +145,7 @@ object InventoryUtils {
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) != null && compareItem(slots(i), item) == 0) {
           val slot = slots(i)
-          val amount = slot.stackSize
+          val amount = slot.func_190916_E
           if (amount <= amountLeftToRemove) {
             slots(i) = null
             amountLeftToRemove -= amount
@@ -153,7 +153,7 @@ object InventoryUtils {
               return true
             }
           } else {
-            slot.stackSize -= amountLeftToRemove
+              slot.func_190920_e(slot.func_190916_E() - amountLeftToRemove)
             return true
           }
         }

@@ -76,16 +76,16 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
           }
         }
       }
-      if (itemstack1.stackSize == 0) {
+      if (itemstack1.func_190916_E == 0) {
         slot.putStack(null)
       }
       else {
         slot.onSlotChanged()
       }
-      if (itemstack1.stackSize == itemstack.stackSize) {
+      if (itemstack1.func_190916_E == itemstack.func_190916_E) {
         return null
       }
-      slot.onPickupFromSlot(par1EntityPlayer, itemstack1)
+      slot.func_190901_a(par1EntityPlayer, itemstack1)
     }
     itemstack
   }

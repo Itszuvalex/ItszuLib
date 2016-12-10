@@ -27,16 +27,16 @@ class TestWrapperVanillaItemStack extends TestBase {
 
       "return the stack count" in new DummyItemStack {
         val wrap = WrapperVanillaItemStack(itemStack)
-        wrap.stackSize shouldEqual itemStack.stackSize
+        wrap.stackSize shouldEqual itemStack.func_190916_E
       }
 
       "be able to set the stack count" in new DummyItemStack {
         val wrap = WrapperVanillaItemStack(itemStack)
-        wrap.stackSize shouldEqual itemStack.stackSize
+        wrap.stackSize shouldEqual itemStack.func_190916_E
         val prev = wrap.stackSize
         wrap.stackSize = prev + 2
         wrap.stackSize shouldEqual(prev + 2)
-        wrap.stackSize shouldEqual itemStack.stackSize
+        wrap.stackSize shouldEqual itemStack.func_190916_E
       }
 
       "return the damage count" in new DummyItemStack {

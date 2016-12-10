@@ -3,7 +3,9 @@ package com.itszuvalex.itszulib.util
 import java.util.regex.{Matcher, Pattern}
 
 import com.itszuvalex.itszulib.ItszuLib
+import net.minecraft.block.Block
 import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.registry.GameRegistry
 import org.apache.logging.log4j.Level
 
@@ -40,11 +42,11 @@ object StringUtils {
           val id = itemID.toInt
           return new ItemStack(Item.getItemById(id), stackSize, damage)
         }
-        val item = GameRegistry.findItem(modID, name)
+        val item = Block.REGISTRY.getObject(new ResourceLocation(modID, name))
         if (item != null) {
           return new ItemStack(item, stackSize, damage)
         }
-        val block = GameRegistry.findBlock(modID, name)
+        val block = Block.REGISTRY.getObject(new ResourceLocation(modID, name))
         if (block != null) {
           return new ItemStack(block, stackSize, damage)
         }

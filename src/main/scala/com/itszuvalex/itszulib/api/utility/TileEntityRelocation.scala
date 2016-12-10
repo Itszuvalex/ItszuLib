@@ -80,7 +80,7 @@ object TileEntityRelocation {
       if (s.pos.getY != destPos.getY) s.te.setInteger("y", destPos.getY)
       if (s.pos.getZ != destPos.getZ) s.te.setInteger("z", destPos.getZ)
       val newTile = if (s.world == destWorld) {
-        TileEntity.func_190200_a(s.world, s.te)
+        TileEntity.create(s.world, s.te)
       } else {
         val tile = s.block.createTileEntity(destWorld, s.block.getStateFromMeta(s.meta))
         tile.readFromNBT(s.te)
