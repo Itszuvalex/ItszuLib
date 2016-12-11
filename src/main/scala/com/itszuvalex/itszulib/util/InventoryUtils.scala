@@ -101,27 +101,29 @@ object InventoryUtils {
     val f = rand.nextFloat * 0.8F + 0.1F
     val f1 = rand.nextFloat * 0.8F + 0.1F
     val f2 = rand.nextFloat * 0.8F + 0.1F
+
     while (item.func_190916_E > 0) {
       var k1 = rand.nextInt(21) + 10
       if (k1 > item.func_190916_E) {
         k1 = item.func_190916_E
       }
+      val dstack = new ItemStack(item.serializeNBT())
+      dstack.func_190920_e(k1)
+      val entityItem = new EntityItem(loc.getWorld.get,
+        (loc.getPos.getX.toFloat + f).toDouble,
+        (loc.getPos.getY.toFloat + f1).toDouble,
+        (loc.getPos.getZ.toFloat + f2).toDouble,
+        dstack)
       item.func_190920_e(item.func_190916_E() - k1)
-      val entityitem = new EntityItem(loc.getWorld.get,
-                                      (loc.getPos.getX.toFloat + f).toDouble,
-                                      (loc.getPos.getY.toFloat + f1).toDouble,
-                                      (loc.getPos.getZ.toFloat + f2).toDouble,
-                                      new ItemStack(item.getItem, k1, item.getItemDamage))
       if (item.hasTagCompound) {
-        entityitem.getEntityItem.setTagCompound(item.getTagCompound.copy.asInstanceOf[NBTTagCompound])
+        entityItem.getEntityItem.setTagCompound(item.getTagCompound.copy)
       }
       val f3 = 0.05F
-      entityitem.motionX = (rand.nextGaussian.toFloat * f3).toDouble
-      entityitem.motionY = (rand.nextGaussian.toFloat * f3 + 0.2F).toDouble
-      entityitem.motionZ = (rand.nextGaussian.toFloat * f3).toDouble
-      loc.getWorld.get.spawnEntityInWorld(entityitem)
+      entityItem.motionX = (rand.nextGaussian.toFloat * f3).toDouble
+      entityItem.motionY = (rand.nextGaussian.toFloat * f3 + 0.2F).toDouble
+      entityItem.motionZ = (rand.nextGaussian.toFloat * f3).toDouble
+      loc.getWorld.get.spawnEntityInWorld(entityItem)
     }
-  }
 
   /**
     *
