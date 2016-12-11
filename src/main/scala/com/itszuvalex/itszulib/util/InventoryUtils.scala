@@ -124,6 +124,7 @@ object InventoryUtils {
       entityItem.motionZ = (rand.nextGaussian.toFloat * f3).toDouble
       loc.getWorld.get.spawnEntityInWorld(entityItem)
     }
+  }
 
   /**
     *
@@ -160,7 +161,7 @@ object InventoryUtils {
           }
         }
       }
-                          }
+    }
     false
   }
 
