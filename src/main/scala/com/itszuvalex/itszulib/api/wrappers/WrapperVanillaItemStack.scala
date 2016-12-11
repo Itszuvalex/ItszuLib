@@ -22,7 +22,7 @@ object WrapperVanillaItemStack {
   def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
 
   val nbtWriter = new Overridable((c: WrapperVanillaItemStack, nbt: NBTTagCompound) =>
-                                    Option(c.toMinecraft).foreach(_.writeToNBT(nbt)))
+    Option(c.toMinecraft).foreach(_.writeToNBT(nbt)))
 
   val nbtSerializer = new Overridable((c: WrapperVanillaItemStack) => {
     Option(c.toMinecraft).map(_.serializeNBT()).orNull
@@ -68,17 +68,17 @@ class WrapperVanillaItemStack(private var stack: ItemStack) extends IItemStack {
 
   override def copy(): IItemStack = WrapperVanillaItemStack(Option(toMinecraft).map(_.copy()).orNull)
 
-  override def toMinecraft: ItemStack = stack
+  override def toMinecraft: ItemStack = if (stack != null) stack else ItemStack.field_190927_a
 
   override def writeToNBT(nbt: NBTTagCompound): Unit = WrapperVanillaItemStack.nbtWriter.apply(this, nbt)
 
-  override def isEmpty: Boolean = stack == null
+  override def isEmpty: Boolean = stack == null || stack.func_190926_b()
 
   override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = stack.getCapability(capability, facing)
 
   override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = stack.hasCapability(capability, facing)
 
-  override def deserializeNBT(nbt: NBTTagCompound): Unit =  {
+  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
     stack = new ItemStack(nbt)
   }
 }
