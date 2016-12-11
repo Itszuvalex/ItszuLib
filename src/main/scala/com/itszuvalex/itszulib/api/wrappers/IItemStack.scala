@@ -4,7 +4,6 @@ import com.itszuvalex.itszulib.api.Overridable
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
-import net.minecraftforge.common.util.INBTSerializable
 
 /**
   * Created by Chris on 4/17/2016.
@@ -33,7 +32,7 @@ object IItemStack {
 
     override def stackSize_=(size: Int): Unit = {}
 
-    override def toMinecraft: ItemStack = null
+    override def toMinecraft: ItemStack = ItemStack.field_190927_a
   }
 
   val nbtLoader = new Overridable((nbt: NBTTagCompound) => {

@@ -18,13 +18,13 @@ import org.apache.logging.log4j.LogManager
 /**
   * Created by Christopher on 4/5/2015.
   */
-@Mod(modid = ItszuLib.ID, name = ItszuLib.ID, version = ItszuLib.VERSION, modLanguage = "scala")
+@Mod(modid = ItszuLib.ID.toLowerCase, name = ItszuLib.ID, version = ItszuLib.VERSION, modLanguage = "scala")
 object ItszuLib {
   final val ID      = "ItszuLib"
   final val VERSION = Version.FULL_VERSION
   final val logger  = LogManager.getLogger(ID)
 
-  var blockTankTest: Block = _
+  var blockTankTest  : Block = _
   var blockPortalTest: Block = _
 
   @SidedProxy(clientSide = "com.itszuvalex.itszulib.proxy.ProxyClient",
