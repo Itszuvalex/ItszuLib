@@ -18,9 +18,9 @@ import org.apache.logging.log4j.LogManager
 /**
   * Created by Christopher on 4/5/2015.
   */
-@Mod(modid = ItszuLib.ID.toLowerCase, name = ItszuLib.ID, version = ItszuLib.VERSION, modLanguage = "scala")
+@Mod(modid = ItszuLib.ID, name = "ItszuLib", version = ItszuLib.VERSION, modLanguage = "scala")
 object ItszuLib {
-  final val ID      = "ItszuLib"
+  final val ID      = "itszulib"
   final val VERSION = Version.FULL_VERSION
   final val logger  = LogManager.getLogger(ID)
 
