@@ -5,11 +5,6 @@ import net.minecraft.nbt.NBTTagCompound
 /**
   * Created by Chris on 7/8/2016.
   */
-object PowerBattery {
-  val POWER_TAG     = "POWER"
-  val POWER_MAX_TAG = "POWER_MAX"
-}
-
 case class PowerBattery(private var power: Double, private var powerMax: Double) extends IBattery {
 
   def this(max: Double) = this(0, max)
@@ -27,8 +22,9 @@ case class PowerBattery(private var power: Double, private var powerMax: Double)
   override def copy(): IBattery = PowerBattery(power, powerMax)
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
-    power = nbt.getDouble(PowerBattery.POWER_TAG)
-    powerMax = nbt.getDouble(PowerBattery.POWER_MAX_TAG)
+    val wrap = new WrapperNBTBattery(nbt)
+    powerMax = wrap.maxStorage
+    power = wrap.storage
   }
 
   override def serializeNBT(): NBTTagCompound = {
@@ -38,7 +34,9 @@ case class PowerBattery(private var power: Double, private var powerMax: Double)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
-    nbt.setDouble(PowerBattery.POWER_TAG, power)
-    nbt.setDouble(PowerBattery.POWER_MAX_TAG, powerMax)
+    val wrap = new WrapperNBTBattery(nbt)
+    wrap.maxStorage = maxStorage
+    wrap.storage = storage
+    wrap.writeToNBT(nbt)
   }
 }

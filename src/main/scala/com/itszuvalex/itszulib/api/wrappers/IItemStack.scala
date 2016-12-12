@@ -68,6 +68,8 @@ trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
 
   def nbt_=(nbt: NBTTagCompound): Unit
 
+  def hasNbt: Boolean = nbt != null
+
   def toMinecraft: ItemStack
 
   def isEmpty: Boolean

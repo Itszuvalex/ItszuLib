@@ -31,22 +31,22 @@ class WrapperIItemStorage(storage: IItemStorage) extends IInventory {
 
   override def hasCustomName: Boolean = false
 
-  override def decrStackSize(slot: Int, amount: Int) = storage.split(slot, amount).toMinecraft
+  override def decrStackSize(slot: Int, amount: Int): ItemStack = storage.split(slot, amount).toMinecraft
 
-  override def getSizeInventory = storage.length
+  override def getSizeInventory: Int = storage.length
 
   override def getInventoryStackLimit = 64
 
   override def isItemValidForSlot(slot: Int, item: ItemStack) = true
 
-  override def setInventorySlotContents(slot: Int, item: ItemStack) = {
+  override def setInventorySlotContents(slot: Int, item: ItemStack): Unit = {
     storage(slot) = WrapperVanillaItemStack(item)
     markDirty()
   }
 
   override def isUseableByPlayer(player: EntityPlayer) = true
 
-  override def getStackInSlot(slot: Int) = storage(slot).toMinecraft
+  override def getStackInSlot(slot: Int): ItemStack = storage(slot).toMinecraft
 
   override def markDirty(): Unit = {}
 
