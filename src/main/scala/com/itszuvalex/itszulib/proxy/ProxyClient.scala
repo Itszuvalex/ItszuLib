@@ -33,6 +33,7 @@ import net.minecraft.world.World
 import net.minecraftforge.client.ForgeHooksClient
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.client.registry.ClientRegistry
+import net.minecraftforge.fml.relauncher.Side
 
 
 class ProxyClient extends ProxyCommon {
@@ -61,4 +62,6 @@ class ProxyClient extends ProxyCommon {
       case (_, _) => null
     }
   }
+
+  override def side: Side = Side.CLIENT
 }

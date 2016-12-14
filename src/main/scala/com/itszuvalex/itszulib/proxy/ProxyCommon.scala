@@ -26,8 +26,9 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.network.IGuiHandler
 import net.minecraftforge.fml.common.registry.GameRegistry
+import net.minecraftforge.fml.relauncher.Side
 
-class ProxyCommon extends IGuiHandler {
+abstract class ProxyCommon extends IGuiHandler {
   def preInit() = {}
 
   def init(): Unit = {
@@ -56,4 +57,6 @@ class ProxyCommon extends IGuiHandler {
   }
 
   override def getClientGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = null
+
+  def side: Side
 }
