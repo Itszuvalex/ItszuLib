@@ -40,9 +40,9 @@ allprojects{
 }
 
 dependencies {
-    testCompile 'org.scalatest:scalatest_2.11:2+'
-    testCompile 'org.scalamock:scalamock-scalatest-support_2.11:3.2.2'
-    testRuntime 'org.pegdown:pegdown:1.5.0'
+    testCompile 'org.scalatest:scalatest_2.11:3.0.0'
+    testCompile 'org.scalamock:scalamock-scalatest-support_2.11:3.3.0'
+    testRuntime 'org.pegdown:pegdown:1.6.0'
 }
 
 
@@ -103,7 +103,7 @@ minecraft {
 }
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.8'
+    compile 'org.scala-lang:scala-library:2.12.1'
 
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..
