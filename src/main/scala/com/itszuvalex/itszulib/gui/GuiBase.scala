@@ -1,6 +1,8 @@
 package com.itszuvalex.itszulib.gui
 
+import com.itszuvalex.itszulib.api.storage.ItemStoragePlayerInventory
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Container
 
 import scala.collection.JavaConversions._
@@ -25,8 +27,8 @@ abstract class GuiBase(c: Container) extends GuiContainer(c) with GuiPanel {
       atb.setFocused(false)
     }
     if (!subElements.exists(gui => gui.onMouseClick(mouseX - gui.anchorX - anchorX,
-                                                    mouseY - gui.anchorY - anchorY,
-                                                    button)))
+      mouseY - gui.anchorY - anchorY,
+      button)))
       super.mouseClicked(mouseX, mouseY, button)
   }
 
@@ -49,5 +51,22 @@ abstract class GuiBase(c: Container) extends GuiContainer(c) with GuiPanel {
     val tooltipList = new ListBuffer[String]
     subElements.foreach(gui => if (gui.isMousedOver) gui.addTooltip(mouseX, mouseY, tooltipList))
     if (tooltipList.nonEmpty) drawHoveringText(tooltipList.toList, mouseX, mouseY, fontRendererObj)
+  }
+
+  protected def addPlayerInventorySlots(inventoryPlayer: InventoryPlayer) {
+    addPlayerInventorySlots(inventoryPlayer, 7, 83)
+  }
+
+  protected def addPlayerInventorySlots(inventoryPlayer: InventoryPlayer, inventoryXStart: Int, inventoryYStart: Int): Unit = {
+    val storage = new ItemStoragePlayerInventory(inventoryPlayer)
+
+    for (i <- 0 until 3) {
+      for (j <- 0 until 9) {
+        this.add(new GuiIItemStorageSlot(inventoryXStart + j * 18, inventoryYStart + i * 18, storage, j + i * 9 + 9))
+      }
+    }
+    for (i <- 0 until 9) {
+      this.add(new GuiIItemStorageSlot(inventoryXStart + i * 18, inventoryYStart + 58, storage, i))
+    }
   }
 }

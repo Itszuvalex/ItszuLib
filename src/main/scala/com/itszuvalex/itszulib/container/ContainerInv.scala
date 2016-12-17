@@ -20,6 +20,7 @@
  */
 package com.itszuvalex.itszulib.container
 
+import com.itszuvalex.itszulib.api.storage.ItemStoragePlayerInventory
 import com.itszuvalex.itszulib.core.TileEntityBase
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.{IInventory, Slot}
@@ -97,13 +98,15 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
   }
 
   protected def addPlayerInventorySlots(inventoryPlayer: InventoryPlayer, inventoryXStart: Int, inventoryYStart: Int) {
-    for (i <- 0 until 3) {
-      for (j <- 0 until 9) {
-        this.addSlotToContainer(new Slot(inventoryPlayer, j + i * 9 + 9, inventoryXStart + j * 18, inventoryYStart + i * 18))
-      }
-    }
-    for (i <- 0 until 9) {
-      this.addSlotToContainer(new Slot(inventoryPlayer, i, inventoryXStart + i * 18, inventoryYStart + 58))
-    }
+    new IItemStorageSyncBundle(this, new ItemStoragePlayerInventory(inventoryPlayer))
+
+//    for (i <- 0 until 3) {
+//      for (j <- 0 until 9) {
+//        this.addSlotToContainer(new Slot(inventoryPlayer, j + i * 9 + 9, inventoryXStart + j * 18, inventoryYStart + i * 18))
+//      }
+//    }
+//    for (i <- 0 until 9) {
+//      this.addSlotToContainer(new Slot(inventoryPlayer, i, inventoryXStart + i * 18, inventoryYStart + 58))
+//    }
   }
 }

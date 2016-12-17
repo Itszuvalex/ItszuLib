@@ -25,6 +25,8 @@ class GuiTankTest(player: EntityPlayer, inv: InventoryPlayer, private val tile: 
 
   add(tank1, tank2, tank3)
 
+  addPlayerInventorySlots(inv)
+
   override def drawGuiContainerBackgroundLayer(p_146976_1_ : Float, p_146976_2_ : Int, p_146976_3_ : Int): Unit = {
     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F)
     Minecraft.getMinecraft.getTextureManager.bindTexture(GuiTankTest.texture)

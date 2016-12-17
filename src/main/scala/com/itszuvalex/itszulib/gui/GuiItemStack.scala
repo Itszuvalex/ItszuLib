@@ -1,10 +1,10 @@
 package com.itszuvalex.itszulib.gui
 
+import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.{FontRenderer, Gui}
-import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.item.ItemStack
+import net.minecraft.client.renderer.{RenderHelper, RenderItem}
 import org.lwjgl.opengl.GL11
 
 import scala.collection.JavaConversions._
@@ -20,14 +20,13 @@ object GuiItemStack {
   val DEFAULT_FONT_COLOR       = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
 }
 
-class GuiItemStack(override var anchorX: Int,
-                   override var anchorY: Int,
-                   var itemStack: ItemStack = null,
-                   var drawSlot: Boolean = true,
-                   var str: String = null) extends GuiPanel {
+abstract class GuiItemStack(override var anchorX: Int,
+  override var anchorY: Int,
+  var drawSlot: () => Boolean = () => true,
+  var str: String = null) extends GuiPanel {
 
-  val itemRenderer = Minecraft.getMinecraft.getRenderItem
-  val fontRenderer = Minecraft.getMinecraft.fontRendererObj
+  val itemRenderer: RenderItem   = Minecraft.getMinecraft.getRenderItem
+  val fontRenderer: FontRenderer = Minecraft.getMinecraft.fontRendererObj
   override var _panelHeight: Int = 18
   override var _panelWidth : Int = 18
   var colorRaised     = GuiItemStack.DEFAULT_RAISED_COLOR
@@ -35,15 +34,21 @@ class GuiItemStack(override var anchorX: Int,
   var colorBackground = GuiItemStack.DEFAULT_BACKGROUND_COLOR
   var colorFont       = GuiItemStack.DEFAULT_FONT_COLOR
 
+  def itemStack: IItemStack
+
   override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
     super.addTooltip(mouseX, mouseY, tooltip)
-    if (itemStack != null) tooltip ++= itemStack.getTooltip(Minecraft.getMinecraft.thePlayer, Minecraft.getMinecraft.gameSettings.advancedItemTooltips).asInstanceOf[java.util.List[String]]
+    itemStack match {
+      case null =>
+      case a if a.isEmpty =>
+      case i => tooltip ++= i.toMinecraft.getTooltip(Minecraft.getMinecraft.thePlayer, Minecraft.getMinecraft.gameSettings.advancedItemTooltips)
+    }
   }
 
   override def render(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)
 
-    if (drawSlot) {
+    if (drawSlot()) {
       //Top lowered rect
       Gui.drawRect(screenX, screenY, screenX + panelWidth, screenY + 1, colorLowered)
       //Left lowered rect
@@ -68,11 +73,11 @@ class GuiItemStack(override var anchorX: Int,
     //      this.zLevel = 200.0F
     itemRenderer.zLevel = 200.0F
     var font: FontRenderer = null
-    if (itemStack != null) font = itemStack.getItem.getFontRenderer(itemStack)
+    if (itemStack != null) font = itemStack.item.getFontRenderer(itemStack.toMinecraft)
     if (font == null) font = fontRenderer
     RenderHelper.enableGUIStandardItemLighting()
-    itemRenderer.renderItemAndEffectIntoGUI(itemStack, locX, locY)
-    itemRenderer.renderItemOverlayIntoGUI(font, itemStack, locX, locY, amt)
+    itemRenderer.renderItemAndEffectIntoGUI(itemStack.toMinecraft, locX, locY)
+    itemRenderer.renderItemOverlayIntoGUI(font, itemStack.toMinecraft, locX, locY, amt)
     itemRenderer.zLevel = 0.0F
     GL11.glPopMatrix()
   }
