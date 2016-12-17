@@ -6,7 +6,7 @@ import net.minecraft.nbt.{NBTBase, NBTTagCompound}
 /**
   * Created by Chris on 12/13/2016.
   */
-class SyncIItemStack(sync: () => IItemStack, write: (IItemStack) => Unit) extends SyncBase[IItemStack](sync, write) {
+class SyncIItemStack(sync: () => IItemStack, write: (IItemStack) => Unit) extends SyncBase[IItemStack](sync, write, IItemStack.itemStackEquality.apply) {
   override def writeNBT(): NBTBase = value.serializeNBT()
 
   override def handleNBT(nbt: NBTBase): Unit = nbt match {
@@ -14,5 +14,4 @@ class SyncIItemStack(sync: () => IItemStack, write: (IItemStack) => Unit) extend
       value = IItemStack.createFromNBT(comp)
     case _ => value = IItemStack.Empty
   }
-
 }
