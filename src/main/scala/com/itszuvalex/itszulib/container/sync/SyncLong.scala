@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib.container
+package com.itszuvalex.itszulib.container.sync
 
 import net.minecraft.nbt.{NBTBase, NBTTagLong}
 

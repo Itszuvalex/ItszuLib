@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib.container
+package com.itszuvalex.itszulib.container.sync
 
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageSync

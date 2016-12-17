@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.network.messages
 
-import com.itszuvalex.itszulib.container.{ContainerBase, ISync}
+import com.itszuvalex.itszulib.container.ContainerBase
+import com.itszuvalex.itszulib.container.sync.ISync
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}

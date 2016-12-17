@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.container
 
+import com.itszuvalex.itszulib.container.sync.ISync
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageContainerUpdate
 import net.minecraft.entity.player.EntityPlayerMP
