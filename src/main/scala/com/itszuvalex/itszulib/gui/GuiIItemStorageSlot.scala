@@ -1,12 +1,12 @@
 package com.itszuvalex.itszulib.gui
 
-import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.wrappers.IItemStack
-import com.itszuvalex.itszulib.container.sync.{ISync, SyncItemStorageItemStack}
+import com.itszuvalex.itszulib.container.sync.ISync
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
+import com.itszuvalex.itszulib.network.messages.MessageIItemStackSyncClick
 import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.gui.Gui
-import org.apache.logging.log4j.Level
 import org.lwjgl.opengl.GL11
 
 /**
@@ -16,15 +16,6 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
   GuiItemStack(anchorX, anchorY, shouldRender, str) {
 
   var sync: ISync[IItemStack] = _
-
-  def findMatchingSync(syncs: Iterable[ISync[_]]): Unit = {
-    sync = syncs.find {
-      case storage: SyncItemStorageItemStack if storage.storage == this.storage && storage.storageIndex == slot => true
-        ItszuLib.logger.log(Level.WARN, "Found matching sync.")
-        true
-      case _ => false
-    }.orNull.asInstanceOf[ISync[IItemStack]]
-  }
 
   override def itemStack: IItemStack = storage(slot)
 
@@ -40,4 +31,16 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
   }
 
   def renderHighlight: Boolean = isMousedOver
+
+  override def onMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean = {
+    if (isLocationInside(mouseX, mouseY)) {
+      val click = button match {
+        case 0 => MessageIItemStackSyncClick.LEFT_CLICK
+        case 1 => MessageIItemStackSyncClick.RIGHT_CLICK
+        case 2 => MessageIItemStackSyncClick.UNKNOWN_CLICK
+      }
+      ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageIItemStackSyncClick(sync, click))
+      true
+    } else false
+  }
 }

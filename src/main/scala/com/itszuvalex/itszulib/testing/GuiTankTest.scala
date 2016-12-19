@@ -38,5 +38,7 @@ class GuiTankTest(player: EntityPlayer, inv: InventoryPlayer, private val tile: 
     tank1.render(anchorX + tank1.anchorX, anchorY + tank1.anchorY, p_146976_2_ - anchorX - tank1.anchorX, p_146976_3_ - anchorY - tank1.anchorY, p_146976_1_)
     tank2.render(anchorX + tank2.anchorX, anchorY + tank2.anchorY, p_146976_2_ - anchorX - tank2.anchorX, p_146976_3_ - anchorY - tank2.anchorY, p_146976_1_)
     tank3.render(anchorX + tank3.anchorX, anchorY + tank3.anchorY, p_146976_2_ - anchorX - tank3.anchorX, p_146976_3_ - anchorY - tank3.anchorY, p_146976_1_)
+
+    super.drawGuiContainerBackgroundLayer(p_146976_1_, p_146976_2_, p_146976_3_)
   }
 }

@@ -2,9 +2,9 @@ package com.itszuvalex.itszulib.gui
 
 import com.itszuvalex.itszulib.api.storage.ItemStoragePlayerInventory
 import com.itszuvalex.itszulib.container.ContainerBase
+import com.itszuvalex.itszulib.container.sync.SyncItemStorageItemStack
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.Container
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by Christopher Harris (Itszuvalex) on 10/19/14.
   */
-abstract class GuiBase(c: Container) extends GuiContainer(c) with GuiPanel {
+abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
 
   override def _panelWidth = xSize
 
@@ -46,8 +46,8 @@ abstract class GuiBase(c: Container) extends GuiContainer(c) with GuiPanel {
     subElements.foreach(_.update())
   }
 
-  override def drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
-    super.drawScreen(mouseX, mouseY, partialTicks)
+
+  override def drawGuiContainerBackgroundLayer(partialTicks: Float, mouseX: Int, mouseY: Int): Unit = {
     renderUpdate(anchorX, anchorY, mouseX - anchorX, mouseY - anchorY, partialTicks)
     val tooltipList = new ListBuffer[String]
     subElements.foreach(gui => if (gui.isMousedOver) gui.addTooltip(mouseX, mouseY, tooltipList))
@@ -64,22 +64,16 @@ abstract class GuiBase(c: Container) extends GuiContainer(c) with GuiPanel {
     for (i <- 0 until 3) {
       for (j <- 0 until 9) {
         val gui = new GuiIItemStorageSlot(inventoryXStart + j * 18, inventoryYStart + i * 18, storage, j + i * 9 + 9)
+        gui.sync = new SyncItemStorageItemStack(storage, j + i * 9 + 9)
         this.add(gui)
-        c match {
-          case a: ContainerBase =>
-            gui.findMatchingSync(a.syncs)
-          case _ =>
-        }
+        c.addSync(gui.sync)
       }
     }
     for (i <- 0 until 9) {
       val gui = new GuiIItemStorageSlot(inventoryXStart + i * 18, inventoryYStart + 58, storage, i)
+      gui.sync = new SyncItemStorageItemStack(storage, i)
       this.add(gui)
-      c match {
-        case a: ContainerBase =>
-          gui.findMatchingSync(a.syncs)
-        case _ =>
-      }
+      c.addSync(gui.sync)
     }
   }
 }

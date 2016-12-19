@@ -14,5 +14,7 @@ object ItszuLibPacketHandler extends PacketHandler(ItszuLib.ID.toLowerCase) {
     register(classOf[MessageFluidSlotClick], Side.SERVER)
     register(classOf[MessageFluidTankUpdate], Side.CLIENT)
     register(classOf[MessageUpdatePlayerInventory], Side.CLIENT)
+    register(classOf[MessageSync], Side.CLIENT)
+    register(classOf[MessageIItemStackSyncClick], Side.SERVER)
   }
 }
