@@ -12,15 +12,15 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by Chris on 8/29/2014.
   */
-abstract class ContainerBase extends Container {
+abstract class ContainerBase(val registerSyncs: Boolean) extends Container {
   val syncs: ArrayBuffer[ISync[_]] = new ArrayBuffer[ISync[_]]
 
   def addSync(sync: ISync[_]): Unit = {
-    sync.index = syncs.size
+    sync.syncIndex = syncs.size
     syncs += sync
   }
 
-  def getSync(index: Int) = syncs(index)
+  def getSync(index: Int): ISync[_] = syncs(index)
 
   override def detectAndSendChanges(): Unit = {
     super.detectAndSendChanges()

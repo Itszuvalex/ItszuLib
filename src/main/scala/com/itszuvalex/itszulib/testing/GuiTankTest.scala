@@ -13,7 +13,7 @@ object GuiTankTest {
   val texture = new ResourceLocation("itszulib", "textures/gui/guiinventorybase.png")
 }
 
-class GuiTankTest(player: EntityPlayer, inv: InventoryPlayer, private val tile: TileTankTest) extends GuiBase(new ContainerTankTest(player, inv, tile)) {
+class GuiTankTest(player: EntityPlayer, inv: InventoryPlayer, private val tile: TileTankTest) extends GuiBase(new ContainerTankTest(player, inv, tile, false)) {
 
   val tank1 = new GuiFluidTank(19, 9, this, tile, 0, 3, null, true)
   val tank2 = new GuiFluidTank(49, 9, this, tile, 1, 3, null, true)

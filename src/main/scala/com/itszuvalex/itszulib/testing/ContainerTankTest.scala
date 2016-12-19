@@ -7,9 +7,10 @@ import net.minecraft.item.ItemStack
 /**
   * Created by Alex on 12.10.2015.
   */
-class ContainerTankTest(player: EntityPlayer, inv: InventoryPlayer, tile: TileTankTest) extends ContainerInv[TileTankTest](player, tile, 0, 0) {
+class ContainerTankTest(player: EntityPlayer, inv: InventoryPlayer, tile: TileTankTest, registerSyncs: Boolean) extends ContainerInv[TileTankTest](player, tile, 0, 0, registerSyncs) {
 
-  addPlayerInventorySlots(inv)
+  if (registerSyncs)
+    addPlayerInventorySlots(inv)
 
   override def eligibleForInput(item: ItemStack): Boolean = false
 }

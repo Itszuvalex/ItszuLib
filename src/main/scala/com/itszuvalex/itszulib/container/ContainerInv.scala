@@ -29,7 +29,7 @@ import net.minecraft.item.ItemStack
 /**
   * Created by Christopher Harris (Itszuvalex) on 7/27/14.
   */
-abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T, input: Int, output: Int) extends ContainerBase {
+abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T, input: Int, output: Int, registerSyncs: Boolean) extends ContainerBase(registerSyncs) {
   protected final val inventory   : T            = inv
   protected final val player      : EntityPlayer = parPlayer
   protected final val INPUT_SLOT  : Int          = input

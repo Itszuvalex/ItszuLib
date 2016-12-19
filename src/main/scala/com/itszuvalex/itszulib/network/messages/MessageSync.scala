@@ -16,7 +16,7 @@ object MessageSync {
 
 class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage]({
   val nbt = new NBTTagCompound
-  nbt.setInteger(MessageSync.INDEX_KEY, sync.index)
+  nbt.setInteger(MessageSync.INDEX_KEY, sync.syncIndex)
   nbt.setTag(MessageSync.NBT_KEY, sync.writeNBT())
   nbt
 }) {

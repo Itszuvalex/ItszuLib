@@ -51,7 +51,7 @@ abstract class ProxyCommon extends IGuiHandler {
 
   override def getServerGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     (ID, world.getTileEntity(new BlockPos(x, y, z))) match {
-      case (0, te: TileTankTest) => new ContainerTankTest(player, player.inventory, te)
+      case (0, te: TileTankTest) => new ContainerTankTest(player, player.inventory, te, true)
       case (_, _) => null
     }
   }

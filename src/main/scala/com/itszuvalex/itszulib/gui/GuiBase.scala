@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.gui
 
 import com.itszuvalex.itszulib.api.storage.ItemStoragePlayerInventory
+import com.itszuvalex.itszulib.container.ContainerBase
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Container
@@ -62,11 +63,23 @@ abstract class GuiBase(c: Container) extends GuiContainer(c) with GuiPanel {
 
     for (i <- 0 until 3) {
       for (j <- 0 until 9) {
-        this.add(new GuiIItemStorageSlot(inventoryXStart + j * 18, inventoryYStart + i * 18, storage, j + i * 9 + 9))
+        val gui = new GuiIItemStorageSlot(inventoryXStart + j * 18, inventoryYStart + i * 18, storage, j + i * 9 + 9)
+        this.add(gui)
+        c match {
+          case a: ContainerBase =>
+            gui.findMatchingSync(a.syncs)
+          case _ =>
+        }
       }
     }
     for (i <- 0 until 9) {
-      this.add(new GuiIItemStorageSlot(inventoryXStart + i * 18, inventoryYStart + 58, storage, i))
+      val gui = new GuiIItemStorageSlot(inventoryXStart + i * 18, inventoryYStart + 58, storage, i)
+      this.add(gui)
+      c match {
+        case a: ContainerBase =>
+          gui.findMatchingSync(a.syncs)
+        case _ =>
+      }
     }
   }
 }
