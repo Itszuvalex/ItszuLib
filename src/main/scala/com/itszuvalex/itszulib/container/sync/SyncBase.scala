@@ -2,7 +2,9 @@ package com.itszuvalex.itszulib.container.sync
 
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageSync
+import com.itszuvalex.itszulib.util.Debug
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
+import org.apache.logging.log4j.Level
 
 /**
   * Created by Chris on 12/13/2016.
@@ -23,8 +25,10 @@ abstract class SyncBase[A](valFunc: () => A, setValFunc: (A) => Unit, equalFunc:
 
   override def value_=(a: A): Unit = {
     cachedValue = a
-    setValFunc(a)
+    valueSetFunction(a)
   }
+
+  def cache(a: A): A = a
 
   /**
     * Updates the cached value.
@@ -34,7 +38,8 @@ abstract class SyncBase[A](valFunc: () => A, setValFunc: (A) => Unit, equalFunc:
   override def update(): Boolean = {
     val newVal = valueFunction()
     if (!valueEqualsFunction(value, newVal)) {
-      cachedValue = newVal
+      cachedValue = cache(newVal)
+      Debug.log(Level.WARN, "Updated")
       true
     } else false
   }

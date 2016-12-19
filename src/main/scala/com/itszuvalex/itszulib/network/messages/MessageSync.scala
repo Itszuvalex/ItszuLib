@@ -28,7 +28,7 @@ class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage
   override def onMessage(message: MessageSync, ctx: MessageContext): IMessage = {
     Minecraft.getMinecraft.thePlayer.openContainer match {
       case a: ContainerBase => a.getSync(message.nbt.getInteger(MessageSync.INDEX_KEY)).handleNBT(message.nbt.getTag(MessageSync.NBT_KEY))
-        Debug.log(Level.WARN, "Received Sync for index:" + message.nbt.getInteger(MessageSync.INDEX_KEY))
+        Debug.log(Level.WARN, "Received Sync for index:" + message.nbt.getInteger(MessageSync.INDEX_KEY) + "item:" + a.getSync(message.nbt.getInteger(MessageSync.INDEX_KEY)).value.toString)
       case _ =>
     }
     null

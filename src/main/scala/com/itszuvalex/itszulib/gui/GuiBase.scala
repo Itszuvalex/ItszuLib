@@ -61,19 +61,19 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
   protected def addPlayerInventorySlots(inventoryPlayer: InventoryPlayer, inventoryXStart: Int, inventoryYStart: Int): Unit = {
     val storage = new ItemStoragePlayerInventory(inventoryPlayer)
 
-    for (i <- 0 until 3) {
-      for (j <- 0 until 9) {
+    (0 until 9).foreach { i =>
+      val gui = new GuiIItemStorageSlot(inventoryXStart + i * 18, inventoryYStart + 58, storage, i)
+      gui.sync = new SyncItemStorageItemStack(storage, i)
+      this.add(gui)
+      c.addSync(gui.sync)
+    }
+    (0 until 3).foreach { i =>
+      (0 until 9).foreach { j =>
         val gui = new GuiIItemStorageSlot(inventoryXStart + j * 18, inventoryYStart + i * 18, storage, j + i * 9 + 9)
         gui.sync = new SyncItemStorageItemStack(storage, j + i * 9 + 9)
         this.add(gui)
         c.addSync(gui.sync)
       }
-    }
-    for (i <- 0 until 9) {
-      val gui = new GuiIItemStorageSlot(inventoryXStart + i * 18, inventoryYStart + 58, storage, i)
-      gui.sync = new SyncItemStorageItemStack(storage, i)
-      this.add(gui)
-      c.addSync(gui.sync)
     }
   }
 }

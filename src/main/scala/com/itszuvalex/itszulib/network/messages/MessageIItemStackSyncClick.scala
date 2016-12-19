@@ -5,11 +5,9 @@ import com.itszuvalex.itszulib.container.ContainerBase
 import com.itszuvalex.itszulib.container.sync.{ISync, SyncItemStorageItemStack}
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.util.Debug
-import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}
-import org.apache.logging.log4j.Level
 
 /**
   * Created by Chris on 12/13/2016.
@@ -49,11 +47,10 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
   def this() = this(null, MessageIItemStackSyncClick.LEFT_CLICK)
 
   override def onMessage(message: MessageIItemStackSyncClick, ctx: MessageContext): IMessage = {
-    Minecraft.getMinecraft.thePlayer.openContainer match {
+    ctx.getServerHandler.playerEntity.openContainer match {
       case a: ContainerBase =>
         val sync = a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY))
         val click = MessageIItemStackSyncClick.ClickType.fromName(message.nbt.getString(MessageIItemStackSyncClick.CLICK_KEY))
-        Debug.log(Level.WARN, "Received Sync Click:" + click.name + " for index:" + message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY))
         click match {
           case MessageIItemStackSyncClick.LEFT_CLICK => handleLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
           case MessageIItemStackSyncClick.RIGHT_CLICK => handleRightClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
