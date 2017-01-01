@@ -1,4 +1,4 @@
-image: java:oracle-java8
+image: openjdk:9-jdk
 
 stages:
   - build
