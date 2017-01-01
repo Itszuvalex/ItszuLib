@@ -1,4 +1,4 @@
-image: ubuntu_gradle_jdk:latest
+image: oracle-java8:latest
 
 stages:
   - build
