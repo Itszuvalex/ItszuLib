@@ -19,17 +19,17 @@ import scala.collection.immutable.HashSet
 object TileNetwork {
 
   object NetworkExplorer {
-    def explore[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](start: Loc4, network: TileNetwork[C, N]): HashSet[Loc4] = {
-      immutable.HashSet[Loc4]() ++ expandLoc(start, network, mutable.HashSet[Loc4]())
+    def explore[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](start: Loc4, network: TileNetwork[C, N], cap: Capability[C]): HashSet[Loc4] = {
+      immutable.HashSet[Loc4]() ++ expandLoc(start, network, mutable.HashSet[Loc4](), cap)
     }
 
-    private def expandLoc[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](node: Loc4, network: TileNetwork[C, N], explored: mutable.HashSet[Loc4]): mutable.HashSet[Loc4] = {
+    private def expandLoc[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](node: Loc4, network: TileNetwork[C, N], explored: mutable.HashSet[Loc4], cap: Capability[C]): mutable.HashSet[Loc4] = {
       node.getTileEntity() match {
-        case Some(c) =>
-          c match {
+        case Some(c) if c.hasCapability(cap, null) =>
+          c.getCapability(cap, null) match {
             case a: C if !explored.contains(a.getLoc) =>
               explored += node
-              network.getConnections(a.getLoc).getOrElse(Set()).foreach(expandLoc(_, network, explored))
+              network.getConnections(a.getLoc).getOrElse(Set()).foreach(expandLoc(_, network, explored, cap))
             case _ =>
           }
         case None =>
@@ -89,7 +89,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     val networks = mutable.ArrayBuffer[util.Collection[Loc4]]()
     while (workingSet.nonEmpty) {
       val first = workingSet.head
-      val nodes = NetworkExplorer.explore[C, N](first, this)
+      val nodes = NetworkExplorer.explore[C, N](first, this, networkCapability)
       networks += nodes
       workingSet --= nodes.intersect(workingSet)
     }
