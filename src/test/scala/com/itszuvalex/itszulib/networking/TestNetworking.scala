@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.networking
 import com.itszuvalex.itszulib.TestBase
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.logistics.{TileNetwork, TileNetworkNode}
+import net.minecraftforge.common.capabilities.Capability
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 4/14/15.
@@ -274,6 +275,8 @@ class TestNetworking extends TestBase {
    */
 
   class TestNetwork(_id: Int) extends TileNetwork[TestNode, TestNetwork](_id) {
+
+    override def networkCapability: Capability[TestNode] = null
 
     override def addConnection(a: Loc4, b: Loc4): Unit = {
       addConnectionSilently(a, b)
