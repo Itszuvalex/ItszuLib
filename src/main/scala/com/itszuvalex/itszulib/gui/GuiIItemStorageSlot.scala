@@ -38,7 +38,8 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
       val click = button match {
         case 0 => MessageIItemStackSyncClick.LEFT_CLICK
         case 1 => MessageIItemStackSyncClick.RIGHT_CLICK
-        case 2 => MessageIItemStackSyncClick.UNKNOWN_CLICK
+        case 2 => MessageIItemStackSyncClick.MIDDLE_CLICK
+        case _ => MessageIItemStackSyncClick.UNKNOWN
       }
       ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageIItemStackSyncClick(sync, click))
       true
@@ -46,11 +47,27 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
   }
 
   override def onMouseRelease(mouseX: Int, mouseY: Int, button: Int): Boolean = {
-    false
+    if (isLocationInside(mouseX, mouseY)) {
+      val click = button match {
+        case 0 => MessageIItemStackSyncClick.LEFT_RELEASE
+        case 1 => MessageIItemStackSyncClick.RIGHT_RELEASE
+        case _ => MessageIItemStackSyncClick.UNKNOWN
+      }
+      ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageIItemStackSyncClick(sync, click))
+      true
+    } else false
   }
 
   override def onMouseClickMove(mouseX: Int, mouseY: Int, button: Int, timeSinceLastClick: Long): Boolean = {
-    false
+    if (isLocationInside(mouseX, mouseY)) {
+      val click = button match {
+        case 0 => MessageIItemStackSyncClick.LEFT_DRAG
+        case 1 => MessageIItemStackSyncClick.RIGHT_DRAG
+        case _ => MessageIItemStackSyncClick.UNKNOWN
+      }
+      ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageIItemStackSyncClick(sync, click))
+      true
+    } else false
   }
 
 }

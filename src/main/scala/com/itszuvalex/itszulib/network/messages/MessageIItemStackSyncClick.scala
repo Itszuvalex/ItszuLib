@@ -22,15 +22,30 @@ object MessageIItemStackSyncClick {
 
   case object RIGHT_CLICK extends ClickType {val name = "RightClick"}
 
-  case object UNKNOWN_CLICK extends ClickType {val name = "UnknownClick"}
+  case object MIDDLE_CLICK extends ClickType {val name = "MiddleClick"}
+
+  case object LEFT_RELEASE extends ClickType {val name = "LeftRelease"}
+
+  case object RIGHT_RELEASE extends ClickType {val name = "RightRelease"}
+
+  case object LEFT_DRAG extends ClickType {val name = "LeftDrag"}
+
+  case object RIGHT_DRAG extends ClickType {val name = "RightDrag"}
+
+  case object UNKNOWN extends ClickType {val name = "UnknownClick"}
 
   object ClickType {
     def fromName(string: String): ClickType = {
       string match {
         case LEFT_CLICK.name => LEFT_CLICK
         case RIGHT_CLICK.name => RIGHT_CLICK
-        case UNKNOWN_CLICK.name => UNKNOWN_CLICK
-        case _ => UNKNOWN_CLICK
+        case MIDDLE_CLICK.name => MIDDLE_CLICK
+        case LEFT_RELEASE.name => LEFT_RELEASE
+        case RIGHT_RELEASE.name => RIGHT_RELEASE
+        case LEFT_DRAG.name => LEFT_DRAG
+        case RIGHT_DRAG.name => RIGHT_DRAG
+        case UNKNOWN.name => UNKNOWN
+        case _ => UNKNOWN
       }
     }
   }
