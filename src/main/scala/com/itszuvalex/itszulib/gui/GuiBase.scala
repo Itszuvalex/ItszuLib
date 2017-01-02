@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.gui
 
-import com.itszuvalex.itszulib.api.storage.ItemStoragePlayerInventory
+import com.itszuvalex.itszulib.api.storage.{IItemStorage, ItemStoragePlayerInventory}
 import com.itszuvalex.itszulib.container.ContainerBase
 import com.itszuvalex.itszulib.container.sync.SyncItemStorageItemStack
 import net.minecraft.client.gui.inventory.GuiContainer
@@ -75,5 +75,13 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
         c.addSync(gui.sync)
       }
     }
+  }
+
+
+  def addGuiAndSync(storage: IItemStorage, ind: Int, x: Int, y: Int) = {
+    var gui = new GuiIItemStorageSlot(x, y, storage, ind)
+    gui.sync = new SyncItemStorageItemStack(storage, ind)
+    this.add(gui)
+    inventorySlots.asInstanceOf[ContainerBase].addSync(gui.sync)
   }
 }

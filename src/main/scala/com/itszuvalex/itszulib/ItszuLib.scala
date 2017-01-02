@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib
 
-import com.itszuvalex.itszulib.api.Capabilities
+import com.itszuvalex.itszulib.api.ManagerCapabilities
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.proxy.ProxyCommon
 import com.itszuvalex.itszulib.testing.{BlockLocTrackerTest, BlockPortalTest, BlockTankTest, ItemPreviewable}
@@ -37,7 +37,7 @@ object ItszuLib {
     //    PlayerUUIDTracker.setFile(new File())
     NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy)
 
-    Capabilities.register()
+    ManagerCapabilities.register()
   }
 
   @EventHandler def load(event: FMLInitializationEvent): Unit = {
