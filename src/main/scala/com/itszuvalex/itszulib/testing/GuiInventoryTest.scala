@@ -17,18 +17,9 @@ object GuiInventoryTest {
 
 class GuiInventoryTest(player: EntityPlayer, inv: InventoryPlayer, private val tile: TileInventoryTest) extends GuiBase(new ContainerInventoryTest(player, inv, tile, false)) {
 
-  val slot0 = new GuiIItemStorageSlot(50, 33, tile.storage, 0)
-  val slot1 = new GuiIItemStorageSlot(79, 33, tile.storage, 1)
-  val slot2 = new GuiIItemStorageSlot(108, 33, tile.storage, 2)
-
-  slot0.sync = new SyncItemStorageItemStack(tile.storage, 0)
-  slot1.sync = new SyncItemStorageItemStack(tile.storage, 1)
-  slot2.sync = new SyncItemStorageItemStack(tile.storage, 2)
-
-  add(slot0, slot1, slot2)
-  inventorySlots.asInstanceOf[ContainerBase].addSync(slot0.sync)
-  inventorySlots.asInstanceOf[ContainerBase].addSync(slot1.sync)
-  inventorySlots.asInstanceOf[ContainerBase].addSync(slot2.sync)
+  addGuiAndSync(tile.storage, 0, 50, 33)
+  addGuiAndSync(tile.storage, 1, 79, 33)
+  addGuiAndSync(tile.storage, 2, 108, 33)
 
   addPlayerInventorySlots(inv)
 

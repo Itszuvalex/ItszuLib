@@ -4,7 +4,7 @@ import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.{FontRenderer, Gui}
-import net.minecraft.client.renderer.{RenderHelper, RenderItem}
+import net.minecraft.client.renderer.{GlStateManager, RenderHelper, RenderItem}
 import org.lwjgl.opengl.GL11
 
 import scala.collection.JavaConversions._
@@ -49,7 +49,7 @@ abstract class GuiItemStack(override var anchorX: Int,
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)
 
     if (drawSlot()) {
-      GL11.glDisable(GL11.GL_LIGHTING)
+      GlStateManager.disableLighting()
       //Top lowered rect
       Gui.drawRect(screenX, screenY, screenX + panelWidth, screenY + 1, colorLowered)
       //Left lowered rect
@@ -68,10 +68,10 @@ abstract class GuiItemStack(override var anchorX: Int,
   def drawItemStack(locX: Int, locY: Int, amt: String) {
     if (itemStack == null || itemStack.isEmpty) return
 
-    GL11.glPushMatrix()
-    GL11.glTranslatef(0.0F, 0.0F, 32.0F)
-    GL11.glColor3f(1, 1, 1)
+    GlStateManager.pushMatrix()
+    GlStateManager.translate(0, 0, 32)
     //      this.zLevel = 200.0F
+    GlStateManager.color(1, 1, 1)
     itemRenderer.zLevel = 200.0F
     var font: FontRenderer = null
     font = itemStack.item.getFontRenderer(itemStack.toMinecraft)
@@ -80,6 +80,6 @@ abstract class GuiItemStack(override var anchorX: Int,
     itemRenderer.renderItemAndEffectIntoGUI(itemStack.toMinecraft, locX, locY)
     itemRenderer.renderItemOverlayIntoGUI(font, itemStack.toMinecraft, locX, locY, amt)
     itemRenderer.zLevel = 0.0F
-    GL11.glPopMatrix()
+    GlStateManager.popMatrix()
   }
 }
