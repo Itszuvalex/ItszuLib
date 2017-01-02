@@ -59,6 +59,7 @@ class ProxyClient extends ProxyCommon {
   override def getClientGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     (ID, world.getTileEntity(new BlockPos(x, y, z))) match {
       case (0, te: TileTankTest) => new GuiTankTest(player, player.inventory, te)
+      case (1, te: TileInventoryTest) => new GuiInventoryTest(player, player.inventory, te)
       case (_, _) => null
     }
   }

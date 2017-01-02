@@ -3,7 +3,7 @@ package com.itszuvalex.itszulib
 import com.itszuvalex.itszulib.api.ManagerCapabilities
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.proxy.ProxyCommon
-import com.itszuvalex.itszulib.testing.{BlockLocTrackerTest, BlockPortalTest, BlockTankTest, ItemPreviewable}
+import com.itszuvalex.itszulib.testing._
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.ItemBlock
@@ -26,6 +26,7 @@ object ItszuLib {
 
   var blockTankTest  : Block = _
   var blockPortalTest: Block = _
+  var blockInvTest   : Block = _
 
   @SidedProxy(clientSide = "com.itszuvalex.itszulib.proxy.ProxyClient",
     serverSide = "com.itszuvalex.itszulib.proxy.ProxyServer")
@@ -45,10 +46,13 @@ object ItszuLib {
     //GameRegistry.registerBlock(new BlockPortalTest, "BlockPortalTest").setCreativeTab(CreativeTabs.BUILDING_BLOCKS)
     GameRegistry.register(new BlockLocTrackerTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS), new ResourceLocation("BlockLocTrackerTest"))
     blockTankTest = new BlockTankTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS).setRegistryName(ItszuLib.ID.toLowerCase(), "BlockTankTest").setUnlocalizedName("BlockTankTest")
+    blockInvTest = new BlockInventoryTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS).setRegistryName(ItszuLib.ID.toLowerCase(), "BlockInventoryTest").setUnlocalizedName("BlockInventoryTest")
     blockPortalTest = new BlockPortalTest().setCreativeTab(CreativeTabs.BUILDING_BLOCKS).setRegistryName(ItszuLib.ID.toLowerCase(), "BlockPortalTest").setUnlocalizedName("BlockPortalTest")
     GameRegistry.register(blockTankTest)
+    GameRegistry.register(blockInvTest)
     GameRegistry.register(blockPortalTest)
     GameRegistry.register(new ItemBlock(blockTankTest).setRegistryName(blockTankTest.getRegistryName).setUnlocalizedName("BlockTankTest"))
+    GameRegistry.register(new ItemBlock(blockInvTest).setRegistryName(blockInvTest.getRegistryName).setUnlocalizedName("BlockInventoryTest"))
     GameRegistry.register(new ItemBlock(blockPortalTest).setRegistryName(blockPortalTest.getRegistryName).setUnlocalizedName("BlockPortalTest"))
     val prev = new ItemPreviewable
     prev.setCreativeTab(CreativeTabs.DECORATIONS)
