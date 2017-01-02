@@ -6,7 +6,7 @@ import com.itszuvalex.itszulib.api.core.Loc4
 /**
   * Created by Christopher Harris (Itszuvalex) on 4/5/15.
   */
-trait INetworkNode[T <: INetwork[_, T]] {
+trait INetworkNode[C <: INetworkNode[C, T], T <: INetwork[C, T]] {
 
   def setNetwork(network: T)
 
@@ -18,11 +18,11 @@ trait INetworkNode[T <: INetwork[_, T]] {
 
   def refresh(): Unit
 
-  def canAdd(iNetwork: INetwork[_, T]): Boolean
+  def canAdd(iNetwork: T): Boolean
 
-  def added(iNetwork: INetwork[_, T]): Unit
+  def added(iNetwork: T): Unit
 
-  def removed(iNetwork: INetwork[_, T]): Unit
+  def removed(iNetwork: T): Unit
 
   def connect(node: Loc4): Unit
 

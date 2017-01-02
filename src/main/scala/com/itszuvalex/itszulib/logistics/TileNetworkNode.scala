@@ -5,16 +5,16 @@ import com.itszuvalex.itszulib.api.core.Loc4
 /**
   * Created by Christopher Harris (Itszuvalex) on 4/8/15.
   */
-trait TileNetworkNode[C <: TileNetworkNode[C, T], T <: TileNetwork[C, T]] extends INetworkNode[T] {
+trait TileNetworkNode[C <: TileNetworkNode[C, T], T <: TileNetwork[C, T]] extends INetworkNode[C, T] {
   var network: T = null.asInstanceOf[T]
 
   override def canConnect(loc: Loc4): Boolean = getLoc.isNeighbor(loc)
 
-  override def canAdd(iNetwork: INetwork[_, T]): Boolean = true
+  override def canAdd(iNetwork: T): Boolean = true
 
-  override def added(iNetwork: INetwork[_, T]): Unit = {}
+  override def added(iNetwork: T): Unit = {}
 
-  override def removed(iNetwork: INetwork[_, T]): Unit = {}
+  override def removed(iNetwork: T): Unit = {}
 
   override def connect(node: Loc4): Unit = {}
 

@@ -65,7 +65,7 @@ abstract class GuiItemStack(override var anchorX: Int,
   }
 
   def drawItemStack(locX: Int, locY: Int, amt: String) {
-    if (itemStack == null) return
+    if (itemStack == null || itemStack.isEmpty) return
 
     GL11.glPushMatrix()
     GL11.glTranslatef(0.0F, 0.0F, 32.0F)
@@ -73,7 +73,7 @@ abstract class GuiItemStack(override var anchorX: Int,
     //      this.zLevel = 200.0F
     itemRenderer.zLevel = 200.0F
     var font: FontRenderer = null
-    if (itemStack != null) font = itemStack.item.getFontRenderer(itemStack.toMinecraft)
+    font = itemStack.item.getFontRenderer(itemStack.toMinecraft)
     if (font == null) font = fontRenderer
     RenderHelper.enableGUIStandardItemLighting()
     itemRenderer.renderItemAndEffectIntoGUI(itemStack.toMinecraft, locX, locY)

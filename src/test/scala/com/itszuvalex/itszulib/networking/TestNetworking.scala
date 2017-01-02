@@ -2,7 +2,7 @@ package com.itszuvalex.itszulib.networking
 
 import com.itszuvalex.itszulib.TestBase
 import com.itszuvalex.itszulib.api.core.Loc4
-import com.itszuvalex.itszulib.logistics.{INetwork, TileNetwork, TileNetworkNode}
+import com.itszuvalex.itszulib.logistics.{TileNetwork, TileNetworkNode}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 4/14/15.
@@ -294,14 +294,14 @@ class TestNetworking extends TestBase {
       *
       * @param iNetwork Network that is taking over this network.
       */
-    override def onTakeover(iNetwork: INetwork[TestNode, TestNetwork]): Unit = {}
+    override def onTakeover(iNetwork: TestNetwork): Unit = {}
 
     /**
       * Called on sub networks by a main network, when that network is splitting apart.
       *
       * @param iNetwork Network that will split into this sub network.
       */
-    override def onSplit(iNetwork: INetwork[TestNode, TestNetwork]): Unit = {}
+    override def onSplit(iNetwork: TestNetwork): Unit = {}
 
     /**
       * Called when a tick starts.
