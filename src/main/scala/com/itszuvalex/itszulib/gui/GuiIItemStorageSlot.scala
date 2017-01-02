@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.gui
 
+import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import com.itszuvalex.itszulib.container.sync.ISync
@@ -43,4 +44,13 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
       true
     } else false
   }
+
+  override def onMouseRelease(mouseX: Int, mouseY: Int, button: Int): Boolean = {
+    false
+  }
+
+  override def onMouseClickMove(mouseX: Int, mouseY: Int, button: Int, timeSinceLastClick: Long): Boolean = {
+    false
+  }
+
 }

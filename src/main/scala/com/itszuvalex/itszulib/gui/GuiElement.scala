@@ -56,6 +56,25 @@ trait GuiElement {
 
   /**
     *
+    * @param mouseX Local mouseX coordinates
+    * @param mouseY Local mouseY coordinates
+    * @param button
+    * @return True if release is handled
+    */
+  def onMouseRelease(mouseX: Int, mouseY: Int, button: Int) = false
+
+  /**
+    * Called when mouse is clicked and then moved.
+    * @param mouseX Local mouseX coordinates
+    * @param mouseY Local mouseY coordinates
+    * @param button
+    * @param timeSinceLastClick
+    * @return True if click-move is handled
+    */
+  def onMouseClickMove(mouseX: Int, mouseY: Int, button: Int, timeSinceLastClick: Long) = false
+
+  /**
+    *
     * @param char   Character input
     * @param button Physical button ID
     * @return True if key press is handled

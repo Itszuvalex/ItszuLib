@@ -33,6 +33,20 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
       super.mouseClicked(mouseX, mouseY, button)
   }
 
+  override def mouseReleased(mouseX: Int, mouseY: Int, state: Int): Unit = {
+    if (!subElements.exists(gui => gui.onMouseRelease(mouseX - gui.anchorX - anchorX,
+      mouseY - gui.anchorY - anchorY,
+      state)))
+      super.mouseReleased(mouseX, mouseY, state)
+  }
+
+  override def mouseClickMove(mouseX: Int, mouseY: Int, button: Int, timeSinceLastClick: Long): Unit = {
+    if (!subElements.exists(gui => gui.onMouseClickMove(mouseX - gui.anchorX - anchorX,
+      mouseY - gui.anchorY - anchorY,
+      button, timeSinceLastClick)))
+      super.mouseClickMove(mouseX, mouseY, button, timeSinceLastClick)
+  }
+
   override def anchorX = guiLeft
 
   override def anchorX_=(_x: Int) = {guiLeft = _x}

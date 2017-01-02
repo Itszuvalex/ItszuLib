@@ -49,6 +49,7 @@ abstract class GuiItemStack(override var anchorX: Int,
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)
 
     if (drawSlot()) {
+      GL11.glDisable(GL11.GL_LIGHTING)
       //Top lowered rect
       Gui.drawRect(screenX, screenY, screenX + panelWidth, screenY + 1, colorLowered)
       //Left lowered rect

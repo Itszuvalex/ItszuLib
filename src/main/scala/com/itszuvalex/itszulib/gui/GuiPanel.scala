@@ -1,5 +1,7 @@
 package com.itszuvalex.itszulib.gui
 
+import com.itszuvalex.itszulib.ItszuLib
+
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
@@ -35,6 +37,14 @@ trait GuiPanel extends GuiElement {
 
   def passAlongMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean = {
     subElements.exists(gui => gui.onMouseClick(mouseX - gui.anchorX, mouseY - gui.anchorY, button))
+  }
+
+  override def onMouseRelease(mouseX: Int, mouseY: Int, button: Int): Boolean = {
+    subElements.exists(gui => gui.onMouseRelease(mouseX - gui.anchorX, mouseY - gui.anchorY, button))
+  }
+
+  override def onMouseClickMove(mouseX: Int, mouseY: Int, button: Int, timeSinceLastClick: Long): Boolean = {
+    subElements.exists(gui => gui.onMouseClickMove(mouseX - gui.anchorX, mouseY - gui.anchorY, button, timeSinceLastClick))
   }
 
   /**
