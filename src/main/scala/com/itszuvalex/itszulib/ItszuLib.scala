@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib
 
 import com.itszuvalex.itszulib.api.ManagerCapabilities
+import com.itszuvalex.itszulib.logistics.ManagerNetwork
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.proxy.ProxyCommon
 import com.itszuvalex.itszulib.testing._
@@ -39,6 +40,7 @@ object ItszuLib {
     NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy)
 
     ManagerCapabilities.register()
+    ManagerNetwork.init()
   }
 
   @EventHandler def load(event: FMLInitializationEvent): Unit = {
