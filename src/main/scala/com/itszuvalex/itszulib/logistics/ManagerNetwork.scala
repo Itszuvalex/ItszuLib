@@ -4,6 +4,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.itszuvalex.itszulib.ItszuLib
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import net.minecraftforge.fml.common.network.NetworkRegistry
@@ -35,5 +37,11 @@ object ManagerNetwork {
   @SubscribeEvent def onTickBegin(event: TickEvent.ServerTickEvent): Unit = {
     if (event.phase == TickEvent.Phase.START) networkMap.values.foreach(_.onTickStart())
     if (event.phase == TickEvent.Phase.END) networkMap.values.foreach(_.onTickEnd())
+  }
+
+  @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload): Unit = {
+    if (!FMLCommonHandler.instance().getMinecraftServerInstance.isServerRunning) {
+      networkMap.clear()
+    }
   }
 }
