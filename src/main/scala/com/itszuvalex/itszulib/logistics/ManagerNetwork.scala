@@ -36,5 +36,4 @@ object ManagerNetwork {
     if (event.phase == TickEvent.Phase.START) networkMap.values.foreach(_.onTickStart())
     if (event.phase == TickEvent.Phase.END) networkMap.values.foreach(_.onTickEnd())
   }
-
 }

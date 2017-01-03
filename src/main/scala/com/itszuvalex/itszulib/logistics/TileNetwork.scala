@@ -76,6 +76,11 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
       nodeMap.remove(a)
     }
     split(edges)
+
+    if (size == 0) {
+      clear()
+      unregister()
+    }
   }
 
   /**
