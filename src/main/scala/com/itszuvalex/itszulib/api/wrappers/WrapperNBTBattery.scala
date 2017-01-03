@@ -15,7 +15,7 @@ object WrapperNBTBattery {
 class WrapperNBTBattery(private var nbt: NBTTagCompound) extends IBattery {
   override def storage: Double = nbt.getDouble(POWER_TAG)
 
-  override def storage_=(amt: Double): Unit = nbt.setDouble(POWER_TAG, Math.max(maxStorage, amt))
+  override def storage_=(amt: Double): Unit = nbt.setDouble(POWER_TAG, Math.min(maxStorage, amt))
 
   override def maxStorage: Double = nbt.getDouble(POWER_MAX_TAG)
 
