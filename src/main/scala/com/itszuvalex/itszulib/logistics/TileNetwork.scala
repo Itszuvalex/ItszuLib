@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.logistics.TileNetwork.NetworkExplorer
+import com.itszuvalex.itszulib.util.Debug
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.capabilities.Capability
 
@@ -65,9 +66,16 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     val edges = nodes.flatMap(a => getConnections(a.getLoc)).flatten.toSet -- nodeLocs
     //Removal all edges that touch nodeLocs.
     nodeLocs.foreach { a =>
-      getConnections(a).getOrElse(Set()).foreach(removeConnectionBatch(a, _))
+      (Set[Loc4]() ++= getConnections(a).getOrElse(Set())).foreach(removeConnectionBatch(a, _))
       nodeMap.remove(a)
     }
+
+    Debug.only {
+      nodeLocs.foreach(a => Debug.assert(!nodeMap.contains(a), "NodeMap should not have any of the nodes that have been removed."))
+      nodeLocs.foreach(a => Debug.assert(!connectionMap.contains(a), "ConnectionMap should not have any of the nodes that have been removed."))
+      nodeLocs.foreach(a => connectionMap.values.foreach(b => Debug.assert(!b.contains(a), "No loc in ConnectionMap should point to a node that has been removed.")))
+    }
+
     split(edges)
 
     if (size == 0) {
