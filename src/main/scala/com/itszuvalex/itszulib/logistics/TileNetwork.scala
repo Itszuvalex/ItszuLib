@@ -19,27 +19,19 @@ import scala.collection.immutable.HashSet
 object TileNetwork {
 
   object NetworkExplorer {
-    def explore[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](start: Loc4, network: TileNetwork[C, N], cap: Capability[C]): HashSet[Loc4] = {
-      immutable.HashSet[Loc4]() ++ expandLoc(start, network, mutable.HashSet[Loc4](), cap)
+    def explore[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](start: Loc4, network: TileNetwork[C, N]): HashSet[Loc4] = {
+      immutable.HashSet[Loc4]() ++ expandLoc(start, network, mutable.HashSet[Loc4]())
     }
 
-    private def expandLoc[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](node: Loc4, network: TileNetwork[C, N], explored: mutable.HashSet[Loc4], cap: Capability[C]): mutable.HashSet[Loc4] = {
-      node.getTileEntity() match {
-        case Some(c) if c.hasCapability(cap, null) =>
-          c.getCapability(cap, null) match {
-            case a: C if !explored.contains(a.getLoc) =>
-              explored += node
-              network.getConnections(a.getLoc).getOrElse(Set()).foreach(expandLoc(_, network, explored, cap))
-            case _ =>
-          }
-        case None =>
+    private def expandLoc[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](node: Loc4, network: TileNetwork[C, N], explored: mutable.HashSet[Loc4]): mutable.HashSet[Loc4] = {
+      if (!explored.contains(node)) {
+        explored += node
+        network.getConnections(node).getOrElse(Set()).foreach(expandLoc(_, network, explored))
       }
 
       explored
     }
-
   }
-
 }
 
 abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val id: Int) extends INetwork[C, N] {
@@ -94,7 +86,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     val networks = mutable.ArrayBuffer[util.Collection[Loc4]]()
     while (workingSet.nonEmpty) {
       val first = workingSet.head
-      val nodes = NetworkExplorer.explore[C, N](first, this, networkCapability)
+      val nodes = NetworkExplorer.explore[C, N](first, this)
       networks += nodes
       workingSet --= nodes.intersect(workingSet)
     }
