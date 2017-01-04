@@ -32,6 +32,7 @@ object TileNetwork {
       explored
     }
   }
+
 }
 
 abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val id: Int) extends INetwork[C, N] {
@@ -64,7 +65,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     val edges = nodes.flatMap(a => getConnections(a.getLoc)).flatten.toSet -- nodeLocs
     //Removal all edges that touch nodeLocs.
     nodeLocs.foreach { a =>
-      getConnections(a).getOrElse(Set()).foreach(removeConnection(a, _))
+      getConnections(a).getOrElse(Set()).foreach(removeConnectionBatch(a, _))
       nodeMap.remove(a)
     }
     split(edges)
@@ -112,7 +113,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     }
   }
 
-  override def removeConnection(a: Loc4, b: Loc4): Unit = {
+  def removeConnectionBatch(a: Loc4, b: Loc4): Unit = {
     removeConnectionSilently(a, b)
 
     a.getTileEntity().filter(_.hasCapability(networkCapability, null)).foreach { tile =>
@@ -121,6 +122,10 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     b.getTileEntity().filter(_.hasCapability(networkCapability, null)).foreach { tile =>
       tile.getCapability(networkCapability, null).disconnect(a)
     }
+  }
+
+  override def removeConnection(a: Loc4, b: Loc4): Unit = {
+    removeConnectionBatch(a, b)
     split(Set(a, b))
   }
 
