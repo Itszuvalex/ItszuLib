@@ -108,7 +108,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
       val edgeTuples = getEdges
 
       networks.foreach { collect =>
-        val nodes = collect.flatMap(_.getTileEntity()).filter(_.hasCapability(networkCapability, null)).map(_.getCapability(networkCapability, null)).asJavaCollection
+        val nodes = collect.flatMap(_.getTileEntity()).withFilter(_.hasCapability(networkCapability, null)).map(_.getCapability(networkCapability, null)).asJavaCollection
         val edges = edgeTuples.filter { case (loc1, loc2) => collect.contains(loc1)
           /*&& collect.contains(loc2)  Not necessary, as these are fully explored graphs.*/
         }.toSet
@@ -124,10 +124,10 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
   def removeConnectionBatch(a: Loc4, b: Loc4): Unit = {
     removeConnectionSilently(a, b)
 
-    a.getTileEntity().filter(_.hasCapability(networkCapability, null)).foreach { tile =>
+    a.getTileEntity().withFilter(_.hasCapability(networkCapability, null)).foreach { tile =>
       tile.getCapability(networkCapability, null).disconnect(b)
     }
-    b.getTileEntity().filter(_.hasCapability(networkCapability, null)).foreach { tile =>
+    b.getTileEntity().withFilter(_.hasCapability(networkCapability, null)).foreach { tile =>
       tile.getCapability(networkCapability, null).disconnect(a)
     }
   }
@@ -147,7 +147,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     addNodeSilently(node)
     node.setNetwork(this.asInstanceOf[N])
     node.added(this.asInstanceOf[N])
-    getNodes.filter { a => a.canConnect(node.getLoc) && node.canConnect(a.getLoc) }.foreach(n => addConnection(n.getLoc, node.getLoc))
+    getNodes.withFilter { a => a.canConnect(node.getLoc) && node.canConnect(a.getLoc) }.foreach(n => addConnection(n.getLoc, node.getLoc))
   }
 
   override def addConnection(a: Loc4, b: Loc4): Unit = {
