@@ -122,15 +122,14 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
 
   override def removeConnection(a: Loc4, b: Loc4): Unit = {
     removeConnectionSilently(a, b)
-    (a.getTileEntity().orNull, b.getTileEntity().orNull) match {
-      case (null, _) =>
-      case (_, null) =>
-      case (nodeA: TileEntity, nodeB: TileEntity) if nodeA.hasCapability(networkCapability, null) && nodeB.hasCapability(networkCapability, null) =>
-        nodeA.getCapability(networkCapability, null).disconnect(b)
-        nodeB.getCapability(networkCapability, null).disconnect(a)
-        split(Set(a, b))
-      case _ =>
+
+    a.getTileEntity().filter(_.hasCapability(networkCapability, null)).foreach { tile =>
+      tile.getCapability(networkCapability, null).disconnect(b)
     }
+    b.getTileEntity().filter(_.hasCapability(networkCapability, null)).foreach { tile =>
+      tile.getCapability(networkCapability, null).disconnect(a)
+    }
+    split(Set(a, b))
   }
 
   def getConnections(a: Loc4): Option[mutable.HashSet[Loc4]] =
