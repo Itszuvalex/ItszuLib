@@ -66,7 +66,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     val edges = nodes.flatMap(a => getConnections(a.getLoc)).flatten.toSet -- nodeLocs
     //Removal all edges that touch nodeLocs.
     nodeLocs.foreach { a =>
-      (Set[Loc4]() ++= getConnections(a).getOrElse(Set())).foreach(removeConnectionBatch(a, _))
+      (Set[Loc4]() ++ getConnections(a).getOrElse(Set())).foreach(removeConnectionBatch(a, _))
       nodeMap.remove(a)
     }
 
