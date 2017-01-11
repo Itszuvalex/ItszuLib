@@ -42,7 +42,7 @@ object IItemStack {
   def createFromNBT(nbt: NBTTagCompound) = nbtLoader.apply(nbt)
 
   val itemStackEquality = new Overridable((a: IItemStack, b: IItemStack) => {
-    (a == null && b == null) || !(a == null || b == null) && ((a.isEmpty && b.isEmpty) || ItemStack.areItemsEqual(a.toMinecraft, b.toMinecraft) && ItemStack.areItemStackTagsEqual(a.toMinecraft, b.toMinecraft))
+    (a == null && b == null) || !(a == null || b == null) && (ItemStack.areItemsEqual(a.toMinecraft, b.toMinecraft) && ItemStack.areItemStackTagsEqual(a.toMinecraft, b.toMinecraft))
   })
 }
 
