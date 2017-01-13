@@ -45,6 +45,7 @@ class PreviewableRenderHandler {
                 }
 
               case _ =>
+                renderer.render(stack, Minecraft.getMinecraft.thePlayer)
             }
           case None =>
         }
