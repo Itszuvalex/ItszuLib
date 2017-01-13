@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.testing
 import com.itszuvalex.itszulib.api.IPreviewableRenderer
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.render.RenderUtils._
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 
@@ -19,7 +20,9 @@ class TestPreviewableRenderer extends IPreviewableRenderer {
     * @param y     Y Location
     * @param z     Z Location
     */
-  override def renderAtLocation(stack: ItemStack, loc: Loc4, rx: Double, ry: Double, rz: Double): Unit = {
+  override def renderAtLocation(stack: ItemStack, player: EntityPlayer, loc: Loc4, rx: Double, ry: Double, rz: Double): Unit = {
     renderCube(rx.toFloat, ry.toFloat, rz.toFloat, 0, 0, 0, 1, 1, 1, getDefaultTextureForBlock(Blocks.DIAMOND_ORE))
   }
+
+  override def render(stack: ItemStack, player: EntityPlayer): Unit = {}
 }

@@ -17,6 +17,7 @@ object ManagerCapabilities {
   def register(): Unit = {
     CapabilityManager.INSTANCE.register(classOf[IItemStorage], new ItemStorageStorage, classOf[ItemStorageArray])
     CapabilityManager.INSTANCE.register(classOf[IBurnable], new ItemBurnableStorage, classOf[ItemBurnableImpl])
+    CapabilityManager.INSTANCE.register(classOf[IPreviewable], new ItemPreviewableStorage, classOf[ItemPreviewableImpl])
 
     MinecraftForge.EVENT_BUS.register(this)
   }
@@ -41,8 +42,22 @@ object ManagerCapabilities {
     override def readNBT(capability: Capability[IBurnable], instance: IBurnable, side: EnumFacing, nbt: NBTBase): Unit = {}
   }
 
+  class ItemPreviewableStorage extends Capability.IStorage[IPreviewable] {
+    override def writeNBT(capability: Capability[IPreviewable], instance: IPreviewable, side: EnumFacing): NBTBase = new NBTTagCompound
+
+    override def readNBT(capability: Capability[IPreviewable], instance: IPreviewable, side: EnumFacing, nbt: NBTBase): Unit = {}
+  }
+
   class ItemBurnableImpl extends IBurnable {
     override def getBurnTime: Int = 0
+  }
+
+  class ItemPreviewableImpl extends IPreviewable {
+    /**
+      *
+      * @return The ID of IPreviewableRenderer.  This is separate from Forge RenderIDs.
+      */
+    override def renderID: Int = 0
   }
 
 }

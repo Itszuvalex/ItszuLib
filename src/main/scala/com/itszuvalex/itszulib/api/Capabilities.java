@@ -13,4 +13,7 @@ public class Capabilities {
 
     @CapabilityInject(IBurnable.class)
     public static Capability<IBurnable> ITEM_BURNABLE = null;
+
+    @CapabilityInject(IPreviewable.class)
+    public static Capability<IPreviewable> ITEM_PREVIEWABLE = null;
 }
