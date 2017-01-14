@@ -3,7 +3,8 @@ package com.itszuvalex.itszulib.api.wrappers
 import com.itszuvalex.itszulib.api.Overridable
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.capabilities.ICapabilitySerializable
+import net.minecraft.util.EnumFacing
+import net.minecraftforge.common.capabilities.{Capability, ICapabilitySerializable}
 
 /**
   * Created by Chris on 4/17/2016.
@@ -80,4 +81,7 @@ trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
 
   def writeToNBT(nbt: NBTTagCompound): Unit
 
+  def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean
+
+  def getCapability[T](capability: Capability[T], facing: EnumFacing): T
 }
