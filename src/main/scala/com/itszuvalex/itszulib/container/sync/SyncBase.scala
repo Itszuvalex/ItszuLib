@@ -17,6 +17,8 @@ abstract class SyncBase[A](valFunc: () => A, setValFunc: (A) => Unit, equalFunc:
   var valueSetFunction   : (A) => Unit       = setValFunc
   var valueEqualsFunction: (A, A) => Boolean = equalFunc
 
+  var firstSync = false
+
   override def syncIndex: Int = _index
 
   override def syncIndex_=(i: Int): Unit = _index = i
@@ -37,9 +39,10 @@ abstract class SyncBase[A](valFunc: () => A, setValFunc: (A) => Unit, equalFunc:
     */
   override def update(): Boolean = {
     val newVal = valueFunction()
-    if (!valueEqualsFunction(value, newVal)) {
+    if (!valueEqualsFunction(value, newVal) || !firstSync) {
       cachedValue = cache(newVal)
       Debug.log(Level.WARN, "Updated")
+      firstSync = true
       true
     } else false
   }
