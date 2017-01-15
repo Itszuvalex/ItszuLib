@@ -1,7 +1,9 @@
 package com.itszuvalex.itszulib.testing
 
 import com.itszuvalex.itszulib.ItszuLib
+import com.itszuvalex.itszulib.api.Capabilities
 import com.itszuvalex.itszulib.api.storage.{IItemStorage, ItemStorageArray}
+import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import com.itszuvalex.itszulib.core.TileEntityBase
 import com.itszuvalex.itszulib.core.traits.tile.TileInventory
 import net.minecraft.entity.player.EntityPlayer
@@ -18,7 +20,21 @@ class TileInventoryTest extends TileEntityBase with TileInventory {
     true
   }
 
-  override def defaultStorage: IItemStorage = new ItemStorageArray(3)
+  override def defaultStorage: IItemStorage = new ItemStorageArray(3) {
+    /**
+      * Does not actually prevent inserting.  This should be overridden by inventories that want to prevent insertion by players.
+      * Insertion by machines should also check this, but in cases of output slots we can't just prevent insertion of items at the storage level.
+      *
+      * @param i     Index
+      * @param stack Stack to insert
+      *
+      * @return True if this stack can be inserted.
+      */
+    override def canInsert(i: Int, stack: IItemStack): Boolean = {
+      if (i == 2) stack.hasCapability(Capabilities.ITEM_BURNABLE, null)
+      else true
+    }
+  }
 
   override def func_191420_l(): Boolean = false
 
