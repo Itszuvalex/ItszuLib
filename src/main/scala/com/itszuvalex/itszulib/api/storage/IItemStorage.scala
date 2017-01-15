@@ -10,8 +10,20 @@ import net.minecraftforge.common.util.INBTSerializable
 trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTSerializable[NBTTagCompound] {
 
   /**
+    * Does not actually prevent inserting.  This should be overridden by inventories that want to prevent insertion by players.
+    * Insertion by machines should also check this, but in cases of output slots we can't just prevent insertion of items at the storage level.
+    *
+    * @param i     Index
+    * @param stack Stack to insert
+    *
+    * @return True if this stack can be inserted.
+    */
+  def canInsert(i: Int, stack: IItemStack): Boolean = true
+
+  /**
     *
     * @param i Index
+    *
     * @return Get IItemStack contained at this location.  This should never return null, as IItemStacks track their own emptiness.
     */
   def apply(i: Int): IItemStack
@@ -26,6 +38,7 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     *
     * @param i Index to split
     * @param a Amount to attempt to pull out of this location.
+    *
     * @return IItemStack containing the split stack.  This should never return null.
     */
   def split(i: Int, a: Int): IItemStack = {
@@ -44,6 +57,7 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     *
     * @param i Index to insert into
     * @param s ItemStack to attempt to insert.
+    *
     * @return IItemStack containing the leftovers from s.  This should never return null.
     */
   def insert(i: Int, s: IItemStack): IItemStack = {
@@ -103,23 +117,23 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
 
   override def deserializeNBT(t: NBTTagCompound): Unit = {
     indices.
-    filter(i =>
-             t.hasKey(i.toString)).
-    view.
-    foreach(i =>
-              this (i) = IItemStack.createFromNBT(t.getCompoundTag(i.toString)))
+      filter(i =>
+        t.hasKey(i.toString)).
+      view.
+      foreach(i =>
+        this (i) = IItemStack.createFromNBT(t.getCompoundTag(i.toString)))
   }
 
   override def serializeNBT(): NBTTagCompound = {
     val ret = new NBTTagCompound
     zipWithIndex.
-    filterNot { case (it: IItemStack, i: Int) =>
-      it.isEmpty
-              }
-    .view
-    .foreach { case (it: IItemStack, i: Int) =>
-      ret.setTag(i.toString, it.serializeNBT())
-             }
+      filterNot { case (it: IItemStack, i: Int) =>
+        it.isEmpty
+      }
+      .view
+      .foreach { case (it: IItemStack, i: Int) =>
+        ret.setTag(i.toString, it.serializeNBT())
+      }
     ret
   }
 }
