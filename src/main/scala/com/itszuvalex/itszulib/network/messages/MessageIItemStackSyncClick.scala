@@ -77,7 +77,7 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
   }
 
   def handleLeftClick(container: ContainerBase, sync: SyncItemStorageItemStack, player: EntityPlayerMP): Unit = {
-    (Converter.IItemStackFromItemStack(player.inventory.getItemStack), sync.storage(sync.storageIndex)) match {
+    (Converter.IItemStackFromItemStack(player.inventory.getItemStack.copy()), sync.storage(sync.storageIndex).copy()) match {
       case (null, null) =>
       case (a, b) if a.isEmpty && b.isEmpty => // Do nothing
       case (a, b) if a.isEmpty && !b.isEmpty => // Set inventory item from slot.
@@ -86,19 +86,35 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
         player.inventory.markDirty()
         ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
       case (a, b) if !a.isEmpty && b.isEmpty =>
-        player.inventory.setItemStack(sync.storage.insert(sync.storageIndex, Converter.IItemStackFromItemStack(player.inventory.getItemStack)).toMinecraft)
-        player.inventory.markDirty()
-        ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
+        if (sync.storage.canInsert(sync.storageIndex, a)) {
+          player.inventory.setItemStack(sync.storage.insert(sync.storageIndex, a).toMinecraft)
+          player.inventory.markDirty()
+          ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
+        }
       case (a, b) if !a.isEmpty && !b.isEmpty =>
         if (IItemStack.itemStackEquality.apply(a, b)) {
-          player.inventory.setItemStack(sync.storage.insert(sync.storageIndex, Converter.IItemStackFromItemStack(player.inventory.getItemStack)).toMinecraft)
+          if (sync.storage.canInsert(sync.storageIndex, a)) {
+            player.inventory.setItemStack(sync.storage.insert(sync.storageIndex, a).toMinecraft)
+            player.inventory.markDirty()
+            ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
+          }
+          else {
+            val room = a.stackSizeMax - a.stackSize
+            val copy = sync.storage.split(sync.storageIndex, room)
+            a.stackSize += copy.stackSize
+            player.inventory.setItemStack(a.toMinecraft)
+            player.inventory.markDirty()
+            ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
+          }
         }
         else {
-          player.inventory.setItemStack(b.toMinecraft)
-          sync.storage(sync.storageIndex) = a
+          if (sync.storage.canInsert(sync.storageIndex, a)) {
+            player.inventory.setItemStack(b.toMinecraft)
+            sync.storage(sync.storageIndex) = a
+            player.inventory.markDirty()
+            ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
+          }
         }
-        player.inventory.markDirty()
-        ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
       case _ => Debug.assert(false, "Case not matched on HandleLeftClick")
     }
   }
@@ -112,21 +128,25 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
         player.inventory.markDirty()
         ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
       case (a, b) if !a.isEmpty && b.isEmpty =>
-        val copy = a.copy()
-        copy.stackSize = 1
-        if (sync.storage.insert(sync.storageIndex, copy).isEmpty) {
-          a.stackSize -= 1
-          player.inventory.markDirty()
-          ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
-        }
-      case (a, b) if !a.isEmpty && !b.isEmpty =>
-        if (IItemStack.itemStackEquality.apply(a, b)) {
+        if (sync.storage.canInsert(sync.storageIndex, a)) {
           val copy = a.copy()
           copy.stackSize = 1
           if (sync.storage.insert(sync.storageIndex, copy).isEmpty) {
             a.stackSize -= 1
             player.inventory.markDirty()
             ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
+          }
+        }
+      case (a, b) if !a.isEmpty && !b.isEmpty =>
+        if (IItemStack.itemStackEquality.apply(a, b)) {
+          if (sync.storage.canInsert(sync.storageIndex, a)) {
+            val copy = a.copy()
+            copy.stackSize = 1
+            if (sync.storage.insert(sync.storageIndex, copy).isEmpty) {
+              a.stackSize -= 1
+              player.inventory.markDirty()
+              ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
+            }
           }
         }
       case _ => Debug.assert(false, "Case not matched on HandleLeftClick")

@@ -32,7 +32,7 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     *
     * @return Max stack size allowed in this storage.
     */
-  def maxStackSize(i: Int): Int = 64
+  def maxStackSize(i: Int): Int = Math.min(64, apply(i).stackSizeMax)
 
   /**
     *

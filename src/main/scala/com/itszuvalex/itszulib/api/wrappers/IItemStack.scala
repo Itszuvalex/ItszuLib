@@ -33,6 +33,8 @@ object IItemStack {
 
     override def stackSize_=(size: Int): Unit = {}
 
+    override def stackSizeMax: Int = 64
+
     override def toMinecraft: ItemStack = ItemStack.field_190927_a
   }
 
@@ -84,4 +86,7 @@ trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
   def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean
 
   def getCapability[T](capability: Capability[T], facing: EnumFacing): T
+
+  def capabilityOption[T](capability: Capability[T], facing: EnumFacing): Option[T] =
+    if (hasCapability(capability, facing)) Some(getCapability(capability, facing)) else None
 }
