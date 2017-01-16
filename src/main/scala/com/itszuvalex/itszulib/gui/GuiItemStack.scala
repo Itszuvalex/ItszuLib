@@ -5,7 +5,6 @@ import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.{FontRenderer, Gui}
 import net.minecraft.client.renderer.{GlStateManager, RenderHelper, RenderItem}
-import org.lwjgl.opengl.GL11
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
@@ -48,8 +47,9 @@ abstract class GuiItemStack(override var anchorX: Int,
   override def render(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)
 
+    GlStateManager.disableLighting()
+
     if (drawSlot()) {
-      GlStateManager.disableLighting()
       //Top lowered rect
       Gui.drawRect(screenX, screenY, screenX + panelWidth, screenY + 1, colorLowered)
       //Left lowered rect
