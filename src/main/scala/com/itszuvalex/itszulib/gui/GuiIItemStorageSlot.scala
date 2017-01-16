@@ -1,12 +1,12 @@
 package com.itszuvalex.itszulib.gui
 
-import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.storage.IItemStorage
-import com.itszuvalex.itszulib.api.wrappers.IItemStack
+import com.itszuvalex.itszulib.api.wrappers.{Converter, IItemStack}
 import com.itszuvalex.itszulib.container.sync.ISync
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageIItemStackSyncClick
 import com.itszuvalex.itszulib.util.Color
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
 import org.lwjgl.opengl.GL11
 
@@ -23,6 +23,8 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
   override def render(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)
 
+    renderOutline(screenX, screenY, mouseX, mouseY, partialTicks)
+
     if (renderHighlight) {
       GL11.glPushMatrix()
       GL11.glTranslatef(0.0F, 0.0F, 512.0F)
@@ -32,6 +34,44 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
   }
 
   def renderHighlight: Boolean = isMousedOver
+
+  def renderOutline(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
+    val item = Converter.IItemStackFromItemStack(Minecraft.getMinecraft.thePlayer.inventory.getItemStack)
+    if (item.isEmpty) return
+
+    var color: Int = 0
+    val transparency = 50.toByte
+    val slotEmpty = itemStack.isEmpty
+    if (item.isItemEqual(itemStack) || slotEmpty) {
+      if (storage.canInsert(slot, item)) {
+        if (slotEmpty) {
+          color = Color(transparency, 0.toByte, 255.toByte, 0.toByte).toInt
+        }
+        else {
+          color = Color(transparency, 255.toByte, 255.toByte, 0.toByte).toInt
+        }
+      }
+      else if (!storage.canInsert(slot, item)) {
+        color = Color(transparency, 255.toByte, 0.toByte, 0.toByte).toInt
+      }
+      else if (!slotEmpty) {
+        color = Color(transparency, 0.toByte, 0.toByte, 255.toByte).toInt
+      }
+    }
+    else {
+      if (storage.canInsert(slot, item)) {
+        color = Color(transparency, 255.toByte, 0.toByte, 255.toByte).toInt
+      }
+      else {
+        color = Color(transparency, 255.toByte, 0.toByte, 0.toByte).toInt
+      }
+    }
+
+    Gui.drawRect(screenX, screenY, screenX + 18, screenY + 1, color) // Top
+    Gui.drawRect(screenX, screenY + 1, screenX + 1, screenY + 17, color) // Left
+    Gui.drawRect(screenX + 17, screenY + 1, screenX + 18, screenY + 17, color) // Right
+    Gui.drawRect(screenX, screenY + 17, screenX + 18, screenY + 18, color) // Bot
+  }
 
   override def onMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean = {
     if (isLocationInside(mouseX, mouseY)) {
