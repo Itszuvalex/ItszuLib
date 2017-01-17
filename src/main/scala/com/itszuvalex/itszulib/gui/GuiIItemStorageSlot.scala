@@ -42,27 +42,19 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
     var color: Int = 0
     val transparency = 50.toByte
     val slotEmpty = itemStack.isEmpty
-    if (item.isItemEqual(itemStack) || slotEmpty) {
-      if (storage.canInsert(slot, item)) {
-        if (slotEmpty) {
-          color = Color(transparency, 0.toByte, 255.toByte, 0.toByte).toInt
-        }
-        else {
-          color = Color(transparency, 255.toByte, 255.toByte, 0.toByte).toInt
-        }
-      }
-      else if (!storage.canInsert(slot, item)) {
-        color = Color(transparency, 255.toByte, 0.toByte, 0.toByte).toInt
-      }
-      else if (!slotEmpty) {
-        color = Color(transparency, 0.toByte, 0.toByte, 255.toByte).toInt
-      }
-    }
-    else {
-      if (storage.canInsert(slot, item)) {
+
+    if (storage.canInsert(slot, item)) {
+      if (slotEmpty) {
+        color = Color(transparency, 0.toByte, 255.toByte, 0.toByte).toInt
+      } else if (item.isItemEqual(itemStack)) {
+        color = Color(transparency, 0.toByte, 255.toByte, 255.toByte).toInt
+      } else {
         color = Color(transparency, 255.toByte, 0.toByte, 255.toByte).toInt
       }
-      else {
+    } else {
+      if (!slotEmpty && item.isItemEqual(itemStack)) {
+        color = Color(transparency, 0.toByte, 0.toByte, 255.toByte).toInt
+      } else {
         color = Color(transparency, 255.toByte, 0.toByte, 0.toByte).toInt
       }
     }

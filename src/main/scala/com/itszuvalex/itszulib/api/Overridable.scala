@@ -8,7 +8,9 @@ class Overridable[F](val default: F) {
 
   def apply: F = overrideVal
 
-  def revert() = overrideVal = default
+  def revert(): Unit = overrideVal = default
 
   def overrideDefault(defOverride: F): Unit = overrideVal = defOverride
+
+  def isOverridden: Boolean = overrideVal != default
 }
