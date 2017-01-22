@@ -98,7 +98,7 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
   }
 
   protected def addPlayerInventorySlots(inventoryPlayer: InventoryPlayer, inventoryXStart: Int, inventoryYStart: Int) {
-    new IItemStorageSyncBundle(this, new ItemStoragePlayerInventory(inventoryPlayer))
+    new IItemStorageSyncBundle(this, new ItemStoragePlayerInventory(inventoryPlayer), true)
 
 //    for (i <- 0 until 3) {
 //      for (j <- 0 until 9) {

@@ -18,7 +18,8 @@ object SyncIItemStack {
   }
 }
 
-class SyncIItemStack(sync: () => IItemStack, write: (IItemStack) => Unit) extends SyncBase[IItemStack](sync, write, SyncIItemStack.refreshComparison) {
+class SyncIItemStack
+(sync: () => IItemStack, write: (IItemStack) => Unit) extends SyncBase[IItemStack](sync, write, SyncIItemStack.refreshComparison) {
   cachedValue = IItemStack.Empty
 
   override def cache(a: IItemStack): IItemStack = a.copy()
