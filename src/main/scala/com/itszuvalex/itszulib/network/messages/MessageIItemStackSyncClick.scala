@@ -20,6 +20,8 @@ object MessageIItemStackSyncClick {
 
   case object LEFT_CLICK extends ClickType {val name = "LeftClick"}
 
+  case object SHIFT_LEFT_CLICK extends ClickType {val name = "ShiftLeftClick"}
+
   case object RIGHT_CLICK extends ClickType {val name = "RightClick"}
 
   case object MIDDLE_CLICK extends ClickType {val name = "MiddleClick"}
@@ -38,6 +40,7 @@ object MessageIItemStackSyncClick {
     def fromName(string: String): ClickType = {
       string match {
         case LEFT_CLICK.name => LEFT_CLICK
+        case SHIFT_LEFT_CLICK.name => SHIFT_LEFT_CLICK
         case RIGHT_CLICK.name => RIGHT_CLICK
         case MIDDLE_CLICK.name => MIDDLE_CLICK
         case LEFT_RELEASE.name => LEFT_RELEASE
@@ -67,6 +70,7 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
         val sync = a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY))
         val click = MessageIItemStackSyncClick.ClickType.fromName(message.nbt.getString(MessageIItemStackSyncClick.CLICK_KEY))
         click match {
+          case MessageIItemStackSyncClick.SHIFT_LEFT_CLICK => handleShiftLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
           case MessageIItemStackSyncClick.LEFT_CLICK => handleLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
           case MessageIItemStackSyncClick.RIGHT_CLICK => handleRightClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
           case _ =>
@@ -74,6 +78,20 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
       case _ =>
     }
     null
+  }
+
+  def handleShiftLeftClick(container: ContainerBase, sync: SyncItemStorageItemStack, player: EntityPlayerMP): Unit = {
+    if (!sync.storage(sync.storageIndex).isEmpty) {
+      container.syncs.forall {
+        case p: SyncItemStorageItemStack =>
+          if (p.isPlayerInv != sync.isPlayerInv && p.storage.canInsert(p.storageIndex, sync.storage(sync.storageIndex) )) {
+            sync.storage(sync.storageIndex) = p.storage.insert(p.storageIndex, sync.storage.split(sync.storageIndex, 64))
+          }
+          sync.storage(sync.storageIndex).stackSize > 0
+        case _ =>
+          true
+      }
+    }
   }
 
   def handleLeftClick(container: ContainerBase, sync: SyncItemStorageItemStack, player: EntityPlayerMP): Unit = {
