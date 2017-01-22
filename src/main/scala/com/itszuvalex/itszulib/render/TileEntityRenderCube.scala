@@ -45,15 +45,14 @@ abstract class TileEntityRenderCube[T <: TileEntity](modName: String, val sides:
   }
 
   def preRender(): Unit = {
+    GL11.glPushMatrix()
     translationBlock(.5, .5, .5) {
       GL11.glRotatef(AngleFromFacing, 0, 1, 0)
     }
   }
 
   def postRender(): Unit = {
-    translationBlock(.5, .5, .5) {
-      GL11.glRotatef(-AngleFromFacing, 0, 1, 0)
-    }
+    GL11.glPopMatrix()
   }
 
   def preFaceRender(facing: EnumFacing): Unit = {

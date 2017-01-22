@@ -52,10 +52,10 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
         }
       }
       else if (!storage.canInsert(slot, item)) {
-        color = Color(transparency, 255.toByte, 0.toByte, 0.toByte).toInt
+        color = Color(transparency, 0.toByte, 0.toByte, 255.toByte).toInt
       }
       else if (!slotEmpty) {
-        color = Color(transparency, 0.toByte, 0.toByte, 255.toByte).toInt
+        color = Color(transparency, 255.toByte, 0.toByte, 0.toByte).toInt
       }
     }
     else {
