@@ -1,7 +1,5 @@
 package com.itszuvalex.itszulib.gui
 
-import com.itszuvalex.itszulib.ItszuLib
-
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
@@ -10,7 +8,7 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 trait GuiPanel extends GuiElement {
   val subElements = ArrayBuffer[GuiElement]()
-  var _panelWidth : Int
+  var _panelWidth: Int
   var _panelHeight: Int
 
   override def spaceHorizontal = panelWidth
@@ -66,7 +64,7 @@ trait GuiPanel extends GuiElement {
 
   override def isLocationInside(mouseX: Int, mouseY: Int): Boolean = {
     ((mouseX >= 0) && (mouseX < panelWidth)) &&
-    ((mouseY >= 0) && (mouseY < panelHeight))
+      ((mouseY >= 0) && (mouseY < panelHeight))
   }
 
   def panelHeight = _panelHeight
@@ -78,9 +76,9 @@ trait GuiPanel extends GuiElement {
   override def renderUpdate(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float) = {
     super.renderUpdate(screenX, screenY, mouseX, mouseY, partialTicks)
     subElements.foreach(gui => gui.renderUpdate(screenX + gui.anchorX,
-                                                screenY + gui.anchorY,
-                                                mouseX - gui.anchorX,
-                                                mouseY - gui.anchorY,
-                                                partialTicks))
+      screenY + gui.anchorY,
+      mouseX - gui.anchorX,
+      mouseY - gui.anchorY,
+      partialTicks))
   }
 }
