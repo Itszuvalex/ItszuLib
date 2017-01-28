@@ -29,4 +29,6 @@ trait ISync[A] {
   def writeNBT(): NBTBase
 
   def handleNBT(nbt: NBTBase): Unit
+
+  def clear(): Unit
 }
