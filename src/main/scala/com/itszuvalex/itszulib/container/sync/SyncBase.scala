@@ -53,4 +53,9 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
     case p: EntityPlayerMP => ItszuLibPacketHandler.INSTANCE.sendTo(new MessageSync(this), p)
     case _ =>
   }
+
+  override def clear(): Unit = {
+    cachedValue = _
+    firstSync = false
+  }
 }

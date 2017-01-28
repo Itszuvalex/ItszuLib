@@ -3,7 +3,7 @@ package com.itszuvalex.itszulib.container
 import com.itszuvalex.itszulib.container.sync.ISync
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageContainerUpdate
-import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.inventory.{Container, IContainerListener}
 
 import scala.collection.JavaConversions._
@@ -41,5 +41,10 @@ abstract class ContainerBase(val gui:Int, val registerSyncs: Boolean) extends Co
       case _ =>
         crafter.sendProgressBarUpdate(container, index, value)
     }
+  }
+
+  override def onContainerClosed(playerIn: EntityPlayer): Unit = {
+    super.onContainerClosed(playerIn)
+    syncs.foreach(_.clear())
   }
 }
