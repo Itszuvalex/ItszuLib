@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack
 /**
   * Created by Alex on 12.10.2015.
   */
-class ContainerTankTest(player: EntityPlayer, inv: InventoryPlayer, tile: TileTankTest, registerSyncs: Boolean) extends ContainerInv[TileTankTest](player, tile, 0, 0, registerSyncs) {
+class ContainerTankTest(player: EntityPlayer, inv: InventoryPlayer, tile: TileTankTest, registerSyncs: Boolean) extends ContainerInv[TileTankTest](player, tile, 0, 0, 0, registerSyncs) {
 
   if (registerSyncs)
     addPlayerInventorySlots(inv)

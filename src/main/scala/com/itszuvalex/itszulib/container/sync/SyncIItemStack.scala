@@ -10,16 +10,12 @@ import org.apache.logging.log4j.Level
   */
 object SyncIItemStack {
   def refreshComparison(a: IItemStack, b: IItemStack): Boolean = {
-    IItemStack.itemStackEquality.apply(a, b) match {
-      case true if a.isEmpty || b.isEmpty => true
-      case true => a.stackSize == b.stackSize
-      case false => false
-    }
+    IItemStack.itemStackEquality.apply(a, b) && a.stackSize == b.stackSize
   }
 }
 
 class SyncIItemStack
-(sync: () => IItemStack, write: (IItemStack) => Unit) extends SyncBase[IItemStack](sync, write, SyncIItemStack.refreshComparison) {
+(gui: Int, sync: () => IItemStack, write: (IItemStack) => Unit) extends SyncBase[IItemStack](gui, sync, write, SyncIItemStack.refreshComparison) {
   cachedValue = IItemStack.Empty
 
   override def cache(a: IItemStack): IItemStack = a.copy()

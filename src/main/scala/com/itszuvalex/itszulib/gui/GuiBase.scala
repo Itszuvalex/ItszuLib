@@ -14,6 +14,8 @@ import scala.collection.mutable.ListBuffer
   */
 abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
 
+  def GuiID: Int
+
   override def _panelWidth = xSize
 
   override def _panelWidth_=(_width: Int) = {xSize = _width}
@@ -77,14 +79,14 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
 
     (0 until 9).foreach { i =>
       val gui = new GuiIItemStorageSlot(inventoryXStart + i * 18, inventoryYStart + 58, storage, i)
-      gui.sync = new SyncItemStorageItemStack(storage, i, true)
+      gui.sync = new SyncItemStorageItemStack(GuiID, storage, i, true)
       this.add(gui)
       c.addSync(gui.sync)
     }
     (0 until 3).foreach { i =>
       (0 until 9).foreach { j =>
         val gui = new GuiIItemStorageSlot(inventoryXStart + j * 18, inventoryYStart + i * 18, storage, j + i * 9 + 9)
-        gui.sync = new SyncItemStorageItemStack(storage, j + i * 9 + 9, true)
+        gui.sync = new SyncItemStorageItemStack(GuiID, storage, j + i * 9 + 9, true)
         this.add(gui)
         c.addSync(gui.sync)
       }
@@ -94,7 +96,7 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
 
   def addGuiAndSync(storage: IItemStorage, ind: Int, x: Int, y: Int) = {
     val gui = new GuiIItemStorageSlot(x, y, storage, ind)
-    gui.sync = new SyncItemStorageItemStack(storage, ind)
+    gui.sync = new SyncItemStorageItemStack(GuiID, storage, ind)
     this.add(gui)
     inventorySlots.asInstanceOf[ContainerBase].addSync(gui.sync)
   }

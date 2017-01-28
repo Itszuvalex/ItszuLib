@@ -8,7 +8,7 @@ import org.apache.logging.log4j.Level
 /**
   * Created by Chris on 12/18/2016.
   */
-class SyncItemStorageItemStack(val storage: IItemStorage, protected var ind: Int, protected val playerInv: Boolean = false) extends SyncIItemStack(() => IItemStack.Empty, (i: IItemStack) => {}) {
+class SyncItemStorageItemStack(gui: Int, val storage: IItemStorage, protected var ind: Int, protected val playerInv: Boolean = false) extends SyncIItemStack(gui, () => IItemStack.Empty, (i: IItemStack) => {}) {
   valueSetFunction = (i: IItemStack) => {
     storage(storageIndex) = i
     Debug.log(Level.WARN, "Set storage stacksize:" + i.stackSize)

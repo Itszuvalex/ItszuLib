@@ -14,10 +14,12 @@ import org.apache.logging.log4j.Level
 object MessageSync {
   val INDEX_KEY = "index"
   val NBT_KEY   = "nbt"
+  val GUI_KEY   = "gui"
 }
 
 class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage]({
   val nbt = new NBTTagCompound
+  nbt.setInteger(MessageSync.GUI_KEY, Option(sync).map(_.GuiID).getOrElse(0))
   nbt.setInteger(MessageSync.INDEX_KEY, Option(sync).map(_.syncIndex).getOrElse(0))
   nbt.setTag(MessageSync.NBT_KEY, Option(sync).map(_.writeNBT()).orNull)
   nbt
@@ -27,7 +29,7 @@ class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage
 
   override def onMessage(message: MessageSync, ctx: MessageContext): IMessage = {
     Minecraft.getMinecraft.thePlayer.openContainer match {
-      case a: ContainerBase => a.getSync(message.nbt.getInteger(MessageSync.INDEX_KEY)).handleNBT(message.nbt.getTag(MessageSync.NBT_KEY))
+      case a: ContainerBase if a.GuiID == message.nbt.getInteger(MessageSync.GUI_KEY) => a.getSync(message.nbt.getInteger(MessageSync.INDEX_KEY)).handleNBT(message.nbt.getTag(MessageSync.NBT_KEY))
         Debug.log(Level.WARN, "Received Sync for index:" + message.nbt.getInteger(MessageSync.INDEX_KEY) + "item:" + a.getSync(message.nbt.getInteger(MessageSync.INDEX_KEY)).value.toString)
       case _ =>
     }

@@ -8,12 +8,12 @@ import net.minecraft.item.ItemStack
 /**
   * Created by Alex on 02.01.2017.
   */
-class ContainerInventoryTest(player: EntityPlayer, inv: InventoryPlayer, tile: TileInventoryTest, registerSyncs: Boolean) extends ContainerInv[TileInventoryTest](player, tile, 0, 0, registerSyncs) {
+class ContainerInventoryTest(player: EntityPlayer, inv: InventoryPlayer, tile: TileInventoryTest, registerSyncs: Boolean) extends ContainerInv[TileInventoryTest](player, tile, 0, 0, 1, registerSyncs) {
 
   if (registerSyncs) {
-    addSync(new SyncItemStorageItemStack(tile.storage, 0))
-    addSync(new SyncItemStorageItemStack(tile.storage, 1))
-    addSync(new SyncItemStorageItemStack(tile.storage, 2))
+    addSync(new SyncItemStorageItemStack(GuiID, tile.storage, 0))
+    addSync(new SyncItemStorageItemStack(GuiID, tile.storage, 1))
+    addSync(new SyncItemStorageItemStack(GuiID, tile.storage, 2))
     addPlayerInventorySlots(inv)
   }
 

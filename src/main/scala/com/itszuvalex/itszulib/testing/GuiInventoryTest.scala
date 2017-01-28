@@ -15,6 +15,7 @@ object GuiInventoryTest {
 
 class GuiInventoryTest(player: EntityPlayer, inv: InventoryPlayer, private val tile: TileInventoryTest) extends GuiBase(new ContainerInventoryTest(player, inv, tile, false)) {
 
+
   addGuiAndSync(tile.storage, 0, 50, 33)
   addGuiAndSync(tile.storage, 1, 79, 33)
   addGuiAndSync(tile.storage, 2, 108, 33)
@@ -25,6 +26,8 @@ class GuiInventoryTest(player: EntityPlayer, inv: InventoryPlayer, private val t
   add(new GuiProgress(0, 5, 20, 5, () => (player.getEntityWorld.getWorldTime % 10 * 10f) / 100f, direction = GuiProgress.RightLeft))
   add(new GuiProgress(0, 10, 5, 20, () => (player.getEntityWorld.getWorldTime % 10 * 10f) / 100f, direction = GuiProgress.TopDown))
   add(new GuiProgress(5, 10, 5, 20, () => (player.getEntityWorld.getWorldTime % 10 * 10f) / 100f, direction = GuiProgress.BottomUp))
+
+  override def GuiID: Int = 1
 
   override def drawGuiContainerBackgroundLayer(partialTicks: Float, mouseX: Int, mouseY: Int): Unit = {
     GL11.glColor4f(1, 1, 1, 1)

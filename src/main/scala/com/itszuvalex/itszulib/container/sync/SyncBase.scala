@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Level
 /**
   * Created by Chris on 12/13/2016.
   */
-abstract class SyncBase[A](valFunc: () => A, setValFunc: (A) => Unit, equalFunc: (A, A) => Boolean = (a: A, b: A) => (a == null && b == null) || Option(a).exists(_.equals(b))) extends ISync[A] {
+abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Unit, equalFunc: (A, A) => Boolean = (a: A, b: A) => (a == null && b == null) || Option(a).exists(_.equals(b))) extends ISync[A] {
   protected var _index         = 0
   protected var cachedValue: A = _
 
@@ -18,6 +18,8 @@ abstract class SyncBase[A](valFunc: () => A, setValFunc: (A) => Unit, equalFunc:
   var valueEqualsFunction: (A, A) => Boolean = equalFunc
 
   var firstSync = false
+
+  override def GuiID: Int = gui
 
   override def syncIndex: Int = _index
 
