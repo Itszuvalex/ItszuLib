@@ -12,7 +12,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by Chris on 8/29/2014.
   */
-abstract class ContainerBase(val gui:Int, val registerSyncs: Boolean) extends Container {
+abstract class ContainerBase(val gui: Int, val registerSyncs: Boolean) extends Container {
   val syncs: ArrayBuffer[ISync[_]] = new ArrayBuffer[ISync[_]]
 
   def GuiID: Int = gui
@@ -31,6 +31,15 @@ abstract class ContainerBase(val gui:Int, val registerSyncs: Boolean) extends Co
         case p: EntityPlayerMP => sync.sync(p)
         case _ =>
       }
+    }
+  }
+
+
+  override def addListener(listener: IContainerListener): Unit = {
+    super.addListener(listener)
+    listener match {
+      case p: EntityPlayerMP => syncs.foreach(_.sync(p))
+      case _ =>
     }
   }
 
