@@ -18,11 +18,15 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
 
   override def _panelWidth = xSize
 
-  override def _panelWidth_=(_width: Int) = {xSize = _width}
+  override def _panelWidth_=(_width: Int) = {
+    xSize = _width
+  }
 
   override def _panelHeight = ySize
 
-  override def _panelHeight_=(_height: Int) = {ySize = _height}
+  override def _panelHeight_=(_height: Int) = {
+    ySize = _height
+  }
 
   override def mouseClicked(mouseX: Int, mouseY: Int, button: Int): Unit = {
     val atb = GuiTextBox.activeTextBox
@@ -51,11 +55,15 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
 
   override def anchorX = guiLeft
 
-  override def anchorX_=(_x: Int) = {guiLeft = _x}
+  override def anchorX_=(_x: Int) = {
+    guiLeft = _x
+  }
 
   override def anchorY = guiTop
 
-  override def anchorY_=(_y: Int) = {guiTop = _y}
+  override def anchorY_=(_y: Int) = {
+    guiTop = _y
+  }
 
   override def updateScreen(): Unit = {
     super.updateScreen()
@@ -78,21 +86,14 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
     val storage = new ItemStoragePlayerInventory(inventoryPlayer)
 
     (0 until 9).foreach { i =>
-      val gui = new GuiIItemStorageSlot(inventoryXStart + i * 18, inventoryYStart + 58, storage, i)
-      gui.sync = new SyncItemStorageItemStack(GuiID, storage, i, true)
-      this.add(gui)
-      c.addSync(gui.sync)
+      addGuiAndSync(storage, i, inventoryXStart + i * 18, inventoryYStart + 58)
     }
     (0 until 3).foreach { i =>
       (0 until 9).foreach { j =>
-        val gui = new GuiIItemStorageSlot(inventoryXStart + j * 18, inventoryYStart + i * 18, storage, j + i * 9 + 9)
-        gui.sync = new SyncItemStorageItemStack(GuiID, storage, j + i * 9 + 9, true)
-        this.add(gui)
-        c.addSync(gui.sync)
+        addGuiAndSync(storage, j + i * 9 + 9, inventoryXStart + j * 18, inventoryYStart + i * 18)
       }
     }
   }
-
 
   def addGuiAndSync(storage: IItemStorage, ind: Int, x: Int, y: Int) = {
     val gui = new GuiIItemStorageSlot(x, y, storage, ind)
