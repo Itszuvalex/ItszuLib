@@ -7,6 +7,8 @@ import net.minecraft.nbt.NBTBase
   * Created by Chris on 12/13/2016.
   */
 trait ISync[A] {
+  def GuiID: Int
+
   def syncIndex: Int
 
   def syncIndex_=(i: Int): Unit

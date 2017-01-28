@@ -8,6 +8,7 @@ import com.itszuvalex.itszulib.network.messages.MessageIItemStackSyncClick
 import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
+import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
 /**
@@ -42,27 +43,19 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
     var color: Int = 0
     val transparency = 50.toByte
     val slotEmpty = itemStack.isEmpty
-    if (item.isItemEqual(itemStack) || slotEmpty) {
-      if (storage.canInsert(slot, item)) {
-        if (slotEmpty) {
-          color = Color(transparency, 0.toByte, 255.toByte, 0.toByte).toInt
-        }
-        else {
-          color = Color(transparency, 255.toByte, 255.toByte, 0.toByte).toInt
-        }
-      }
-      else if (!storage.canInsert(slot, item)) {
-        color = Color(transparency, 255.toByte, 0.toByte, 0.toByte).toInt
-      }
-      else if (!slotEmpty) {
-        color = Color(transparency, 0.toByte, 0.toByte, 255.toByte).toInt
-      }
-    }
-    else {
-      if (storage.canInsert(slot, item)) {
+
+    if (storage.canInsert(slot, item)) {
+      if (slotEmpty) {
+        color = Color(transparency, 0.toByte, 255.toByte, 0.toByte).toInt
+      } else if (item.isItemEqual(itemStack)) {
+        color = Color(transparency, 0.toByte, 255.toByte, 255.toByte).toInt
+      } else {
         color = Color(transparency, 255.toByte, 0.toByte, 255.toByte).toInt
       }
-      else {
+    } else {
+      if (!slotEmpty && item.isItemEqual(itemStack)) {
+        color = Color(transparency, 0.toByte, 0.toByte, 255.toByte).toInt
+      } else {
         color = Color(transparency, 255.toByte, 0.toByte, 0.toByte).toInt
       }
     }
@@ -73,10 +66,12 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
     Gui.drawRect(screenX, screenY + 17, screenX + 18, screenY + 18, color) // Bot
   }
 
+  def isShiftHeld: Boolean = Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54)
+
   override def onMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean = {
     if (isLocationInside(mouseX, mouseY)) {
       val click = button match {
-        case 0 => MessageIItemStackSyncClick.LEFT_CLICK
+        case 0 => if (isShiftHeld) MessageIItemStackSyncClick.SHIFT_LEFT_CLICK else MessageIItemStackSyncClick.LEFT_CLICK
         case 1 => MessageIItemStackSyncClick.RIGHT_CLICK
         case 2 => MessageIItemStackSyncClick.MIDDLE_CLICK
         case _ => MessageIItemStackSyncClick.UNKNOWN

@@ -27,6 +27,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{EnumFacing, ITickable}
+import net.minecraftforge.common.capabilities.Capability
 
 abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with ITickable {
   override def readFromNBT(par1nbtTagCompound: NBTTagCompound) {
@@ -106,4 +107,6 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
 
   def onBlockBreak(): Unit = {}
 
+  def capabilityOption[T](capability: Capability[T], enumFacing: EnumFacing): Option[T] =
+    if (hasCapability(capability, enumFacing)) Some(getCapability(capability, enumFacing)) else None
 }

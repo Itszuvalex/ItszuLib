@@ -12,8 +12,10 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by Chris on 8/29/2014.
   */
-abstract class ContainerBase(val registerSyncs: Boolean) extends Container {
+abstract class ContainerBase(val gui:Int, val registerSyncs: Boolean) extends Container {
   val syncs: ArrayBuffer[ISync[_]] = new ArrayBuffer[ISync[_]]
+
+  def GuiID: Int = gui
 
   def addSync(sync: ISync[_]): Unit = {
     sync.syncIndex = syncs.size

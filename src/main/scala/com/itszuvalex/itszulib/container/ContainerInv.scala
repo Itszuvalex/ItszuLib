@@ -29,7 +29,7 @@ import net.minecraft.item.ItemStack
 /**
   * Created by Christopher Harris (Itszuvalex) on 7/27/14.
   */
-abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T, input: Int, output: Int, registerSyncs: Boolean) extends ContainerBase(registerSyncs) {
+abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T, input: Int, output: Int, gui: Int, registerSyncs: Boolean) extends ContainerBase(gui, registerSyncs) {
   protected final val inventory   : T            = inv
   protected final val player      : EntityPlayer = parPlayer
   protected final val INPUT_SLOT  : Int          = input
@@ -98,7 +98,7 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
   }
 
   protected def addPlayerInventorySlots(inventoryPlayer: InventoryPlayer, inventoryXStart: Int, inventoryYStart: Int) {
-    new IItemStorageSyncBundle(this, new ItemStoragePlayerInventory(inventoryPlayer))
+    new IItemStorageSyncBundle(GuiID, this, new ItemStoragePlayerInventory(inventoryPlayer), true)
 
 //    for (i <- 0 until 3) {
 //      for (j <- 0 until 9) {

@@ -1,7 +1,9 @@
 package com.itszuvalex.itszulib.implicits
 
+import com.itszuvalex.itszulib.api.wrappers.{Converter, IItemStack}
 import com.itszuvalex.itszulib.util.StringUtils
-import net.minecraft.item.ItemStack
+import net.minecraft.block.Block
+import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.oredict.OreDictionary
 
@@ -29,7 +31,7 @@ object ItemStackImplicits {
     def ==(oreDictionary: String) = isOre(oreDictionary)
 
     def isOre(oreDictionary: String) = OreDictionary.getOres(oreDictionary)
-                                       .exists(ItemStack.areItemStacksEqual(_, item))
+      .exists(ItemStack.areItemStacksEqual(_, item))
   }
 
   implicit class ForcedNBT(i: ItemStack) {
@@ -38,6 +40,18 @@ object ItemStackImplicits {
         i.setTagCompound(new NBTTagCompound)
       i.getTagCompound
     }
+  }
+
+  implicit class ItemAdditions(item: Item) {
+    def newStack(amt: Int = 1, damage: Int = 0, nbt: NBTTagCompound = null): ItemStack = new ItemStack(item, amt, damage, nbt)
+
+    def newIStack(amt: Int = 1, damage: Int = 0, nbt: NBTTagCompound = null): IItemStack = Converter.IItemStackFromItemStack(newStack(amt, damage, nbt))
+  }
+
+  implicit class BlockAdditions(block: Block) {
+    def newStack(amt: Int = 1, damage: Int = 0): ItemStack = new ItemStack(block, amt, damage)
+
+    def newIStack(amt: Int = 1, damage: Int = 0): IItemStack = Converter.IItemStackFromItemStack(newStack(amt, damage))
   }
 
 }
