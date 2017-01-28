@@ -52,6 +52,5 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
   }
 
   override def clear(): Unit = {
-    cachedValue = _
   }
 }
