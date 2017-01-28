@@ -17,8 +17,6 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
   var valueSetFunction   : (A) => Unit       = setValFunc
   var valueEqualsFunction: (A, A) => Boolean = equalFunc
 
-  var firstSync = false
-
   override def GuiID: Int = gui
 
   override def syncIndex: Int = _index
@@ -41,10 +39,9 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
     */
   override def update(): Boolean = {
     val newVal = valueFunction()
-    if (!valueEqualsFunction(value, newVal) || !firstSync) {
+    if (!valueEqualsFunction(value, newVal)) {
       cachedValue = cache(newVal)
       Debug.log(Level.WARN, "Updated")
-      firstSync = true
       true
     } else false
   }
@@ -56,6 +53,5 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
 
   override def clear(): Unit = {
     cachedValue = _
-    firstSync = false
   }
 }
