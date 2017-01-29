@@ -1,7 +1,8 @@
 package com.itszuvalex.itszulib.network.messages
 
+import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.container.ContainerBase
-import com.itszuvalex.itszulib.container.sync.{ISync, SyncCache}
+import com.itszuvalex.itszulib.container.sync.ISync
 import com.itszuvalex.itszulib.util.Debug
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.NBTTagCompound
@@ -46,8 +47,8 @@ class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage
           sync.handleNBT(message.NBT)
           sync.updateState(state)
         }
-        Debug.log(Level.WARN, "Received Sync for index:" + message.nbt.getInteger(MessageSync.INDEX_KEY) + "item:" + a.getSync(message.nbt.getInteger(MessageSync.INDEX_KEY)).value.toString)
-      case _ => SyncCache.cache(message)
+        Debug.log(Level.WARN, "Received Sync for index:" + message.SyncIndex + "value:" + Option(a.getSync(message.SyncIndex).value).map(_.toString).getOrElse("null"))
+      case _ => ItszuLib.proxy.syncCache.cache(message)
     }
     null
   }
