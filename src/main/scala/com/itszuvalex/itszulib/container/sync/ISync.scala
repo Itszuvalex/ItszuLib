@@ -9,6 +9,10 @@ import net.minecraft.nbt.NBTBase
 trait ISync[A] {
   def GuiID: Int
 
+  def state: Int
+
+  def updateState(state: Int): Unit
+
   def syncIndex: Int
 
   def syncIndex_=(i: Int): Unit
