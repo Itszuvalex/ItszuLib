@@ -12,10 +12,15 @@ import org.apache.logging.log4j.Level
 abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Unit, equalFunc: (A, A) => Boolean = (a: A, b: A) => (a == null && b == null) || Option(a).exists(_.equals(b))) extends ISync[A] {
   protected var _index         = 0
   protected var cachedValue: A = _
+  private   var lastState      = 0
 
   var valueFunction      : () => A           = valFunc
   var valueSetFunction   : (A) => Unit       = setValFunc
   var valueEqualsFunction: (A, A) => Boolean = equalFunc
+
+  override def state: Int = lastState
+
+  override def updateState(state: Int): Unit = lastState = state
 
   override def GuiID: Int = gui
 
@@ -41,15 +46,14 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
     val newVal = valueFunction()
     if (!valueEqualsFunction(value, newVal)) {
       cachedValue = cache(newVal)
-      Debug.log(Level.WARN, "Updated")
+      lastState += 1
+      Debug.log(Level.WARN, "Updated.  New state = " + lastState)
       true
     } else false
   }
 
   override def sync(player: EntityPlayer): Unit = player match {
-    case p: EntityPlayerMP =>
-      p.connection.sendPacket(ItszuLibPacketHandler.INSTANCE.getPacketFrom(new MessageSync(this)))
-//      ItszuLibPacketHandler.INSTANCE.sendTo(new MessageSync(this), p)
+    case p: EntityPlayerMP => ItszuLibPacketHandler.INSTANCE.sendTo(new MessageSync(this), p)
     case _ =>
   }
 

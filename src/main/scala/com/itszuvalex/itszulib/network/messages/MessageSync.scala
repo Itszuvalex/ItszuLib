@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.network.messages
 
 import com.itszuvalex.itszulib.container.ContainerBase
-import com.itszuvalex.itszulib.container.sync.ISync
+import com.itszuvalex.itszulib.container.sync.{ISync, SyncCache}
 import com.itszuvalex.itszulib.util.Debug
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.NBTTagCompound
@@ -15,6 +15,7 @@ object MessageSync {
   val INDEX_KEY = "index"
   val NBT_KEY   = "nbt"
   val GUI_KEY   = "gui"
+  val STATE_KEY = "state"
 }
 
 class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage]({
@@ -22,16 +23,31 @@ class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage
   nbt.setInteger(MessageSync.GUI_KEY, Option(sync).map(_.GuiID).getOrElse(0))
   nbt.setInteger(MessageSync.INDEX_KEY, Option(sync).map(_.syncIndex).getOrElse(0))
   nbt.setTag(MessageSync.NBT_KEY, Option(sync).map(_.writeNBT()).orNull)
+  nbt.setInteger(MessageSync.STATE_KEY, Option(sync).map(_.state).getOrElse(0))
   nbt
 }) {
 
   def this() = this(null)
 
+  def GuiId = nbt.getInteger(MessageSync.GUI_KEY)
+
+  def SyncIndex = nbt.getInteger(MessageSync.INDEX_KEY)
+
+  def State = nbt.getInteger(MessageSync.STATE_KEY)
+
+  def NBT = nbt.getTag(MessageSync.NBT_KEY)
+
   override def onMessage(message: MessageSync, ctx: MessageContext): IMessage = {
     Minecraft.getMinecraft.thePlayer.openContainer match {
-      case a: ContainerBase if a.GuiID == message.nbt.getInteger(MessageSync.GUI_KEY) => a.getSync(message.nbt.getInteger(MessageSync.INDEX_KEY)).handleNBT(message.nbt.getTag(MessageSync.NBT_KEY))
+      case a: ContainerBase if a.GuiID == message.GuiId =>
+        val sync = a.getSync(message.SyncIndex)
+        val state = message.State
+        if (sync.state < state) {
+          sync.handleNBT(message.NBT)
+          sync.updateState(state)
+        }
         Debug.log(Level.WARN, "Received Sync for index:" + message.nbt.getInteger(MessageSync.INDEX_KEY) + "item:" + a.getSync(message.nbt.getInteger(MessageSync.INDEX_KEY)).value.toString)
-      case _ =>
+      case _ => SyncCache.cache(message)
     }
     null
   }
