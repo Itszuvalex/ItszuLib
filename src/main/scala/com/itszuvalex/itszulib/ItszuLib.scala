@@ -1,7 +1,6 @@
 package com.itszuvalex.itszulib
 
 import com.itszuvalex.itszulib.api.ManagerCapabilities
-import com.itszuvalex.itszulib.container.sync.SyncCache
 import com.itszuvalex.itszulib.logistics.ManagerNetwork
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.proxy.ProxyCommon
@@ -61,7 +60,6 @@ object ItszuLib {
     prev.setCreativeTab(CreativeTabs.DECORATIONS)
     GameRegistry.register(prev, new ResourceLocation("TilePreviewable"))
     proxy.init()
-    SyncCache.init()
   }
 
   @EventHandler def postInit(event: FMLPostInitializationEvent): Unit = {
