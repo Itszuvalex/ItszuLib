@@ -47,7 +47,9 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
   }
 
   override def sync(player: EntityPlayer): Unit = player match {
-    case p: EntityPlayerMP => ItszuLibPacketHandler.INSTANCE.sendTo(new MessageSync(this), p)
+    case p: EntityPlayerMP =>
+      p.connection.sendPacket(ItszuLibPacketHandler.INSTANCE.getPacketFrom(new MessageSync(this)))
+//      ItszuLibPacketHandler.INSTANCE.sendTo(new MessageSync(this), p)
     case _ =>
   }
 
