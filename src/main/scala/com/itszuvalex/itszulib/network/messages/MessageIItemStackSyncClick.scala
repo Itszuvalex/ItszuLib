@@ -65,18 +65,20 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
   def this() = this(null, MessageIItemStackSyncClick.LEFT_CLICK)
 
   override def onMessage(message: MessageIItemStackSyncClick, ctx: MessageContext): IMessage = {
-    ctx.getServerHandler.playerEntity.openContainer match {
-      case a: ContainerBase =>
-        val sync = a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY))
-        val click = MessageIItemStackSyncClick.ClickType.fromName(message.nbt.getString(MessageIItemStackSyncClick.CLICK_KEY))
-        click match {
-          case MessageIItemStackSyncClick.SHIFT_LEFT_CLICK => handleShiftLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
-          case MessageIItemStackSyncClick.LEFT_CLICK => handleLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
-          case MessageIItemStackSyncClick.RIGHT_CLICK => handleRightClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
-          case _ =>
-        }
-      case _ =>
-    }
+    ctx.getServerHandler.playerEntity.mcServer.addScheduledTask(() => {
+      ctx.getServerHandler.playerEntity.openContainer match {
+        case a: ContainerBase =>
+          val sync = a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY))
+          val click = MessageIItemStackSyncClick.ClickType.fromName(message.nbt.getString(MessageIItemStackSyncClick.CLICK_KEY))
+          click match {
+            case MessageIItemStackSyncClick.SHIFT_LEFT_CLICK => handleShiftLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
+            case MessageIItemStackSyncClick.LEFT_CLICK => handleLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
+            case MessageIItemStackSyncClick.RIGHT_CLICK => handleRightClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
+            case _ =>
+          }
+        case _ =>
+      }
+    })
     null
   }
 
@@ -84,7 +86,7 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
     if (!sync.storage(sync.storageIndex).isEmpty) {
       container.syncs.forall {
         case p: SyncItemStorageItemStack =>
-          if (p.isPlayerInv != sync.isPlayerInv && p.storage.canInsert(p.storageIndex, sync.storage(sync.storageIndex) )) {
+          if (p.isPlayerInv != sync.isPlayerInv && p.storage.canInsert(p.storageIndex, sync.storage(sync.storageIndex))) {
             sync.storage(sync.storageIndex) = p.storage.insert(p.storageIndex, sync.storage.split(sync.storageIndex, 64))
           }
           sync.storage(sync.storageIndex).stackSize > 0
