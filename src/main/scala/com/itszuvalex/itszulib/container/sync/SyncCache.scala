@@ -3,7 +3,7 @@ package com.itszuvalex.itszulib.container.sync
 import com.itszuvalex.itszulib.container.ContainerBase
 import com.itszuvalex.itszulib.network.messages.MessageSync
 import net.minecraftforge.event.entity.player.PlayerContainerEvent
-import net.minecraftforge.fml.common.Mod.EventHandler
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -18,7 +18,7 @@ class SyncCache {
     syncCache.getOrElseUpdate(messageSync.GuiId, new ArrayBuffer[MessageSync]()) += messageSync
   }
 
-  @EventHandler
+  @SubscribeEvent
   def onContainerOpen(event: PlayerContainerEvent.Open): Unit = {
     event.getContainer match {
       case c: ContainerBase =>
@@ -26,7 +26,7 @@ class SyncCache {
           a.foreach { message =>
             val sync = c.getSync(message.SyncIndex)
             if (sync.state < message.State) {
-              sync.handleNBT(message.nbt)
+              sync.handleNBT(message.NBT)
               sync.updateState(message.State)
             }
           }
