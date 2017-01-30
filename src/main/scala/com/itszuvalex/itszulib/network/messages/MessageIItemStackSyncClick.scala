@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.network.messages
 
+import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.wrappers.{Converter, IItemStack}
 import com.itszuvalex.itszulib.container.ContainerBase
 import com.itszuvalex.itszulib.container.sync.{ISync, SyncItemStorageItemStack}
@@ -65,7 +66,7 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
   def this() = this(null, MessageIItemStackSyncClick.LEFT_CLICK)
 
   override def onMessage(message: MessageIItemStackSyncClick, ctx: MessageContext): IMessage = {
-    ctx.getServerHandler.playerEntity.mcServer.addScheduledTask(() => {
+    ItszuLib.proxy.addScheduledTask(() => {
       ctx.getServerHandler.playerEntity.openContainer match {
         case a: ContainerBase =>
           val sync = a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY))

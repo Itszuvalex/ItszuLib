@@ -66,4 +66,6 @@ abstract class ProxyCommon extends IGuiHandler {
   override def getClientGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = null
 
   def side: Side
+
+  def addScheduledTask(f: () => Unit)
 }

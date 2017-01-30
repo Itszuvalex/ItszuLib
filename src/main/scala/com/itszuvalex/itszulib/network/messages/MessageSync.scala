@@ -35,17 +35,17 @@ class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage
   def NBT = nbt.getTag(MessageSync.NBT_KEY)
 
   override def onMessage(message: MessageSync, ctx: MessageContext): IMessage = {
-    Minecraft.getMinecraft.addScheduledTask(new Runnable {
-      override def run(): Unit = {
-        Minecraft.getMinecraft.thePlayer.openContainer match {
-          case a: ContainerBase if a.GuiID == message.GuiId =>
-            val sync = a.getSync(message.SyncIndex)
-            sync.handleNBT(message.NBT)
-            Debug.log(Level.WARN, "Received Sync for index:" + message.SyncIndex + "value:" + Option(a.getSync(message.SyncIndex).value).map(_.toString).getOrElse("null"))
-          case _ => ItszuLib.proxy.syncCache.cache(message)
-        }
+    ItszuLib.proxy.addScheduledTask(() => {
+      Minecraft.getMinecraft.thePlayer.openContainer match {
+        case a: ContainerBase if a.GuiID == message.GuiId =>
+          val sync = a.getSync(message.SyncIndex)
+          sync.handleNBT(message.NBT)
+          Debug.log(Level.WARN, "Received Sync for index:" + message.SyncIndex + "value:" + Option(a.getSync(message.SyncIndex).value).map(_.toString).getOrElse("null"))
+        case _ => ItszuLib.proxy.syncCache.cache(message)
       }
-    })
+    }
+    )
     null
   }
+
 }
