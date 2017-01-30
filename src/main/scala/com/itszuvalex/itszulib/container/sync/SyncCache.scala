@@ -25,10 +25,9 @@ class SyncCache {
         syncCache.get(c.GuiID).foreach { a =>
           a.foreach { message =>
             val sync = c.getSync(message.SyncIndex)
-            if (sync.state < message.State) {
+//            if (sync.state < message.State) {
               sync.handleNBT(message.NBT)
-              sync.updateState(message.State)
-            }
+//            }
           }
         }
       case _ =>
