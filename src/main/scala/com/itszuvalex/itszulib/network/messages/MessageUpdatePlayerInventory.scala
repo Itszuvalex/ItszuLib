@@ -12,7 +12,9 @@ class MessageUpdatePlayerInventory(nbt: NBTTagCompound) extends MessageUpdateNBT
   def this() = this(null)
 
   override def onMessage(message: MessageUpdatePlayerInventory, ctx: MessageContext): IMessage = {
-    Minecraft.getMinecraft.thePlayer.inventory.setItemStack(IItemStack.nbtLoader.apply(message.nbt).toMinecraft)
+    Minecraft.getMinecraft.addScheduledTask(new Runnable {
+      override def run(): Unit = Minecraft.getMinecraft.thePlayer.inventory.setItemStack(IItemStack.nbtLoader.apply(message.nbt).toMinecraft)
+    })
     null
   }
 }
