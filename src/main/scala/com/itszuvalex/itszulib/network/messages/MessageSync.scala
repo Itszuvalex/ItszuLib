@@ -41,7 +41,7 @@ class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage
           val sync = a.getSync(message.SyncIndex)
           sync.handleNBT(message.NBT)
           Debug.log(Level.WARN, "Received Sync for index:" + message.SyncIndex + "value:" + Option(a.getSync(message.SyncIndex).value).map(_.toString).getOrElse("null"))
-        case _ => ItszuLib.proxy.syncCache.cache(message)
+        case _ =>
       }
     }
     )

@@ -20,26 +20,21 @@
  */
 package com.itszuvalex.itszulib.proxy
 
-import com.itszuvalex.itszulib.container.sync.SyncCache
 import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.network.IGuiHandler
 import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.fml.relauncher.Side
 
 abstract class ProxyCommon extends IGuiHandler {
-  val syncCache = new SyncCache
-
   def preInit() = {}
 
   def init(): Unit = {
     registerRendering()
     registerTileEntities()
     registerTickHandlers()
-    MinecraftForge.EVENT_BUS.register(syncCache)
   }
 
   def registerRendering() {
