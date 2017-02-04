@@ -9,5 +9,8 @@ import net.minecraftforge.fml.relauncher.Side
 class ProxyServer extends ProxyCommon {
   override def side: Side = Side.SERVER
 
-  override def addScheduledTask(f: () => Unit): Unit = FMLCommonHandler.instance().getMinecraftServerInstance.addScheduledTask(() => f())
+  override def addScheduledTask(f: () => Unit): Unit = FMLCommonHandler.instance().getMinecraftServerInstance.addScheduledTask(
+    new Runnable {
+      override def run() = f()
+    })
 }
