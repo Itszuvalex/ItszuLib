@@ -25,7 +25,7 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 
-allprojects{
+allprojects {
     apply plugin: 'com.jfrog.artifactory'
 
     repositories {
@@ -103,7 +103,7 @@ minecraft {
 }
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.12.1'
+//    compile 'org.scala-lang:scala-library:2.12.1'
 
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..
@@ -275,7 +275,7 @@ artifactory {
 
         }
         defaults {
-            publications ('mod', 'api', 'src', 'deobf', 'scalaDoc')
+            publications('mod', 'api', 'src', 'deobf', 'scalaDoc')
         }
     }
     resolve {
