@@ -50,7 +50,8 @@ object ManagerNetwork {
   }
 
   @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload): Unit = {
-    if (!FMLCommonHandler.instance().getMinecraftServerInstance.isServerRunning) {
+    val server = FMLCommonHandler.instance().getMinecraftServerInstance
+    if (server != null && !server.isServerRunning) {
       networkMap.clear()
     }
   }
