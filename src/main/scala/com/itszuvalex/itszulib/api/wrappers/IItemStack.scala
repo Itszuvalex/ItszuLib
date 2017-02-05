@@ -35,7 +35,7 @@ object IItemStack {
 
     override def stackSizeMax: Int = 64
 
-    override def toMinecraft: ItemStack = ItemStack.field_190927_a
+    override def toMinecraft: ItemStack = ItemStack.EMPTY
   }
 
   val nbtLoader = new Overridable((nbt: NBTTagCompound) => {

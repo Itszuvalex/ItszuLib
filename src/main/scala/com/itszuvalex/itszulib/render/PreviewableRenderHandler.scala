@@ -16,17 +16,17 @@ class PreviewableRenderHandler {
 
   @SubscribeEvent
   def render(event: RenderWorldLastEvent): Unit = {
-    val player = Minecraft.getMinecraft.thePlayer
+    val player = Minecraft.getMinecraft.player
     player.getHeldEquipment.iterator().next() match {
       case null =>
-      case stack if stack.func_190926_b() =>
+      case stack if stack.isEmpty =>
       case stack if stack.hasCapability(Capabilities.ITEM_PREVIEWABLE, null) =>
         val prev = stack.getCapability(Capabilities.ITEM_PREVIEWABLE, null)
         PreviewableRendererRegistry.getRenderer(prev.renderID) match {
           case Some(renderer) =>
             Minecraft.getMinecraft.objectMouseOver match {
               case null =>
-                renderer.render(stack, Minecraft.getMinecraft.thePlayer)
+                renderer.render(stack, Minecraft.getMinecraft.player)
               case vec if vec.typeOfHit == RayTraceResult.Type.BLOCK =>
                 val world = player.getEntityWorld
                 val hitPos = vec.getBlockPos
@@ -38,14 +38,14 @@ class PreviewableRenderHandler {
                 val pz = player.prevPosZ + (player.posZ - player.prevPosZ) * event.getPartialTicks
 
                 if (block.isReplaceable(world, hitPos)) {
-                  renderer.renderAtLocation(stack, Minecraft.getMinecraft.thePlayer, new Loc4(world, hitPos), hitPos.getX - px, hitPos.getY - py, hitPos.getZ - pz)
+                  renderer.renderAtLocation(stack, Minecraft.getMinecraft.player, new Loc4(world, hitPos), hitPos.getX - px, hitPos.getY - py, hitPos.getZ - pz)
                 } else {
                   val bPos = hitPos.offset(vec.sideHit)
-                  renderer.renderAtLocation(stack, Minecraft.getMinecraft.thePlayer, new Loc4(world, bPos), bPos.getX - px, bPos.getY - py, bPos.getZ - pz)
+                  renderer.renderAtLocation(stack, Minecraft.getMinecraft.player, new Loc4(world, bPos), bPos.getX - px, bPos.getY - py, bPos.getZ - pz)
                 }
 
               case _ =>
-                renderer.render(stack, Minecraft.getMinecraft.thePlayer)
+                renderer.render(stack, Minecraft.getMinecraft.player)
             }
           case None =>
         }

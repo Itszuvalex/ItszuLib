@@ -36,7 +36,7 @@ class TileInventoryTest extends TileEntityBase with TileInventory {
     }
   }
 
-  override def func_191420_l(): Boolean = false
+  override def isEmpty: Boolean = inventory.isEmpty
 
   override def getFieldCount: Int = inventory.getFieldCount
 

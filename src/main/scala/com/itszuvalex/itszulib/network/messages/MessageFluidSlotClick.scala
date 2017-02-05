@@ -46,7 +46,7 @@ class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var
 
   override def onMessage(message: MessageFluidSlotClick, ctx: MessageContext): IMessage = {
     val player = ctx.getServerHandler.playerEntity
-    player.worldObj.getTileEntity(message.loc.getPos) match {
+    player.world.getTileEntity(message.loc.getPos) match {
       case tank: TileFluidTank => tileSingleTank = tank; tankID = -1
       case tank: TileMultiFluidTank => tileMultiTank = tank
       case _ => return null
@@ -59,7 +59,7 @@ class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var
 
   def handleItemStackUpdate(player: EntityPlayerMP, stack: ItemStack): Unit = {
     val stk = player.inventory.getItemStack
-    if (stk.func_190916_E == 1) {
+    if (stk.getCount == 1) {
       player.inventory.setItemStack(stack)
       val tag = new NBTTagCompound()
       if (stack != null) {
@@ -68,7 +68,7 @@ class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var
       ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(tag), player)
       return
     }
-    stk.func_190915_d(stk.func_190916_E - 1)
+    stk.setCount(stk.getCount - 1)
     player.inventory.setItemStack(stk)
     val tag = new NBTTagCompound()
     stk.writeToNBT(tag)

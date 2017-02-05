@@ -11,14 +11,11 @@ import net.minecraft.tileentity.TileEntity
   */
 trait TileDescriptionPacket extends TileEntity {
   override def getUpdatePacket: SPacketUpdateTileEntity = {
-    if (!hasDescription) {
-      return null
-    }
-    new SPacketUpdateTileEntity(getPos, getBlockType.getMetaFromState(getWorld.getBlockState(getPos)), getDescriptionTag)
+    if (!hasDescription) null
+    else new SPacketUpdateTileEntity(getPos, getBlockType.getMetaFromState(getWorld.getBlockState(getPos)), getUpdateTag)
   }
 
-
-  def getDescriptionTag: NBTTagCompound = {
+  override def getUpdateTag: NBTTagCompound = {
     val compound = super.getUpdateTag
     saveToDescriptionCompound(compound)
     compound

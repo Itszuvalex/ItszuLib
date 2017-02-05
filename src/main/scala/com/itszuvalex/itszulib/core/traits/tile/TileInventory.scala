@@ -61,7 +61,7 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
     notifyNeighborsOfChange()
   }
 
-  override def isUseableByPlayer(player: EntityPlayer) = canPlayerUse(player)
+  override def isUsableByPlayer(player: EntityPlayer): Boolean = canPlayerUse(player)
 
   override def getStackInSlot(slot: Int) = inventory.getStackInSlot(slot)
 
