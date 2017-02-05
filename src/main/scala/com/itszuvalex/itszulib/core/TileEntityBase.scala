@@ -21,15 +21,16 @@
 package com.itszuvalex.itszulib.core
 
 import com.itszuvalex.itszulib.api.core.Loc4
-import com.itszuvalex.itszulib.core.traits.tile.TileDescriptionPacket
 import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.network.NetworkManager
+import net.minecraft.network.play.server.SPacketUpdateTileEntity
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{EnumFacing, ITickable}
 import net.minecraftforge.common.capabilities.Capability
 
-abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with ITickable {
+abstract class TileEntityBase extends TileEntity with ITickable {
   override def readFromNBT(par1nbtTagCompound: NBTTagCompound) {
     super.readFromNBT(par1nbtTagCompound)
     DataUtils.loadObjectFromNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
@@ -46,6 +47,35 @@ abstract class TileEntityBase extends TileEntity with TileDescriptionPacket with
     else clientUpdate()
   }
 
+  override def getUpdatePacket: SPacketUpdateTileEntity = {
+    if (!hasDescription) null
+    else new SPacketUpdateTileEntity(getPos, getBlockType.getMetaFromState(getWorld.getBlockState(getPos)), getUpdateTag)
+  }
+
+  override def getUpdateTag: NBTTagCompound = {
+    val compound = super.getUpdateTag
+    saveToDescriptionCompound(compound)
+    compound
+  }
+
+  def saveToDescriptionCompound(compound: NBTTagCompound) {
+    DataUtils.saveObjectToNBT(compound, this, DataUtils.EnumSaveType.DESCRIPTION)
+  }
+
+  def hasDescription: Boolean
+
+  override def onDataPacket(net: NetworkManager, pkt: SPacketUpdateTileEntity) {
+    super.onDataPacket(net, pkt)
+    handleDescriptionNBT(pkt.getNbtCompound)
+  }
+
+  override def handleUpdateTag(tag: NBTTagCompound): Unit = {
+    handleDescriptionNBT(tag)
+  }
+
+  def handleDescriptionNBT(compound: NBTTagCompound) {
+    DataUtils.loadObjectFromNBT(compound, this, DataUtils.EnumSaveType.DESCRIPTION)
+  }
 
   /**
     * Gated update call. This will only be called on the server. This should be used instead of updateEntity() for heavy computation, unless the tile absolutely needs to
