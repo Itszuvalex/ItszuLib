@@ -41,6 +41,8 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   override def getName: String = inventory.getName
 
+  override def isEmpty: Boolean = inventory.isEmpty
+
   override def hasCustomName: Boolean = inventory.hasCustomName
 
   override def decrStackSize(slot: Int, amount: Int) = inventory.decrStackSize(slot, amount)
