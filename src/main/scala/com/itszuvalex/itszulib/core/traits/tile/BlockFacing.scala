@@ -57,10 +57,6 @@ trait BlockFacing extends Block {
     worldIn.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing.getOpposite), 2)
   }
 
-  override def onBlockPlaced(worldIn: World, pos: BlockPos, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, meta: Int, placer: EntityLivingBase): IBlockState = {
-    getDefaultState.withProperty(FACING, placer.getHorizontalFacing.getOpposite)
-  }
-
   /**
     * Convert the given metadata into a BlockState for this Block
     */

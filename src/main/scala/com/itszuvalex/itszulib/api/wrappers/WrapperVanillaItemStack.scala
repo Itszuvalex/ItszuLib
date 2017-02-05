@@ -46,13 +46,13 @@ class WrapperVanillaItemStack(private var stack: ItemStack) extends IItemStack {
 
   override def itemID: Int = item.itemID
 
-  override def stackSize_=(size: Int): Unit = toMinecraft.func_190920_e(size)
+  override def stackSize_=(size: Int): Unit = toMinecraft.setCount(size)
 
   override def damage: Int = toMinecraft.getItemDamage
 
   override def damage_=(dam: Int): Unit = toMinecraft.setItemDamage(dam)
 
-  override def stackSize: Int = toMinecraft.func_190916_E
+  override def stackSize: Int = toMinecraft.getCount
 
   override def stackSizeMax: Int = toMinecraft.getMaxStackSize
 
@@ -68,11 +68,11 @@ class WrapperVanillaItemStack(private var stack: ItemStack) extends IItemStack {
 
   override def copy(): IItemStack = WrapperVanillaItemStack(Option(toMinecraft).map(_.copy()).orNull)
 
-  override def toMinecraft: ItemStack = if (stack != null) stack else ItemStack.field_190927_a
+  override def toMinecraft: ItemStack = if (stack != null) stack else ItemStack.EMPTY
 
   override def writeToNBT(nbt: NBTTagCompound): Unit = WrapperVanillaItemStack.nbtWriter.apply(this, nbt)
 
-  override def isEmpty: Boolean = stack == null || stack.func_190926_b()
+  override def isEmpty: Boolean = stack == null || stack.isEmpty
 
   override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = if (isEmpty) null.asInstanceOf[T] else stack.getCapability(capability, facing)
 

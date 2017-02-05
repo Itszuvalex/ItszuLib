@@ -36,7 +36,7 @@ class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage
 
   override def onMessage(message: MessageSync, ctx: MessageContext): IMessage = {
     ItszuLib.proxy.addScheduledTask(() => {
-      Minecraft.getMinecraft.thePlayer.openContainer match {
+      Minecraft.getMinecraft.player.openContainer match {
         case a: ContainerBase if a.GuiID == message.GuiId =>
           val sync = a.getSync(message.SyncIndex)
           sync.handleNBT(message.NBT)

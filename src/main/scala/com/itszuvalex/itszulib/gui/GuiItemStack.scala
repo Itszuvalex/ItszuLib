@@ -40,7 +40,7 @@ abstract class GuiItemStack(override var anchorX: Int,
     itemStack match {
       case null =>
       case a if a.isEmpty =>
-      case i => tooltip ++= i.toMinecraft.getTooltip(Minecraft.getMinecraft.thePlayer, Minecraft.getMinecraft.gameSettings.advancedItemTooltips)
+      case i => tooltip ++= i.toMinecraft.getTooltip(Minecraft.getMinecraft.player, Minecraft.getMinecraft.gameSettings.advancedItemTooltips)
     }
   }
 

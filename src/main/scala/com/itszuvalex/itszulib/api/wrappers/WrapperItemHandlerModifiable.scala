@@ -23,11 +23,11 @@ class WrapperItemHandlerModifiable(storage: IItemStorage) extends IItemHandlerMo
           stack
         }
         else {
-          val room = storage.maxStackSize(slot) - islot.func_190916_E
-          if (room >= stack.func_190916_E) null
+          val room = storage.maxStackSize(slot) - islot.getCount
+          if (room >= stack.getCount) null
           else {
             val ret = stack.copy()
-            ret.func_190920_e(ret.func_190916_E - room)
+            ret.setCount(ret.getCount - room)
             ret
           }
         }
@@ -45,7 +45,7 @@ class WrapperItemHandlerModifiable(storage: IItemStorage) extends IItemHandlerMo
       if (storage(slot).isEmpty) null
       else {
         val ret = storage(slot).copy().toMinecraft
-        ret.func_190920_e(Math.min(ret.func_190916_E(), amount))
+        ret.setCount(Math.min(ret.getCount, amount))
         ret
       }
     }

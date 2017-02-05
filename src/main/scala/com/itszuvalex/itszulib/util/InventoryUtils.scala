@@ -109,7 +109,7 @@ object InventoryUtils {
         k1 = item.stackSize
       }
       val dstack = new ItemStack(item.serializeNBT())
-      dstack.func_190920_e(k1)
+      dstack.setCount(k1)
       val entityItem = new EntityItem(loc.getWorld.get,
         (loc.getPos.getX.toFloat + f).toDouble,
         (loc.getPos.getY.toFloat + f1).toDouble,
@@ -123,7 +123,7 @@ object InventoryUtils {
       entityItem.motionX = (rand.nextGaussian.toFloat * f3).toDouble
       entityItem.motionY = (rand.nextGaussian.toFloat * f3 + 0.2F).toDouble
       entityItem.motionZ = (rand.nextGaussian.toFloat * f3).toDouble
-      loc.getWorld.get.spawnEntityInWorld(entityItem)
+      loc.getWorld.get.spawnEntity(entityItem)
     }
   }
 

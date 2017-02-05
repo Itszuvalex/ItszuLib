@@ -22,7 +22,7 @@ class MessageContainerUpdate(private var index: Int, private var value: Int) ext
   }
 
   override def onMessage(message: MessageContainerUpdate, ctx: MessageContext) = {
-    Minecraft.getMinecraft.thePlayer.openContainer.updateProgressBar(message.index, message.value)
+    Minecraft.getMinecraft.player.openContainer.updateProgressBar(message.index, message.value)
     null
   }
 }

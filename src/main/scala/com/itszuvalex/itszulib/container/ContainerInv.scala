@@ -23,7 +23,7 @@ package com.itszuvalex.itszulib.container
 import com.itszuvalex.itszulib.api.storage.ItemStoragePlayerInventory
 import com.itszuvalex.itszulib.core.TileEntityBase
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
-import net.minecraft.inventory.{IInventory, Slot}
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 
 /**
@@ -50,7 +50,7 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
     */
   override def transferStackInSlot(par1EntityPlayer: EntityPlayer, par2: Int): ItemStack = {
     var itemstack: ItemStack = null
-    val slot = this.inventorySlots.get(par2).asInstanceOf[Slot]
+    val slot = this.inventorySlots.get(par2)
     if (slot != null && slot.getHasStack) {
       val itemstack1 = slot.getStack
       itemstack = itemstack1.copy
@@ -77,16 +77,16 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
           }
         }
       }
-      if (itemstack1.func_190916_E == 0) {
+      if (itemstack1.getCount == 0) {
         slot.putStack(null)
       }
       else {
         slot.onSlotChanged()
       }
-      if (itemstack1.func_190916_E == itemstack.func_190916_E) {
+      if (itemstack1.getCount == itemstack.getCount) {
         return null
       }
-      slot.func_190901_a(par1EntityPlayer, itemstack1)
+      slot.onTake(par1EntityPlayer, itemstack1)
     }
     itemstack
   }

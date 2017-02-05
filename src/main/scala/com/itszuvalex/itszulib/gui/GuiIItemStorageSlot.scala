@@ -37,7 +37,7 @@ class GuiIItemStorageSlot(anchorX: Int, anchorY: Int, storage: IItemStorage, slo
   def renderHighlight: Boolean = isMousedOver
 
   def renderOutline(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
-    val item = Converter.IItemStackFromItemStack(Minecraft.getMinecraft.thePlayer.inventory.getItemStack)
+    val item = Converter.IItemStackFromItemStack(Minecraft.getMinecraft.player.inventory.getItemStack)
     if (item.isEmpty) return
 
     var color: Int = 0

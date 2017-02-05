@@ -4,7 +4,7 @@ import com.itszuvalex.itszulib.api.storage.IItemStorage
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.util.text.{ITextComponent, TextComponentString}
+import net.minecraft.util.text.ITextComponent
 
 /**
   * Created by Chris on 7/31/2016.
@@ -23,7 +23,7 @@ class WrapperIItemStorage(storage: IItemStorage) extends IInventory {
     ret.toMinecraft
   }
 
-  override def func_191420_l(): Boolean = false
+  override def isEmpty: Boolean = storage.forall(_.isEmpty)
 
   override def getDisplayName: ITextComponent = null
 
@@ -44,7 +44,7 @@ class WrapperIItemStorage(storage: IItemStorage) extends IInventory {
     markDirty()
   }
 
-  override def isUseableByPlayer(player: EntityPlayer) = true
+  override def isUsableByPlayer(player: EntityPlayer) = true
 
   override def getStackInSlot(slot: Int): ItemStack = storage(slot).toMinecraft
 

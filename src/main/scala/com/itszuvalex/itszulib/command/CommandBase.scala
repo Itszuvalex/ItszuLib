@@ -23,15 +23,15 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
   def this(name: String) = this(name, ArrayBuffer[String](name))
 
   def addSubCommand(subcommand: ICommand): Boolean = {
-    subcmds.put(subcommand.getCommandName, subcommand)
+    subcmds.put(subcommand.getName, subcommand)
     true
   }
 
-  override def compareTo(o: ICommand): Int = getCommandName.compareTo(o.getCommandName)
+  override def compareTo(o: ICommand): Int = getName.compareTo(o.getName)
 
-  override def getCommandName = name
+  override def getName: String = name
 
-  override def getCommandAliases: java.util.List[String] = aliases
+  override def getAliases: java.util.List[String] = aliases
 
   override def execute(server: MinecraftServer, sender: ICommandSender, args: Array[String]): Unit = {
     if (sender.getEntityWorld.isRemote) {
@@ -46,15 +46,15 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
         case None =>
       }
     }
-    throw new WrongUsageException(getCommandUsage(sender))
+    throw new WrongUsageException(getUsage(sender))
   }
 
-  override def getCommandUsage(sender: ICommandSender): String = {
+  override def getUsage(sender: ICommandSender): String = {
     sender match {
       case player: EntityPlayer =>
         val output = new StringBuilder
         output.append(TextFormatting.YELLOW)
-        output.append(getCommandName)
+        output.append(getName)
         PlayerUtils.sendMessageToPlayer(player, getModName, output.toString)
         output.setLength(0)
         output.append(TextFormatting.BOLD).append("aliases").append(TextFormatting.RESET)
@@ -68,17 +68,17 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
           output.append(TextFormatting.YELLOW)
           val com = getSubCommand(subcommand).get
           output.append(TextFormatting.RED).append(subcommand).append(TextFormatting.YELLOW)
-          com.getCommandAliases.foreach { alias =>
+          com.getAliases.foreach { alias =>
             output.append(TextFormatting.BLUE).append("|").append(TextFormatting.GRAY)
             output.append(alias)
-                                        }
+          }
           com match {
             case base: CommandBase => output.append(TextFormatting.WHITE).append(" - ").append(base.getDescription).append(TextFormatting.YELLOW)
             case _ =>
           }
           PlayerUtils.sendMessageToPlayer(player, getModName, output.toString)
           output.setLength(0)
-                               }
+        }
       case _ =>
     }
     ""
@@ -90,11 +90,11 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
 
   override def checkPermission(server: MinecraftServer, sender: ICommandSender): Boolean = true
 
-  override def getTabCompletionOptions(server: MinecraftServer, sender: ICommandSender, args: Array[String], pos: BlockPos): util.List[String] = {
+  override def getTabCompletions(server: MinecraftServer, sender: ICommandSender, args: Array[String], pos: BlockPos): util.List[String] = {
     if (args.length > 0) {
       getSubCommand(args(0)) match {
         case Some(sub) =>
-          return sub.getTabCompletionOptions(server, sender, util.Arrays.copyOfRange(args, 1, args.length), pos)
+          return sub.getTabCompletions(server, sender, util.Arrays.copyOfRange(args, 1, args.length), pos)
         case None =>
       }
     }
@@ -106,12 +106,12 @@ abstract class CommandBase(val name: String, val aliases: ArrayBuffer[String]) e
       case Some(a) => Some(a)
       case None =>
         subcmds.values.foreach { subc =>
-          subc.getCommandAliases.foreach { alias =>
+          subc.getAliases.foreach { alias =>
             if (alias.compareToIgnoreCase(name) == 0) {
               return Some(subc)
             }
-                                         }
-                               }
+          }
+        }
         None
     }
   }
