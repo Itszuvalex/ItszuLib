@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api
 
+import com.itszuvalex.itszulib.util.PlayerUtils
 import net.minecraft.item.Item
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
@@ -14,5 +15,7 @@ trait IPreviewable extends Item {
     */
   @SideOnly(Side.CLIENT)
   def renderID: Int
+
+  def snapToBlockGrid: Boolean = true
 
 }

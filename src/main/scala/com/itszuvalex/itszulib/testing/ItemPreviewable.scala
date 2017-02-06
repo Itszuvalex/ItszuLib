@@ -20,6 +20,8 @@ class ItemPreviewable extends Item {
               * @return The ID of IPreviewableRenderer.  This is separate from Forge RenderIDs.
               */
             override def renderID: Int = PreviewableIDs.testID
+
+            override def snapToBlockGrid: Boolean = false
           }.asInstanceOf[T]
         else null.asInstanceOf[T]
       }
