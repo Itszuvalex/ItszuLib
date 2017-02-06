@@ -81,13 +81,13 @@ abstract class TileEntityBase extends TileEntity with ITickable {
     * Gated update call. This will only be called on the server. This should be used instead of updateEntity() for heavy computation, unless the tile absolutely needs to
     * update.
     */
-  def serverUpdate() {
+  def serverUpdate(): Unit = {
   }
 
   /**
     * Gated update call.  This will only be called on the client.  This should be used instead of updateEntity() for client-side only things like rendering/sounds.
     */
-  def clientUpdate() = {
+  def clientUpdate(): Unit = {
 
   }
 
@@ -123,17 +123,17 @@ abstract class TileEntityBase extends TileEntity with ITickable {
 
   def canPlayerUse(player: EntityPlayer) = true
 
-  @Deprecated def onInventoryChanged() = setModified()
+  @Deprecated def onInventoryChanged(): Unit = setModified()
 
-  def setModified() = if (getWorld != null) getWorld.markChunkDirty(getPos, this)
+  def setModified(): Unit = if (getWorld != null) getWorld.markChunkDirty(getPos, this)
 
-  def setRenderUpdate() = if (getWorld != null) getWorld.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
+  def setRenderUpdate(): Unit = if (getWorld != null) getWorld.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
 
-  def setUpdate() = if (getWorld != null) {
+  def setUpdate(): Unit = if (getWorld != null) {
     getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
   }
 
-  def notifyNeighborsOfChange() = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, true)
+  def notifyNeighborsOfChange(): Unit = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, true)
 
   def onBlockBreak(): Unit = {}
 

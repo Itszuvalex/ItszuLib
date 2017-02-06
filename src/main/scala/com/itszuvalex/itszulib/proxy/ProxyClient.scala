@@ -67,4 +67,6 @@ class ProxyClient extends ProxyCommon {
   override def side: Side = Side.CLIENT
 
   override def addScheduledTask(f: () => Unit): Unit = Minecraft.getMinecraft.addScheduledTask(new Runnable {override def run(): Unit = f()})
+
+  override def getWorld(id: Int): World = Minecraft.getMinecraft.world
 }
