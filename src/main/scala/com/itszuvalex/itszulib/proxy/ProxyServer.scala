@@ -1,5 +1,7 @@
 package com.itszuvalex.itszulib.proxy
 
+import net.minecraft.world.World
+import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.relauncher.Side
 
@@ -13,4 +15,6 @@ class ProxyServer extends ProxyCommon {
     new Runnable {
       override def run() = f()
     })
+
+  override def getWorld(id: Int): World = DimensionManager.getWorld(id)
 }

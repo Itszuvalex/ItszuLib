@@ -63,4 +63,6 @@ abstract class ProxyCommon extends IGuiHandler {
   def side: Side
 
   def addScheduledTask(f: () => Unit)
+
+  def getWorld(id: Int): World
 }

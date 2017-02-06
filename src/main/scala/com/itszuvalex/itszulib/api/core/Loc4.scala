@@ -20,6 +20,7 @@
  */
 package com.itszuvalex.itszulib.api.core
 
+import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.Overridable
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
@@ -27,7 +28,6 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
-import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.INBTSerializable
 
 /**
@@ -35,7 +35,7 @@ import net.minecraftforge.common.util.INBTSerializable
   */
 object Loc4 {
   val worldIntMapper = new Overridable((w: World) => w.provider.getDimension)
-  val intWorldMapper = new Overridable[(Int) => _ <: World](DimensionManager.getWorld _)
+  val intWorldMapper = new Overridable[(Int) => _ <: World](ItszuLib.proxy.getWorld _)
 
   val ORIGIN = Loc4(0, 0, 0, 0)
 
@@ -128,8 +128,8 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
   }
 
   def getOffset(dir: EnumFacing, distance: Int = 1): Loc4 = getOffset(distance * dir.getFrontOffsetX,
-                                                                      distance * dir.getFrontOffsetY,
-                                                                      distance * dir.getFrontOffsetZ)
+    distance * dir.getFrontOffsetY,
+    distance * dir.getFrontOffsetZ)
 
 
   def getOffset(xOffset: Int, yOffset: Int, zOffset: Int): Loc4 = new Loc4(x + xOffset, y + yOffset, z + zOffset, dim)
