@@ -31,7 +31,7 @@ import net.minecraft.item.Item
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.client.ForgeHooksClient
-import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.{DimensionManager, MinecraftForge}
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.relauncher.Side
 
@@ -68,5 +68,5 @@ class ProxyClient extends ProxyCommon {
 
   override def addScheduledTask(f: () => Unit): Unit = Minecraft.getMinecraft.addScheduledTask(new Runnable {override def run(): Unit = f()})
 
-  override def getWorld(id: Int): World = Minecraft.getMinecraft.world
+  override def getWorld(id: Int): World = Option(DimensionManager.getWorld(id)).getOrElse(Minecraft.getMinecraft.world)
 }
