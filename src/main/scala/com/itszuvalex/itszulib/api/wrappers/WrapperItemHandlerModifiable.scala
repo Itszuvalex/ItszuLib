@@ -16,7 +16,7 @@ class WrapperItemHandlerModifiable(storage: IItemStorage) extends IItemHandlerMo
 
   override def insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack = {
     if (simulate) {
-      if (stack == null) stack
+      if (stack == null || stack.isEmpty) stack
       else {
         val islot = storage(slot).copy().toMinecraft
         if (!(ItemStack.areItemsEqual(stack, islot) && ItemStack.areItemStackTagsEqual(stack, islot))) {
@@ -24,7 +24,7 @@ class WrapperItemHandlerModifiable(storage: IItemStorage) extends IItemHandlerMo
         }
         else {
           val room = storage.maxStackSize(slot) - islot.getCount
-          if (room >= stack.getCount) null
+          if (room >= stack.getCount) ItemStack.EMPTY
           else {
             val ret = stack.copy()
             ret.setCount(ret.getCount - room)
@@ -42,7 +42,7 @@ class WrapperItemHandlerModifiable(storage: IItemStorage) extends IItemHandlerMo
 
   override def extractItem(slot: Int, amount: Int, simulate: Boolean): ItemStack = {
     if (simulate) {
-      if (storage(slot).isEmpty) null
+      if (storage(slot).isEmpty) ItemStack.EMPTY
       else {
         val ret = storage(slot).copy().toMinecraft
         ret.setCount(Math.min(ret.getCount, amount))
