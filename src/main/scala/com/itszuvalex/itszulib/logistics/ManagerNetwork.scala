@@ -30,12 +30,14 @@ object ManagerNetwork {
     Debug.log(Level.WARN, "Added Network:" + network.ID)
     Debug.log(Level.WARN, "Active Networks:" + networkMap.size)
     networkMap(network.ID) = network
+    Debug.log(Level.WARN, "Active Network After Addition:" + networkMap.size)
   }
 
   def removeNetwork(network: INetwork[_, _]) = {
     Debug.log(Level.WARN, "Removed Network:" + network.ID)
     Debug.log(Level.WARN, "Active Networks:" + networkMap.size)
     networkMap.remove(network.ID)
+    Debug.log(Level.WARN, "Active Networks After Removal:" + networkMap.size)
   }
 
   def init(): Unit = {
