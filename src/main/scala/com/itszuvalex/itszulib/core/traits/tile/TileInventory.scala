@@ -10,6 +10,7 @@ import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.text.ITextComponent
+import net.minecraftforge.common.capabilities.Capability
 
 /**
   * Created by Chris on 11/29/2014.
@@ -76,6 +77,13 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
     }
     else
       super.getCapability[T](capability, facing)
+  }
+
+  override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
+    if (capability == net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) true
+    else if (capability == Capabilities.ITEM_STORAGE) true
+    else
+      super.hasCapability(capability, facing)
   }
 
 }
