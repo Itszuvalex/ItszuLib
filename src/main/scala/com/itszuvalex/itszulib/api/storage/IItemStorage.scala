@@ -7,6 +7,27 @@ import net.minecraftforge.common.util.INBTSerializable
 /**
   * Created by Christopher Harris (Itszuvalex) on 7/14/16.
   */
+object IItemStorage {
+  val Empty = new IItemStorage {
+    /**
+      *
+      * @param i Index to update
+      * @param s IItemStack to set
+      */
+    override def update(i: Int, s: IItemStack): Unit = {}
+
+    /**
+      *
+      * @param i Index
+      *
+      * @return Get IItemStack contained at this location.  This should never return null, as IItemStacks track their own emptiness.
+      */
+    override def apply(i: Int) = IItemStack.Empty
+
+    override def length = 0
+  }
+}
+
 trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTSerializable[NBTTagCompound] {
 
   /**

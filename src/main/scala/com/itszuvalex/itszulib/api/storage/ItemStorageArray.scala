@@ -7,7 +7,7 @@ import com.itszuvalex.itszulib.api.wrappers.IItemStack
   */
 class ItemStorageArray(private var storage: Array[IItemStack]) extends IItemStorage {
   // Memory already allocated, might as well just prefill to default value
-  storage.indices.filter(storage(_) == null).foreach(storage(_) = IItemStack.Empty)
+  storage.indices.withFilter(storage(_) == null).foreach(storage(_) = IItemStack.Empty)
 
   def this(size: Int) = this(new Array[IItemStack](size))
 
