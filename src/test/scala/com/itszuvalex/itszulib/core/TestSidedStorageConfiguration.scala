@@ -56,22 +56,24 @@ class TestSidedStorageConfiguration extends TestBase {
       }
     }
 
-    "getInventoryForGlobalFacing" in new TestConfiguration {
-
+    "getStorageForGlobalFacing" in new TestConfiguration {
+      val facing = EnumFacing.VALUES(1)
+      config.getStorageForGlobalFacing(facing) shouldBe invB
     }
 
-
-    "getInventoryForRelativeFacing" in new TestConfiguration {
-
+    "getStorageForRelativeFacing" in new TestConfiguration {
+      val facing = EnumFacing.VALUES(1)
+      config.getStorageForRelativeFacing(facing) shouldBe invB
     }
 
-    "getInventoryNameForRelativeFacing" in new TestConfiguration {
-
+    "getStorageNameForRelativeFacing" in new TestConfiguration {
+      val facing = EnumFacing.VALUES(1)
+      config.getStorageNameForRelativeFacing(facing) shouldBe keyB
     }
 
-    "getInventoryNameForAbsoluteFacing" in new TestConfiguration {
-
+    "getStorageNameForAbsoluteFacing" in new TestConfiguration {
+      val facing = EnumFacing.VALUES(1)
+      config.getStorageNameForAbsoluteFacing(facing) shouldBe keyB
     }
-
   }
 }
