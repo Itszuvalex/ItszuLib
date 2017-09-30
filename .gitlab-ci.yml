@@ -17,7 +17,7 @@ setup_forge:
     - ./gradlew setupCIWorkspace
   cache:
     untracked: true
-    key: "$CI_BUILD_NAME"
+    key: "cache_main_pipe"
 
 build_mod:
   stage: build
@@ -28,7 +28,7 @@ build_mod:
     - ./gradlew build -x test
   cache:
     untracked: true
-    key: "$CI_BUILD_NAME"
+    key: "cache_main_pipe"
 
 test_mod:
   stage: test
@@ -39,7 +39,7 @@ test_mod:
     - ./gradlew test
   cache:
     untracked: true
-    key: "$CI_BUILD_NAME"
+    key: "cache_main_pipe"
 
 publish_mod:
   stage: publish
@@ -50,4 +50,4 @@ publish_mod:
     - ./gradlew artifactoryPublish
   cache:
     untracked: true
-    key: "$CI_BUILD_NAME"
+    key: "cache_main_pipe"
