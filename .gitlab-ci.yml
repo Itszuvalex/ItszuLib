@@ -40,8 +40,6 @@ test_mod:
     - develop
   script:
     - ./gradlew test -g ./.gradlecache
-  cache:
-    policy: pull
 
 publish_mod:
   stage: publish
@@ -50,5 +48,3 @@ publish_mod:
     - develop
   script:
     - ./gradlew artifactoryPublish -g ./.gradlecache
-  cache:
-    policy: pull
