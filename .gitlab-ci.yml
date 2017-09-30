@@ -12,7 +12,8 @@ cache:
   paths:
     - .gradle/
     - src/
-    - build/  
+    - build/
+    - .gradlecache/
 
 setup_forge:
   stage: setup
@@ -22,7 +23,7 @@ setup_forge:
   script:
     - rm -rf build/libs/*
     - chmod +x ./gradlew
-    - ./gradlew setupCIWorkspace
+    - ./gradlew setupCIWorkspace -g ./.gradlecache
 
 build_mod:
   stage: build
@@ -30,7 +31,7 @@ build_mod:
     - master
     - develop
   script:
-    - ./gradlew build -x test
+    - ./gradlew build -x test -g ./.gradlecache
 
 test_mod:
   stage: test
@@ -38,7 +39,7 @@ test_mod:
     - master
     - develop
   script:
-    - ./gradlew test
+    - ./gradlew test -g ./.gradlecache
   cache:
     policy: pull
 
@@ -48,6 +49,6 @@ publish_mod:
     - master
     - develop
   script:
-    - ./gradlew artifactoryPublish
+    - ./gradlew artifactoryPublish -g ./.gradlecache
   cache:
     policy: pull
