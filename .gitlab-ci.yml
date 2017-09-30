@@ -6,6 +6,14 @@ stages:
   - test
   - publish
 
+cache:
+  untracked: true
+  key: "default"
+  paths:
+    - .gradle/
+    - src/
+    - build/  
+
 setup_forge:
   stage: setup
   only:
@@ -15,9 +23,6 @@ setup_forge:
     - rm -rf build/libs/*
     - chmod +x ./gradlew
     - ./gradlew setupCIWorkspace
-  cache:
-    untracked: true
-    key: "cache_main_pipe"
 
 build_mod:
   stage: build
@@ -26,9 +31,6 @@ build_mod:
     - develop
   script:
     - ./gradlew build -x test
-  cache:
-    untracked: true
-    key: "cache_main_pipe"
 
 test_mod:
   stage: test
@@ -38,8 +40,7 @@ test_mod:
   script:
     - ./gradlew test
   cache:
-    untracked: true
-    key: "cache_main_pipe"
+    policy: pull
 
 publish_mod:
   stage: publish
@@ -49,5 +50,4 @@ publish_mod:
   script:
     - ./gradlew artifactoryPublish
   cache:
-    untracked: true
-    key: "cache_main_pipe"
+    policy: pull
