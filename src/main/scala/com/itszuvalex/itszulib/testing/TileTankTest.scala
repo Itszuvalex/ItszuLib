@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.testing
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.core.TileEntityBase
 import com.itszuvalex.itszulib.core.traits.tile.TileMultiFluidTank
+import com.itszuvalex.itszulib.gui.ItszuGuiHandler
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.capability.IFluidTankProperties
@@ -30,7 +31,7 @@ class TileTankTest extends TileEntityBase with TileMultiFluidTank {
   override def hasDescription: Boolean = true
 
   override def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {
-    par5EntityPlayer.openGui(getMod, 0, getWorld, getPos.getX, getPos.getY, getPos.getZ)
+    ItszuGuiHandler.openGui(par5EntityPlayer, getMod, 0, side.ordinal(), getWorld, getPos.getX, getPos.getY, getPos.getZ)
     true
   }
 

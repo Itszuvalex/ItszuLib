@@ -20,15 +20,15 @@
  */
 package com.itszuvalex.itszulib.proxy
 
+import com.itszuvalex.itszulib.gui.ItszuGuiHandler
 import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.fml.common.network.IGuiHandler
 import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.fml.relauncher.Side
 
-abstract class ProxyCommon extends IGuiHandler {
+abstract class ProxyCommon extends ItszuGuiHandler {
   def preInit() = {}
 
   def init(): Unit = {
@@ -50,7 +50,7 @@ abstract class ProxyCommon extends IGuiHandler {
   def registerTickHandlers() {
   }
 
-  override def getServerGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
+  override def getServerGuiElement(ID: Int, data: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     (ID, world.getTileEntity(new BlockPos(x, y, z))) match {
       case (0, te: TileTankTest) => new ContainerTankTest(player, player.inventory, te, true)
       case (1, te: TileInventoryTest) => new ContainerInventoryTest(player, player.inventory, te, true)
@@ -58,7 +58,7 @@ abstract class ProxyCommon extends IGuiHandler {
     }
   }
 
-  override def getClientGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = null
+  override def getClientGuiElement(ID: Int, data: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = null
 
   def side: Side
 
