@@ -1,18 +1,53 @@
 image: java:8-jdk
 
 stages:
+  - setup
   - build
+  - test
+  - publish
 
-full_build:
+setup_forge:
+  stage: setup
+  only:
+   - master
+   - develop
+  script:
+    - rm -rf build/libs/*
+    - chmod +x ./gradlew
+    - ./gradlew setupCIWorkspace
+  cache:
+    untracked: true
+    key: "$CI_BUILD_NAME"
+
+build_mod:
   stage: build
   only:
     - master
     - develop
   script:
-    - rm -rf build/libs/*
-    - chmod +x ./gradlew
-    - ./gradlew setupCIWorkspace
     - ./gradlew build -x test
+    - ./gradlew artifactoryPublish
+  cache:
+    untracked: true
+    key: "$CI_BUILD_NAME"
+
+test_mod:
+  stage: test
+  only:
+    - master
+    - develop
+  script:
+    - ./gradlew test
+  cache:
+    untracked: true
+    key: "$CI_BUILD_NAME"
+
+publish_mod:
+  stage: publish
+  only:
+    - master
+    - develop
+  script:
     - ./gradlew artifactoryPublish
   cache:
     untracked: true
