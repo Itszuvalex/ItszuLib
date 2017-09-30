@@ -26,7 +26,6 @@ build_mod:
     - develop
   script:
     - ./gradlew build -x test
-    - ./gradlew artifactoryPublish
   cache:
     untracked: true
     key: "$CI_BUILD_NAME"
