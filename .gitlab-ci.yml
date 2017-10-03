@@ -13,7 +13,7 @@ cache:
     - .gradle/
     - src/
     - build/
-    - builds/
+    - /builds/
     - .gradlecache/
 
 setup_forge:
@@ -48,4 +48,4 @@ publish_mod:
     - master
     - develop
   script:
-    - ./gradlew artifactoryPublish -g ./.gradlecache
+    - ./gradlew artifactoryPublish -g ./.gradlecache --info
