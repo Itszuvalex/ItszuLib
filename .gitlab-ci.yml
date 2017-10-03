@@ -13,6 +13,7 @@ cache:
     - .gradle/
     - src/
     - build/
+    - builds/
     - .gradlecache/
 
 setup_forge:
