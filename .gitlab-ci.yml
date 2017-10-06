@@ -1,15 +1,5 @@
 image: java:8-jdk
 
-cache:
-  untracked: true
-  key: "default"
-  paths:
-    - .gradle/
-    - src/
-    - build/
-    - /builds/
-    - .gradlecache/
-
 stages:
   - build
 
@@ -23,4 +13,4 @@ full_build:
     - chmod +x ./gradlew
     - ./gradlew setupCIWorkspace
     - ./gradlew build -x test
-    - ./gradlew artifactoryPublish --info
+    - ./gradlew artifactoryPublish
