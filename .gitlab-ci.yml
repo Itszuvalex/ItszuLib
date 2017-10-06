@@ -23,4 +23,4 @@ full_build:
     - chmod +x ./gradlew
     - ./gradlew setupCIWorkspace
     - ./gradlew build -x test
-    - ./gradlew artifactoryPublish
+    - ./gradlew artifactoryPublish --info
