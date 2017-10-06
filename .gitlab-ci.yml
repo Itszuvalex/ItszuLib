@@ -1,11 +1,5 @@
 image: java:8-jdk
 
-stages:
-  - setup
-  - build
-  - test
-  - publish
-
 cache:
   untracked: true
   key: "default"
@@ -16,36 +10,17 @@ cache:
     - /builds/
     - .gradlecache/
 
-setup_forge:
-  stage: setup
-  only:
-   - master
-   - develop
-  script:
-    - rm -rf build/libs/*
-    - chmod +x ./gradlew
-    - ./gradlew setupCIWorkspace -g ./.gradlecache
+stages:
+  - build
 
-build_mod:
+full_build:
   stage: build
   only:
     - master
     - develop
   script:
-    - ./gradlew build -x test -g ./.gradlecache
-
-test_mod:
-  stage: test
-  only:
-    - master
-    - develop
-  script:
-    - ./gradlew test -g ./.gradlecache
-
-publish_mod:
-  stage: publish
-  only:
-    - master
-    - develop
-  script:
-    - ./gradlew artifactoryPublish -g ./.gradlecache --info
+    - rm -rf build/libs/*
+    - chmod +x ./gradlew
+    - ./gradlew setupCIWorkspace
+    - ./gradlew build -x test
+    - ./gradlew artifactoryPublish
