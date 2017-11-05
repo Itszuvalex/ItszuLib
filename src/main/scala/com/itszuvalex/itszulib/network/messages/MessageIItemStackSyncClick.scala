@@ -67,14 +67,14 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
 
   override def onMessage(message: MessageIItemStackSyncClick, ctx: MessageContext): IMessage = {
     ItszuLib.proxy.addScheduledTask(() => {
-      ctx.getServerHandler.playerEntity.openContainer match {
+      ctx.getServerHandler.player.openContainer match {
         case a: ContainerBase =>
           val sync = a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY))
           val click = MessageIItemStackSyncClick.ClickType.fromName(message.nbt.getString(MessageIItemStackSyncClick.CLICK_KEY))
           click match {
-            case MessageIItemStackSyncClick.SHIFT_LEFT_CLICK => handleShiftLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
-            case MessageIItemStackSyncClick.LEFT_CLICK => handleLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
-            case MessageIItemStackSyncClick.RIGHT_CLICK => handleRightClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.playerEntity)
+            case MessageIItemStackSyncClick.SHIFT_LEFT_CLICK => handleShiftLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.player)
+            case MessageIItemStackSyncClick.LEFT_CLICK => handleLeftClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.player)
+            case MessageIItemStackSyncClick.RIGHT_CLICK => handleRightClick(a, a.getSync(message.nbt.getInteger(MessageIItemStackSyncClick.INDEX_KEY)).asInstanceOf[SyncItemStorageItemStack], ctx.getServerHandler.player)
             case _ =>
           }
         case _ =>

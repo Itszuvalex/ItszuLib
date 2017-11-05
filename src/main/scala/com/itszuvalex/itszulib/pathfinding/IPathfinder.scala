@@ -9,7 +9,7 @@ import net.minecraft.util.EnumFacing
 trait IPathfinder {
 
   var isGoalState : (Loc4) => Boolean   = null
-  var isPathable  : (Loc4) => Boolean   = (loc) => loc.getBlock(force = false).exists(_.isBlockSolid(loc.getWorld.orNull, loc.getPos, EnumFacing.UP))
+  var isPathable  : (Loc4) => Boolean   = (loc) => loc.getBlock(force = false).exists(_.isTopSolid(loc.getBlockState(force = true).get))
   var getNeighbors: (Loc4) => Set[Loc4] = (loc) => EnumFacing.VALUES.map(loc.getOffset(_, 1)).toSet
 
   def isCompleted: Boolean

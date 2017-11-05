@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.testing
 
 import com.itszuvalex.itszulib.render.RenderUtils._
 import com.itszuvalex.itszulib.render.{RenderUtils, ShaderUtils}
+import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.init.Blocks
@@ -18,7 +19,7 @@ object RenderPortalTest {
 
 class RenderPortalTest extends TileEntitySpecialRenderer[PortalTileTest] {
 
-  override def renderTileEntityAt(te: PortalTileTest, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int): Unit = {
+  override def renderTileEntityFast(te: PortalTileTest, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int, partial: Float, buffer: BufferBuilder) = {
     renderBackground(x, y, z)
 
     //    bindTexture(RenderPortalTest.skyLocation)
@@ -55,37 +56,37 @@ class RenderPortalTest extends TileEntitySpecialRenderer[PortalTileTest] {
     val zmin = 0
     val zmax = 1
     translationBlock(x, y, z) {
-                                drawBlock(DefaultVertexFormats.POSITION) {
-                                                                           addVertex(xmin, ymax, zmin).endVertex()
-                                                                           addVertex(xmin, ymax, zmax).endVertex()
-                                                                           addVertex(xmax, ymax, zmax).endVertex()
-                                                                           addVertex(xmax, ymax, zmin).endVertex()
+      drawBlock(DefaultVertexFormats.POSITION) {
+        addVertex(xmin, ymax, zmin).endVertex()
+        addVertex(xmin, ymax, zmax).endVertex()
+        addVertex(xmax, ymax, zmax).endVertex()
+        addVertex(xmax, ymax, zmin).endVertex()
 
-                                                                           addVertex(xmin, ymin, zmin).endVertex()
-                                                                           addVertex(xmax, ymin, zmin).endVertex()
-                                                                           addVertex(xmax, ymin, zmax).endVertex()
-                                                                           addVertex(xmin, ymin, zmax).endVertex()
+        addVertex(xmin, ymin, zmin).endVertex()
+        addVertex(xmax, ymin, zmin).endVertex()
+        addVertex(xmax, ymin, zmax).endVertex()
+        addVertex(xmin, ymin, zmax).endVertex()
 
-                                                                           addVertex(xmin, ymin, zmin).endVertex()
-                                                                           addVertex(xmin, ymax, zmin).endVertex()
-                                                                           addVertex(xmax, ymax, zmin).endVertex()
-                                                                           addVertex(xmax, ymin, zmin).endVertex()
+        addVertex(xmin, ymin, zmin).endVertex()
+        addVertex(xmin, ymax, zmin).endVertex()
+        addVertex(xmax, ymax, zmin).endVertex()
+        addVertex(xmax, ymin, zmin).endVertex()
 
-                                                                           addVertex(xmax, ymin, zmin).endVertex()
-                                                                           addVertex(xmax, ymax, zmin).endVertex()
-                                                                           addVertex(xmax, ymax, zmax).endVertex()
-                                                                           addVertex(xmax, ymin, zmax).endVertex()
+        addVertex(xmax, ymin, zmin).endVertex()
+        addVertex(xmax, ymax, zmin).endVertex()
+        addVertex(xmax, ymax, zmax).endVertex()
+        addVertex(xmax, ymin, zmax).endVertex()
 
-                                                                           addVertex(xmin, ymin, zmax).endVertex()
-                                                                           addVertex(xmax, ymin, zmax).endVertex()
-                                                                           addVertex(xmax, ymax, zmax).endVertex()
-                                                                           addVertex(xmin, ymax, zmax).endVertex()
+        addVertex(xmin, ymin, zmax).endVertex()
+        addVertex(xmax, ymin, zmax).endVertex()
+        addVertex(xmax, ymax, zmax).endVertex()
+        addVertex(xmin, ymax, zmax).endVertex()
 
-                                                                           addVertex(xmin, ymin, zmin).endVertex()
-                                                                           addVertex(xmin, ymin, zmax).endVertex()
-                                                                           addVertex(xmin, ymax, zmax).endVertex()
-                                                                           addVertex(xmin, ymax, zmin).endVertex()
-                                                                         }
-                              }
+        addVertex(xmin, ymin, zmin).endVertex()
+        addVertex(xmin, ymin, zmax).endVertex()
+        addVertex(xmin, ymax, zmax).endVertex()
+        addVertex(xmin, ymax, zmin).endVertex()
+      }
+    }
   }
 }

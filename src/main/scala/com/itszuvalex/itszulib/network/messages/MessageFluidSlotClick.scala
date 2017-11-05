@@ -45,7 +45,7 @@ class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var
   }
 
   override def onMessage(message: MessageFluidSlotClick, ctx: MessageContext): IMessage = {
-    val player = ctx.getServerHandler.playerEntity
+    val player = ctx.getServerHandler.player
     player.world.getTileEntity(message.loc.getPos) match {
       case tank: TileFluidTank => tileSingleTank = tank; tankID = -1
       case tank: TileMultiFluidTank => tileMultiTank = tank

@@ -20,7 +20,7 @@
  */
 package com.itszuvalex.itszulib.proxy
 
-import com.itszuvalex.itszulib.ItszuLib
+import com.itszuvalex.itszulib.{ItszuBlocks, ItszuLib}
 import com.itszuvalex.itszulib.gui.GuiStack
 import com.itszuvalex.itszulib.render.{PreviewableRenderHandler, PreviewableRendererRegistry, ShaderUtils}
 import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
@@ -48,10 +48,10 @@ class ProxyClient extends ProxyCommon {
     ClientRegistry.bindTileEntitySpecialRenderer[PortalTileTest](classOf[PortalTileTest], new RenderPortalTest)
     ClientRegistry.bindTileEntitySpecialRenderer[TileTankTest](classOf[TileTankTest], new RenderSidedCubeTest)
 
-    ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ItszuLib.blockTankTest), 0, classOf[TileTankTest])
-    ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ItszuLib.blockPortalTest), 0, classOf[PortalTileTest])
-    Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(ItszuLib.blockTankTest), 0, new ModelResourceLocation(ItszuLib.ID.toLowerCase() + ":" + "BlockTankTest", "inventory"))
-    Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(ItszuLib.blockPortalTest), 0, new ModelResourceLocation(ItszuLib.ID.toLowerCase() + ":" + "BlockPortalTest", "inventory"))
+    ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ItszuBlocks.blockTankTest), 0, classOf[TileTankTest])
+    ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ItszuBlocks.blockPortalTest), 0, classOf[PortalTileTest])
+    Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(ItszuBlocks.blockTankTest), 0, new ModelResourceLocation(ItszuLib.ID.toLowerCase() + ":" + "BlockTankTest", "inventory"))
+    Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(ItszuBlocks.blockPortalTest), 0, new ModelResourceLocation(ItszuLib.ID.toLowerCase() + ":" + "BlockPortalTest", "inventory"))
 
     GuiStack.init()
   }

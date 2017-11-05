@@ -22,10 +22,10 @@ object GuiButton {
 }
 
 class GuiButton(override var anchorX: Int,
-                override var anchorY: Int,
-                override var _panelWidth: Int,
-                override var _panelHeight: Int,
-                var text: String = "") extends GuiPanel {
+  override var anchorY: Int,
+  override var _panelWidth: Int,
+  override var _panelHeight: Int,
+  var text: String = "") extends GuiPanel {
   var colorRaised    = GuiButton.DEFAULT_RAISED_COLOR
   var colorLowered   = GuiButton.DEFAULT_LOWERED_COLOR
   var colorDefault   = GuiButton.DEFAULT_BUTTON_COLOR
@@ -66,18 +66,18 @@ class GuiButton(override var anchorX: Int,
     if (!isDisabled && isMousedOver)
       Gui.drawRect(screenX, screenY, screenX + panelWidth, screenY + panelHeight, colorHighlight)
 
-    val fr = Minecraft.getMinecraft.fontRendererObj
+    val fr = Minecraft.getMinecraft.fontRenderer
     val lines = fr.listFormattedStringToWidth(text, panelWidth - 2)
     var height = 0
     lines.foreach { _ =>
       if (height == 0 || !((height + fr.FONT_HEIGHT) < (panelHeight - 2))) height += fr.FONT_HEIGHT
-                  }
+    }
     val yBuff = (panelHeight - height - 2) / 2
     var yOffset = 0
     lines.foreach { line =>
       val xBuff = (panelWidth - fr.getStringWidth(line) - 2) / 2
       fr.drawString(line, screenX + xBuff + 1, screenY + yBuff + 1 + yOffset, colorFont)
       yOffset += fr.FONT_HEIGHT
-                  }
+    }
   }
 }

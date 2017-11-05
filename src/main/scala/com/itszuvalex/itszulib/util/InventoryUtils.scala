@@ -117,7 +117,7 @@ object InventoryUtils {
         dstack)
       item.stackSize -= k1
       if (item.hasNbt) {
-        entityItem.getEntityItem.setTagCompound(item.nbt.copy)
+        entityItem.getItem.setTagCompound(item.nbt.copy)
       }
       val f3 = 0.05F
       entityItem.motionX = (rand.nextGaussian.toFloat * f3).toDouble

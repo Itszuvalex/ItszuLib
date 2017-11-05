@@ -75,7 +75,7 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
     renderUpdate(anchorX, anchorY, mouseX - anchorX, mouseY - anchorY, partialTicks)
     val tooltipList = new ListBuffer[String]
     subElements.foreach(gui => if (gui.isMousedOver) gui.addTooltip(mouseX, mouseY, tooltipList))
-    if (tooltipList.nonEmpty) drawHoveringText(tooltipList.toList, mouseX, mouseY, fontRendererObj)
+    if (tooltipList.nonEmpty) drawHoveringText(tooltipList.toList, mouseX, mouseY, fontRenderer)
   }
 
   protected def addPlayerInventorySlots(inventoryPlayer: InventoryPlayer) {

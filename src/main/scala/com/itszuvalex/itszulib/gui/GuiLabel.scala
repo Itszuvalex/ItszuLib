@@ -25,7 +25,7 @@ class GuiLabel(override var anchorX: Int,
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)
     GL11.glPushMatrix()
     GL11.glScalef(scaling, scaling, scaling)
-    Minecraft.getMinecraft.fontRendererObj.drawSplitString(text(), screenX + xPadding, screenY + yPadding, panelWidth - 2 * xPadding, colorFont)
+    Minecraft.getMinecraft.fontRenderer.drawSplitString(text(), screenX + xPadding, screenY + yPadding, panelWidth - 2 * xPadding, colorFont)
     GL11.glPopMatrix()
   }
 }

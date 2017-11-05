@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.render
 
 import com.itszuvalex.itszulib.render.RenderUtils.translationBlock
+import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{EnumFacing, ResourceLocation}
 import org.lwjgl.opengl.GL11
@@ -26,8 +27,8 @@ abstract class TileEntityRenderCube[T <: TileEntity](modName: String, val sides:
     }
   }
 
-  override def renderTileEntityInWorld(te: T, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int): Unit = {
-    super.renderTileEntityInWorld(te, x, y, z, partialTicks, destroyStage)
+  override def renderTileEntityInWorld(te: T, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int, partial: Float, buffer: BufferBuilder): Unit = {
+    super.renderTileEntityInWorld(te, x, y, z, partialTicks, destroyStage, partial, buffer)
     translationBlock(x, y, z) {
       renderCube()
     }
