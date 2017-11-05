@@ -2,7 +2,6 @@ package com.itszuvalex.itszulib.testing
 
 import com.itszuvalex.itszulib.render.RenderUtils._
 import com.itszuvalex.itszulib.render.{RenderUtils, ShaderUtils}
-import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.init.Blocks
@@ -19,7 +18,7 @@ object RenderPortalTest {
 
 class RenderPortalTest extends TileEntitySpecialRenderer[PortalTileTest] {
 
-  override def renderTileEntityFast(te: PortalTileTest, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int, partial: Float, buffer: BufferBuilder) = {
+  override def render(te: PortalTileTest, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int, alpha: Float) = {
     renderBackground(x, y, z)
 
     //    bindTexture(RenderPortalTest.skyLocation)

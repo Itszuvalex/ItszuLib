@@ -27,6 +27,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.SPacketUpdateTileEntity
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.text.TextComponentString
 import net.minecraft.util.{EnumFacing, ITickable}
 import net.minecraftforge.common.capabilities.Capability
 
@@ -41,6 +42,8 @@ abstract class TileEntityBase extends TileEntity with ITickable {
     DataUtils.saveObjectToNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
     par1nbtTagCompound
   }
+
+  override def getDisplayName = new TextComponentString("TileEntityBase")
 
   def update(): Unit = {
     if (!getWorld.isRemote) serverUpdate()
