@@ -113,22 +113,26 @@ object PlayerUtils {
         val hitVec = hit.hitVec
         val block = world.getBlockState(hitPos).getBlock
         hit.sideHit match {
-          case EnumFacing.DOWN => new Vec3d(hitVec.xCoord, hitPos.getY - .001f, hitVec.zCoord) // subtracted 1/1000 block to distinguish between hitting positive and negative sides
-          case EnumFacing.UP => new Vec3d(hitVec.xCoord, hitPos.getY + 1, hitVec.zCoord)
-          case EnumFacing.NORTH => new Vec3d(hitVec.xCoord, hitVec.yCoord, hitPos.getZ - .001f)
-          case EnumFacing.SOUTH => new Vec3d(hitVec.xCoord, hitVec.yCoord, hitPos.getZ + 1)
-          case EnumFacing.WEST => new Vec3d(hitPos.getX - .001f, hitVec.yCoord, hitVec.zCoord)
-          case EnumFacing.EAST => new Vec3d(hitPos.getX + 1, hitVec.yCoord, hitVec.zCoord)
+          case EnumFacing.DOWN => new Vec3d(hitVec.x, hitPos.getY - .001f, hitVec.z) // subtracted 1/1000 block to distinguish between hitting positive and negative sides
+          case EnumFacing.UP => new Vec3d(hitVec.x, hitPos.getY + 1, hitVec.z)
+          case EnumFacing.NORTH => new Vec3d(hitVec.x, hitVec.y, hitPos.getZ - .001f)
+          case EnumFacing.SOUTH => new Vec3d(hitVec.x, hitVec.y, hitPos.getZ + 1)
+          case EnumFacing.WEST => new Vec3d(hitPos.getX - .001f, hitVec.y, hitVec.z)
+          case EnumFacing.EAST => new Vec3d(hitPos.getX + 1, hitVec.y, hitVec.z)
         }
       case _ => player.getPositionEyes(partialTicks).add(player.getLookVec.scale(maxRange))
     }
   }
 
-  sealed trait BlockPassthroughMode { def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean }
-  case object Replaceable extends BlockPassthroughMode { override def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean = block.isReplaceable(world, pos) }
-  case object Passable extends BlockPassthroughMode { override def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean = block.isPassable(world, pos) }
-  case object Air extends BlockPassthroughMode { override def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean = block.isAir(world.getBlockState(pos), world, pos) }
-  case object None extends BlockPassthroughMode { override def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean = false }
+  sealed trait BlockPassthroughMode {def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean}
+
+  case object Replaceable extends BlockPassthroughMode {override def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean = block.isReplaceable(world, pos)}
+
+  case object Passable extends BlockPassthroughMode {override def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean = block.isPassable(world, pos)}
+
+  case object Air extends BlockPassthroughMode {override def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean = block.isAir(world.getBlockState(pos), world, pos)}
+
+  case object None extends BlockPassthroughMode {override def canPass(block: Block, world: IBlockAccess, pos: BlockPos): Boolean = false}
 
 }
 

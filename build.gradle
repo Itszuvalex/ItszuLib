@@ -14,7 +14,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
         //Check for the latest version here: http://plugins.gradle.org/plugin/com.jfrog.artifactory
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.4.12"
     }
@@ -22,7 +22,6 @@ buildscript {
 
 plugins {
     id "com.github.maiflai.scalatest" version "0.11"
-    id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 
 allprojects {
@@ -55,7 +54,7 @@ project.ext {
     massive = "0"
     major = "1"
     minor = "0"
-    mcVersion = "1.11.2"
+    mcVersion = "1.12.2"
 }
 
 version = "${project.ext.mcVersion}-${project.ext.massive}.${project.ext.major}.${project.minor}"
@@ -71,8 +70,8 @@ if (System.getenv().CI_BUILD_REF_NAME != null && !System.getenv().CI_BUILD_REF_N
 }
 
 compileJava {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
 compileScala {
     sourceCompatibility = 1.7
@@ -87,9 +86,9 @@ group = "com.itszuvalex.itszulib" // http://maven.apache.org/guides/mini/guide-n
 archivesBaseName = "itszulib"
 
 minecraft {
-    version = "${project.ext.mcVersion}-13.20.0.2226"
+    version = "${project.ext.mcVersion}-14.23.0.2528"
     runDir = "run"
-    mappings = "snapshot_20161220"
+    mappings = "snapshot_20171003"
 // replacing stuff in the source
     replace '@MASSIVE@', project.massive
     replace '@MAJOR@', project.major
@@ -291,7 +290,7 @@ artifactory {
 
 idea {
     project {
-        languageLevel = '1.7'
+        languageLevel = '1.8'
     }
     module {
         inheritOutputDirs = true

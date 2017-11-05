@@ -112,10 +112,10 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
 
   def chunkContains(chunk: Chunk): Boolean = {
     if (Loc4.mapWorld(chunk.getWorld) != dim) false
-    else if (x <= chunk.xPosition * 16) false
-    else if (x > chunk.xPosition * 16 + 16) false
-    else if (z <= chunk.zPosition * 16) false
-    else if (z > chunk.zPosition * 16 + 16) false
+    else if (x <= chunk.x * 16) false
+    else if (x > chunk.x * 16 + 16) false
+    else if (z <= chunk.z * 16) false
+    else if (z > chunk.z * 16 + 16) false
     else true
   }
 

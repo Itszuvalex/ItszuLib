@@ -5,6 +5,7 @@ import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.{FontRenderer, Gui}
 import net.minecraft.client.renderer.{GlStateManager, RenderHelper, RenderItem}
+import net.minecraft.client.util.ITooltipFlag.TooltipFlags
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
@@ -25,7 +26,7 @@ abstract class GuiItemStack(override var anchorX: Int,
   var str: String = null) extends GuiPanel {
 
   val itemRenderer: RenderItem   = Minecraft.getMinecraft.getRenderItem
-  val fontRenderer: FontRenderer = Minecraft.getMinecraft.fontRendererObj
+  val fontRenderer: FontRenderer = Minecraft.getMinecraft.fontRenderer
   override var _panelHeight: Int = 18
   override var _panelWidth : Int = 18
   var colorRaised     = GuiItemStack.DEFAULT_RAISED_COLOR
@@ -40,7 +41,7 @@ abstract class GuiItemStack(override var anchorX: Int,
     itemStack match {
       case null =>
       case a if a.isEmpty =>
-      case i => tooltip ++= i.toMinecraft.getTooltip(Minecraft.getMinecraft.player, Minecraft.getMinecraft.gameSettings.advancedItemTooltips)
+      case i => tooltip ++= i.toMinecraft.getTooltip(Minecraft.getMinecraft.player, if(Minecraft.getMinecraft.gameSettings.advancedItemTooltips) TooltipFlags.ADVANCED else TooltipFlags.NORMAL)
     }
   }
 

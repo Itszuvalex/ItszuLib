@@ -48,7 +48,7 @@ abstract class ContainerBase(val gui: Int, val registerSyncs: Boolean) extends C
       case p: EntityPlayerMP =>
         ItszuLibPacketHandler.INSTANCE.sendTo(new MessageContainerUpdate(index, value), p)
       case _ =>
-        crafter.sendProgressBarUpdate(container, index, value)
+        crafter.sendWindowProperty(container, index, value)
     }
   }
 

@@ -351,11 +351,11 @@ object RenderUtils {
     Tessellator.getInstance().getBuffer.begin(7, format)
   }
 
-  def addVertex(x: Double, y: Double, z: Double): VertexBuffer = {
+  def addVertex(x: Double, y: Double, z: Double): BufferBuilder = {
     Tessellator.getInstance().getBuffer.pos(x, y, z)
   }
 
-  def addVertex(point: Point3D): VertexBuffer = addVertex(point.x, point.y, point.z)
+  def addVertex(point: Point3D): BufferBuilder = addVertex(point.x, point.y, point.z)
 
   def addVertexUV(x: Double, y: Double, z: Double, u: Double, v: Double): Unit = {
     addVertex(x, y, z).tex(u, v).endVertex()

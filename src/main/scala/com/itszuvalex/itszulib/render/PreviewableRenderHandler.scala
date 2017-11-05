@@ -4,7 +4,7 @@ import com.itszuvalex.itszulib.api.Capabilities
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.util.PlayerUtils
 import net.minecraft.client.Minecraft
-import net.minecraft.util.math.{BlockPos, RayTraceResult}
+import net.minecraft.util.math.BlockPos
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
@@ -33,7 +33,7 @@ class PreviewableRenderHandler {
             if (prev.snapToBlockGrid)
               renderer.renderAtLocation(stack, Minecraft.getMinecraft.player, new Loc4(player.getEntityWorld, blockPos), blockPos.getX - px, blockPos.getY - py, blockPos.getZ - pz)
             else
-              renderer.renderAtLocation(stack, Minecraft.getMinecraft.player, new Loc4(player.getEntityWorld, blockPos), hitVec.xCoord - px, hitVec.yCoord - py, hitVec.zCoord - pz)
+              renderer.renderAtLocation(stack, Minecraft.getMinecraft.player, new Loc4(player.getEntityWorld, blockPos), hitVec.x - px, hitVec.y - py, hitVec.z - pz)
           case None =>
         }
       case _ =>

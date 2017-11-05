@@ -24,7 +24,7 @@ object TileEntityRelocation {
   }
 
   def moveBlock(world: World, pos: BlockPos, destWorld: World, destPos: BlockPos,
-                replace: Boolean = false, player: EntityPlayer): Unit = {
+    replace: Boolean = false, player: EntityPlayer): Unit = {
     if (!replace && !destWorld.isAirBlock(destPos)) return
     applySnapshot(extractBlock(world, pos, player), destWorld, destPos, player)
   }
@@ -33,11 +33,11 @@ object TileEntityRelocation {
     world match {
       case world1: WorldServer =>
         if (MinecraftForge
-            .EVENT_BUS
-            .post(new BreakEvent(world,
-                                 pos,
-                                 world.getBlockState(pos),
-                                 player))) {
+          .EVENT_BUS
+          .post(new BreakEvent(world,
+            pos,
+            world.getBlockState(pos),
+            player))) {
           return null
         }
       case _ =>
@@ -61,12 +61,12 @@ object TileEntityRelocation {
     destWorld match {
       case world1: WorldServer =>
         if (MinecraftForge
-            .EVENT_BUS
-            .post(new PlaceEvent(new BlockSnapshot(destWorld,
-                                                   destPos,
-                                                   destWorld.getBlockState(destPos)),
-                                 destWorld.getBlockState(destPos),
-                                 player))) {
+          .EVENT_BUS
+          .post(new PlaceEvent(new BlockSnapshot(destWorld,
+            destPos,
+            destWorld.getBlockState(destPos)),
+            destWorld.getBlockState(destPos),
+            player, player.getActiveHand))) {
           return false
         }
       case _ =>
