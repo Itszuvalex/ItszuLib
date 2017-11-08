@@ -2,7 +2,7 @@ package com.itszuvalex.itszulib.api
 
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.storage.{IItemStorage, ItemStorageArray}
-import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTBase, NBTTagCompound}
 import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraftforge.common.MinecraftForge
@@ -24,8 +24,8 @@ object ManagerCapabilities {
   }
 
   @SubscribeEvent
-  def gatherCapabilities(event: AttachCapabilitiesEvent[Item]): Unit = {
-    IBurnable.getProvider(new ItemStack(event.getObject)) match {
+  def gatherCapabilities(event: AttachCapabilitiesEvent[ItemStack]): Unit = {
+    IBurnable.getProvider(event.getObject) match {
       case Some(a) => event.addCapability(new ResourceLocation(ItszuLib.ID.toLowerCase, "IBurnable"), a)
       case _ =>
     }
