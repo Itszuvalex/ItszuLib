@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.testing
 
 import com.itszuvalex.itszulib.ItszuLib
-import com.itszuvalex.itszulib.api.Capabilities
+import com.itszuvalex.itszulib.api.Burnable
 import com.itszuvalex.itszulib.api.storage.{IItemStorage, ItemStorageArray}
 import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import com.itszuvalex.itszulib.core.TileEntityBase
@@ -31,7 +31,7 @@ class TileInventoryTest extends TileEntityBase with TileInventory {
       * @return True if this stack can be inserted.
       */
     override def canInsert(i: Int, stack: IItemStack): Boolean = {
-      if (i == 2) stack.hasCapability(Capabilities.ITEM_BURNABLE, null)
+      if (i == 2) Burnable.getBurnTime(stack.toMinecraft).nonEmpty
       else true
     }
   }

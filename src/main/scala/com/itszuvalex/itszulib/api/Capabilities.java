@@ -11,9 +11,6 @@ public class Capabilities {
     @CapabilityInject(IItemStorage.class)
     public static Capability<IItemStorage> ITEM_STORAGE = null;
 
-    @CapabilityInject(IBurnable.class)
-    public static Capability<IBurnable> ITEM_BURNABLE = null;
-
     @CapabilityInject(IPreviewable.class)
     public static Capability<IPreviewable> ITEM_PREVIEWABLE = null;
 }
