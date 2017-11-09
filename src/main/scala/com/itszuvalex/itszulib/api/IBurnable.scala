@@ -2,16 +2,14 @@ package com.itszuvalex.itszulib.api
 
 import net.minecraft.init.{Blocks, Items}
 import net.minecraft.item._
-import net.minecraft.util.EnumFacing
-import net.minecraftforge.common.capabilities.{Capability, ICapabilityProvider}
 import net.minecraftforge.event.ForgeEventFactory
 
 /**
   * Created by Chris on 1/10/2017.
   */
-object IBurnable {
-  def getProvider(stack: ItemStack): Option[ICapabilityProvider] = {
-    if ( stack == null) return None
+object Burnable {
+  def getBurnTime(stack: ItemStack): Option[Int] = {
+    if (stack == null) return None
     if (stack.isEmpty) return None
 
     // Shamelessly taken from TileEntityFurnace
@@ -28,21 +26,7 @@ object IBurnable {
       case _ => ForgeEventFactory.getItemBurnTime(stack)
     }
 
-    if (burn <= 0) None
-    else Some(
-      new ICapabilityProvider {
-        override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = if (capability == Capabilities.ITEM_BURNABLE)
-          new IBurnable {
-            override def getBurnTime: Int = burn
-          }.asInstanceOf[T]
-        else null.asInstanceOf[T]
-
-        override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = capability == Capabilities.ITEM_BURNABLE
-      }
-    )
+    if (burn < 0) None
+    else Some(burn)
   }
-}
-
-trait IBurnable {
-  def getBurnTime: Int
 }
