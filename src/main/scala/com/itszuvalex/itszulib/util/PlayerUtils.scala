@@ -107,6 +107,7 @@ object PlayerUtils {
   def positionLookedAt(maxRange: Double, partialTicks: Float): Vec3d = {
     val player = Minecraft.getMinecraft.player
     player.rayTrace(maxRange, partialTicks) match {
+      case null => player.getPositionEyes(partialTicks).add(player.getLookVec.scale(maxRange))
       case hit if hit.typeOfHit == RayTraceResult.Type.BLOCK =>
         val world = player.getEntityWorld
         val hitPos = hit.getBlockPos
