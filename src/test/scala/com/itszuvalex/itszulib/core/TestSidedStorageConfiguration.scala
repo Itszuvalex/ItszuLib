@@ -28,14 +28,14 @@ class TestSidedStorageConfiguration extends TestBase {
       "decrement the key" in new TestConfiguration {
         val facing = EnumFacing.VALUES(1)
         config.getStorageNameForRelativeFacing(facing) shouldBe keyB
-        config.cycleRelativeFacingBackward(facing)
+        config.cycleRelativeFacingStorageBackward(facing)
         config.getStorageNameForRelativeFacing(facing) shouldBe keyA
       }
 
       "wrap around 0" in new TestConfiguration {
         val facing = EnumFacing.VALUES(0)
         config.getStorageNameForRelativeFacing(facing) shouldBe keyA
-        config.cycleRelativeFacingBackward(facing)
+        config.cycleRelativeFacingStorageBackward(facing)
         config.getStorageNameForRelativeFacing(facing) shouldBe keyC
       }
     }
@@ -44,14 +44,14 @@ class TestSidedStorageConfiguration extends TestBase {
       "increment the key" in new TestConfiguration {
         val facing = EnumFacing.VALUES(1)
         config.getStorageNameForRelativeFacing(facing) shouldBe keyB
-        config.cycleRelativeFacingForward(facing)
+        config.cycleRelativeFacingStorageForward(facing)
         config.getStorageNameForRelativeFacing(facing) shouldBe keyC
       }
 
       "wrap around max" in new TestConfiguration {
         val facing = EnumFacing.VALUES(2)
         config.getStorageNameForRelativeFacing(facing) shouldBe keyC
-        config.cycleRelativeFacingForward(facing)
+        config.cycleRelativeFacingStorageForward(facing)
         config.getStorageNameForRelativeFacing(facing) shouldBe keyA
       }
     }

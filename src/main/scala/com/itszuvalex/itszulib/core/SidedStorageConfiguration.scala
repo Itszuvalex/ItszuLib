@@ -11,6 +11,7 @@ import net.minecraftforge.common.util.INBTSerializable
   */
 class SidedStorageConfiguration[T >: Null](val defaults: (EnumFacing) => String, val storages: Map[String, T], val front: () => EnumFacing) extends INBTSerializable[NBTTagCompound] {
   val storageSegments = new Array[String](6)
+  val automaticIO     = new Array[EnumAutomaticIO](6)
 
   Debug.only {
     EnumFacing.VALUES.foreach { facing =>
@@ -20,6 +21,7 @@ class SidedStorageConfiguration[T >: Null](val defaults: (EnumFacing) => String,
 
   storageSegments.indices.foreach { i =>
     storageSegments(i) = defaults(EnumFacing.VALUES(i))
+    automaticIO(i) = EnumAutomaticIO.NONE
   }
 
   def getStorageForGlobalFacing(facing: EnumFacing): T = {
@@ -30,12 +32,20 @@ class SidedStorageConfiguration[T >: Null](val defaults: (EnumFacing) => String,
     storages.get(getStorageNameForRelativeFacing(facing)).orNull
   }
 
-  def cycleRelativeFacingForward(facing: EnumFacing): Unit = {
-    cycleRelativeFacing(facing, forward = true)
+  def cycleRelativeFacingStorageForward(facing: EnumFacing): Unit = {
+    cycleRelativeFacingStorage(facing, forward = true)
   }
 
-  def cycleRelativeFacingBackward(facing: EnumFacing): Unit = {
-    cycleRelativeFacing(facing, forward = false)
+  def cycleRelativeFacingStorageBackward(facing: EnumFacing): Unit = {
+    cycleRelativeFacingStorage(facing, forward = false)
+  }
+
+  def cycleRelativeFacingIOForward(facing: EnumFacing): Unit = {
+    cycleRelativeFacingIO(facing, forward = true)
+  }
+
+  def cycleRelativeFacingIOFackward(facing: EnumFacing): Unit = {
+    cycleRelativeFacingIO(facing, forward = false)
   }
 
   def getStorageNameForRelativeFacing(facing: EnumFacing): String = {
@@ -46,7 +56,15 @@ class SidedStorageConfiguration[T >: Null](val defaults: (EnumFacing) => String,
     storageSegments(FacingUtil.getHorizontalRelativeFacingFromAbsolute(facing, front()).getIndex)
   }
 
-  private def cycleRelativeFacing(facing: EnumFacing, forward: Boolean): Unit = {
+  def getIOForRelativeFacing(facing: EnumFacing): EnumAutomaticIO = {
+    automaticIO(facing.getIndex)
+  }
+
+  def getIOForAbsoluteFacing(facing: EnumFacing): EnumAutomaticIO = {
+    automaticIO(FacingUtil.getHorizontalRelativeFacingFromAbsolute(facing, front()).getIndex)
+  }
+
+  private def cycleRelativeFacingStorage(facing: EnumFacing, forward: Boolean): Unit = {
     val invKey = storageSegments(facing.getIndex)
     val keys = storages.keys.toArray
     val invInd = keys.indexOf(invKey)
@@ -54,16 +72,26 @@ class SidedStorageConfiguration[T >: Null](val defaults: (EnumFacing) => String,
     storageSegments(facing.getIndex) = keys(((invInd + shift) + keys.length) % keys.length)
   }
 
+  private def cycleRelativeFacingIO(facing: EnumFacing, forward: Boolean): Unit = {
+    val invEnum = automaticIO(facing.getIndex)
+    val keys = EnumAutomaticIO.values
+    val invInd = invEnum.ordinal()
+    val shift = if (forward) 1 else -1
+    automaticIO(facing.getIndex) = keys(((invInd + shift) + keys.length) % keys.length)
+  }
+
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
-    storageSegments.indices.foreach { i =>
+    (0 until 6).foreach { i =>
       storageSegments(i) = nbt.getString(i.toString)
+      automaticIO(i) = EnumAutomaticIO.values()(nbt.getInteger("io" + i.toString))
     }
   }
 
   override def serializeNBT(): NBTTagCompound = {
     val nbt = new NBTTagCompound
-    storageSegments.indices.foreach { i =>
+    (0 until 6).foreach { i =>
       nbt.setString(i.toString, storageSegments(i))
+      nbt.setInteger("io" + i.toString, automaticIO(i).ordinal)
     }
     nbt
   }
