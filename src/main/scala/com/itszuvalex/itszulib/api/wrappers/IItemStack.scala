@@ -77,6 +77,8 @@ trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
 
   def isEmpty: Boolean
 
+  def room: Int = stackSizeMax - stackSize
+
   def copy(): IItemStack
 
   def isItemEqual(o: IItemStack): Boolean = IItemStack.itemStackEquality.apply(this, o)

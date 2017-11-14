@@ -44,7 +44,7 @@ class SidedStorageConfiguration[T >: Null](val defaults: (EnumFacing) => String,
     cycleRelativeFacingIO(facing, forward = true)
   }
 
-  def cycleRelativeFacingIOFackward(facing: EnumFacing): Unit = {
+  def cycleRelativeFacingIOBackward(facing: EnumFacing): Unit = {
     cycleRelativeFacingIO(facing, forward = false)
   }
 

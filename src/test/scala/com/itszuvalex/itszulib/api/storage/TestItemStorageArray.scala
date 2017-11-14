@@ -36,7 +36,7 @@ class TestItemStorageArray extends TestBase {
     "return the elements in its storage" in new withStorage {
       storage.indices.foreach { i =>
         storage(i) should be theSameInstanceAs array(i)
-                              }
+      }
     }
     "update its underlying storage" in new withStorage {
       val index = 7
@@ -122,6 +122,162 @@ class TestItemStorageArray extends TestBase {
         ret.stackSize shouldBe ins.stackSize
         slotCopy.isItemEqual(storage(1)) shouldBe true
         slotCopy.stackSize shouldBe storage(1).stackSize
+      }
+    }
+    "transferring into another storage" should {
+      "empty first inventory and insert into second" in {
+        val emptyarray = new Array[IItemStack](1)
+        val emptyitem = new TestItemStack(1, 1)
+        emptyarray(0) = emptyitem
+        val emptying = new ItemStorageArray(emptyarray)
+        val fillarray = new Array[IItemStack](1)
+        fillarray(0) = IItemStack.Empty
+        val filling = new ItemStorageArray(fillarray)
+
+        val ret = emptying.transferIntoStorage(filling, 1)
+
+        emptying(0) shouldBe 'Empty
+        filling(0) should not be 'Empty
+        filling(0).stackSize shouldBe 1
+        ret shouldBe 0
+      }
+
+      "reduce first inventory and insert into second" in {
+        val emptyarray = new Array[IItemStack](1)
+        val emptyitem = new TestItemStack(1, 2)
+        emptyarray(0) = emptyitem
+        val emptying = new ItemStorageArray(emptyarray)
+        val fillarray = new Array[IItemStack](1)
+        fillarray(0) = IItemStack.Empty
+        val filling = new ItemStorageArray(fillarray)
+
+        val ret = emptying.transferIntoStorage(filling, 1)
+
+        emptying(0) should not be 'Empty
+        emptying(0).stackSize shouldBe 1
+        filling(0) should not be 'Empty
+        filling(0).stackSize shouldBe 1
+        ret shouldBe 0
+      }
+
+      "empty first inventory and insert into second and return remaining" in {
+        val emptyarray = new Array[IItemStack](1)
+        val emptyitem = new TestItemStack(1, 1)
+        emptyarray(0) = emptyitem
+        val emptying = new ItemStorageArray(emptyarray)
+        val fillarray = new Array[IItemStack](1)
+        fillarray(0) = IItemStack.Empty
+        val filling = new ItemStorageArray(fillarray)
+
+        val ret = emptying.transferIntoStorage(filling, 2)
+
+        emptying(0) shouldBe 'Empty
+        filling(0) should not be 'Empty
+        filling(0).stackSize shouldBe 1
+        ret shouldBe 1
+      }
+
+      "overflow into the second slot" in {
+        val emptyarray = new Array[IItemStack](1)
+        val emptyitem = new TestItemStack(1, 5)
+        emptyarray(0) = emptyitem
+        val emptying = new ItemStorageArray(emptyarray)
+        val fillarray = new Array[IItemStack](2)
+        fillarray(0) = new TestItemStack(1, 63)
+        fillarray(1) = new TestItemStack(1, 1)
+        val filling = new ItemStorageArray(fillarray)
+
+        val ret = emptying.transferIntoStorage(filling, 2)
+
+        emptying(0) should not be 'Empty
+        emptying(0).stackSize shouldBe 3
+        filling(0) should not be 'Empty
+        filling(0).stackSize shouldBe 64
+        filling(1) should not be 'Empty
+        filling(1).stackSize shouldBe 2
+        ret shouldBe 0
+      }
+
+      "transfer multiple types of items" in {
+        val emptyarray = new Array[IItemStack](2)
+        val emptyitem0 = new TestItemStack(0)
+        val emptyitem1 = new TestItemStack(1)
+        emptyarray(0) = emptyitem0
+        emptyarray(1) = emptyitem1
+        val emptying = new ItemStorageArray(emptyarray)
+        val fillarray = new Array[IItemStack](2)
+        fillarray(0) = IItemStack.Empty
+        fillarray(1) = IItemStack.Empty
+        val filling = new ItemStorageArray(fillarray)
+
+        val ret = emptying.transferIntoStorage(filling, 2)
+
+        emptying(0) shouldBe 'Empty
+        emptying(1) shouldBe 'Empty
+        filling(0) should not be 'Empty
+        filling(0).stackSize shouldBe 1
+        filling(0).itemID shouldBe 0
+        filling(1) should not be 'Empty
+        filling(1).stackSize shouldBe 1
+        filling(1).itemID shouldBe 1
+        ret shouldBe 0
+      }
+
+      "merge items together" in {
+        val emptyarray = new Array[IItemStack](2)
+        val emptyitem0 = new TestItemStack(1)
+        val emptyitem1 = new TestItemStack(1)
+        emptyarray(0) = emptyitem0
+        emptyarray(1) = emptyitem1
+        val emptying = new ItemStorageArray(emptyarray)
+        val fillarray = new Array[IItemStack](1)
+        fillarray(0) = IItemStack.Empty
+        val filling = new ItemStorageArray(fillarray)
+
+        val ret = emptying.transferIntoStorage(filling, 2)
+
+        emptying(0) shouldBe 'Empty
+        emptying(1) shouldBe 'Empty
+        filling(0) should not be 'Empty
+        filling(0).stackSize shouldBe 2
+        ret shouldBe 0
+      }
+
+      "prioritize matching over empty" in {
+        val emptyarray = new Array[IItemStack](1)
+        val emptyitem = new TestItemStack(1, 1)
+        emptyarray(0) = emptyitem
+        val emptying = new ItemStorageArray(emptyarray)
+        val fillarray = new Array[IItemStack](2)
+        fillarray(0) = IItemStack.Empty
+        fillarray(1) = new TestItemStack(1, 1)
+        val filling = new ItemStorageArray(fillarray)
+
+        val ret = emptying.transferIntoStorage(filling, 1)
+
+        emptying(0) shouldBe 'Empty
+        filling(0) shouldBe 'Empty
+        filling(1) should not be 'Empty
+        filling(1).stackSize shouldBe 2
+        ret shouldBe 0
+      }
+
+      "move nothing if there is no room" in {
+        val emptyarray = new Array[IItemStack](1)
+        val emptyitem = new TestItemStack(1, 1)
+        emptyarray(0) = emptyitem
+        val emptying = new ItemStorageArray(emptyarray)
+        val fillarray = new Array[IItemStack](1)
+        fillarray(0) = new TestItemStack(2, 1)
+        val filling = new ItemStorageArray(fillarray)
+
+        val ret = emptying.transferIntoStorage(filling, 1)
+
+        emptying(0) should not be 'Empty
+        emptying(0).stackSize shouldBe 1
+        filling(0) should not be 'Empty
+        filling(0).stackSize shouldBe 1
+        ret shouldBe 1
       }
     }
   }
