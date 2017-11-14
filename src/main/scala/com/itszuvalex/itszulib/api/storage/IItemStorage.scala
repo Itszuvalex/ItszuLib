@@ -136,6 +136,19 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
 
   override def iterator: Iterator[IItemStack] = new ItemStorageIterator(this)
 
+  def transferSlotIntoStorage(slot: Int, storage: IItemStorage, targetSlot: Int, amt: Int): Int = {
+    var transferRemaining = amt
+    val is = apply(slot).copy()
+    val up = is.copy()
+    is.stackSize = Math.min(is.stackSize, transferRemaining)
+    val ins = storage.insert(targetSlot, is)
+    val transfered = is.stackSize - ins.stackSize
+    transferRemaining -= transfered
+    up.stackSize = up.stackSize - transfered
+    update(slot, if (up.stackSize <= 0) IItemStack.Empty else up)
+    transferRemaining
+  }
+
   /**
     *
     * @param storage Storage to transfer into
@@ -150,28 +163,14 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
       indices.withFilter(!apply(_).isEmpty).foreach { i =>
         // Merge first
         storage.indices.withFilter(!storage(_).isEmpty).withFilter(storage.canInsert(_, apply(i))).foreach { j =>
-          val is = apply(i).copy()
-          val up = is.copy()
-          is.stackSize = Math.min(is.stackSize, transferRemaining)
-          val ins = storage.insert(j, is)
-          val transfered = is.stackSize - ins.stackSize
-          transferRemaining -= transfered
-          up.stackSize = up.stackSize - transfered
-          update(i, if (up.stackSize <= 0) IItemStack.Empty else up)
+          transferRemaining = transferSlotIntoStorage(i, storage, j, transferRemaining)
           if (transferRemaining <= 0) return 0
         }
 
-        if(!apply(i).isEmpty) {
+        if (!apply(i).isEmpty) {
           // Insert into empty second
           storage.indices.withFilter(storage(_).isEmpty).withFilter(storage.canInsert(_, apply(i))).foreach { j =>
-            val is = apply(i).copy()
-            val up = is.copy()
-            is.stackSize = Math.min(is.stackSize, transferRemaining)
-            val ins = storage.insert(j, is)
-            val transfered = is.stackSize - ins.stackSize
-            transferRemaining -= transfered
-            up.stackSize = up.stackSize - transfered
-            update(i, if (up.stackSize <= 0) IItemStack.Empty else up)
+            transferRemaining = transferSlotIntoStorage(i, storage, j, transferRemaining)
             if (transferRemaining <= 0) return 0
           }
         }
