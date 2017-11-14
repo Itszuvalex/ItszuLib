@@ -136,6 +136,51 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
 
   override def iterator: Iterator[IItemStack] = new ItemStorageIterator(this)
 
+  /**
+    *
+    * @param storage Storage to transfer into
+    * @param amt     # of items to transfer
+    *
+    * @return items remaining out of amt
+    */
+  def transferIntoStorage(storage: IItemStorage, amt: Int): Int = {
+    if (storage == this) amt
+    else {
+      var transferRemaining = amt
+      indices.withFilter(!apply(_).isEmpty).foreach { i =>
+        // Merge first
+        storage.indices.withFilter(!storage(_).isEmpty).withFilter(storage.canInsert(_, apply(i))).foreach { j =>
+          val is = apply(i).copy()
+          val up = is.copy()
+          is.stackSize = Math.min(is.stackSize, transferRemaining)
+          val ins = storage.insert(j, is)
+          val transfered = is.stackSize - ins.stackSize
+          transferRemaining -= transfered
+          up.stackSize = up.stackSize - transfered
+          update(i, if (up.stackSize <= 0) IItemStack.Empty else up)
+          if (transferRemaining <= 0) return 0
+        }
+
+        if(!apply(i).isEmpty) {
+          // Insert into empty second
+          storage.indices.withFilter(storage(_).isEmpty).withFilter(storage.canInsert(_, apply(i))).foreach { j =>
+            val is = apply(i).copy()
+            val up = is.copy()
+            is.stackSize = Math.min(is.stackSize, transferRemaining)
+            val ins = storage.insert(j, is)
+            val transfered = is.stackSize - ins.stackSize
+            transferRemaining -= transfered
+            up.stackSize = up.stackSize - transfered
+            update(i, if (up.stackSize <= 0) IItemStack.Empty else up)
+            if (transferRemaining <= 0) return 0
+          }
+        }
+      }
+
+      transferRemaining
+    }
+  }
+
   override def deserializeNBT(t: NBTTagCompound): Unit = {
     indices.
       filter(i =>
