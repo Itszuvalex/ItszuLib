@@ -136,7 +136,7 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
 
   override def iterator: Iterator[IItemStack] = new ItemStorageIterator(this)
 
-  def transferSlotIntoStorage(slot: Int, storage: IItemStorage, targetSlot: Int, amt: Int): Int = {
+  def transferSlotIntoStorageSlot(slot: Int, storage: IItemStorage, targetSlot: Int, amt: Int): Int = {
     var transferRemaining = amt
     val is = apply(slot).copy()
     val up = is.copy()
@@ -146,6 +146,24 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     transferRemaining -= transfered
     up.stackSize = up.stackSize - transfered
     update(slot, if (up.stackSize <= 0) IItemStack.Empty else up)
+    transferRemaining
+  }
+
+  def transferSlotIntoStorage(slot: Int, storage: IItemStorage, amt: Int): Int = {
+    var transferRemaining = amt
+    // Merge first
+    storage.indices.withFilter(!storage(_).isEmpty).withFilter(storage.canInsert(_, apply(slot))).foreach { j =>
+      transferRemaining = transferSlotIntoStorageSlot(slot, storage, j, transferRemaining)
+      if (transferRemaining <= 0) return 0
+    }
+
+    if (!apply(slot).isEmpty) {
+      // Insert into empty second
+      storage.indices.withFilter(storage(_).isEmpty).withFilter(storage.canInsert(_, apply(slot))).foreach { j =>
+        transferRemaining = transferSlotIntoStorageSlot(slot, storage, j, transferRemaining)
+        if (transferRemaining <= 0) return 0
+      }
+    }
     transferRemaining
   }
 
@@ -161,19 +179,8 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     else {
       var transferRemaining = amt
       indices.withFilter(!apply(_).isEmpty).foreach { i =>
-        // Merge first
-        storage.indices.withFilter(!storage(_).isEmpty).withFilter(storage.canInsert(_, apply(i))).foreach { j =>
-          transferRemaining = transferSlotIntoStorage(i, storage, j, transferRemaining)
-          if (transferRemaining <= 0) return 0
-        }
-
-        if (!apply(i).isEmpty) {
-          // Insert into empty second
-          storage.indices.withFilter(storage(_).isEmpty).withFilter(storage.canInsert(_, apply(i))).foreach { j =>
-            transferRemaining = transferSlotIntoStorage(i, storage, j, transferRemaining)
-            if (transferRemaining <= 0) return 0
-          }
-        }
+        transferRemaining = transferSlotIntoStorage(i, storage, transferRemaining)
+        if (transferRemaining <= 0) return 0
       }
 
       transferRemaining
