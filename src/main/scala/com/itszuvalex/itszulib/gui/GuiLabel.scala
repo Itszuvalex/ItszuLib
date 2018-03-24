@@ -12,11 +12,11 @@ object GuiLabel {
 }
 
 class GuiLabel(override var anchorX: Int,
-               override var anchorY: Int,
-               override var _panelWidth: Int,
-               override var _panelHeight: Int,
-               var text: () => String = () => "",
-               var scaling: Float = 1f) extends GuiPanel {
+  override var anchorY: Int,
+  override var _panelWidth: Int,
+  override var _panelHeight: Int,
+  var text: () => String = () => "",
+  var scaling: Float = 1f) extends GuiPanel {
   var colorFont = GuiLabel.DEFAULT_FONT_COLOR
   var xPadding  = 0
   var yPadding  = 0
@@ -25,6 +25,7 @@ class GuiLabel(override var anchorX: Int,
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)
     GL11.glPushMatrix()
     GL11.glScalef(scaling, scaling, scaling)
+    GL11.glEnable(GL11.GL_BLEND)
     Minecraft.getMinecraft.fontRenderer.drawSplitString(text(), screenX + xPadding, screenY + yPadding, panelWidth - 2 * xPadding, colorFont)
     GL11.glPopMatrix()
   }
