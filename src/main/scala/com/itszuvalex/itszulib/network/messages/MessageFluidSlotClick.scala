@@ -8,7 +8,6 @@ import io.netty.buffer.ByteBuf
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.FluidTank
 import net.minecraftforge.fluids.capability.{CapabilityFluidHandler, IFluidHandler}
 import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}
@@ -77,75 +76,78 @@ class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var
     player.inventory.player.dropItem(stack, false)
   }
 
-  def handleClick(message: MessageFluidSlotClick, item: ItemStack): ItemStack = {
-    null
-    //    if (item == null) return item
-    //    if (!FluidContainerRegistry.isContainer(item)) return handleAltClick(message, item)
-    //    message.tankID match {
-    //      case -1 =>
-    //        message.button match {
-    //          case 0 =>
-    //            if ((message.manualAccess & 1) == 0) return item
-    //            if (!FluidContainerRegistry.isFilledContainer(item)) return item
-    //            val itemFluid = FluidContainerRegistry.getFluidForFilledItem(item)
-    //            if (FluidRegistry.getFluidName(itemFluid) != message.filterFluid && message.filterFluid != null) return item
-    //            val amt = tileSingleTank.tank.fill(itemFluid, false)
-    //            if (amt < itemFluid.amount) return item
-    //            tileSingleTank.tank.fill(itemFluid, true)
-    //            tileSingleTank.setUpdateTank()
-    //            FluidContainerRegistry.drainFluidContainer(item)
-    //          case 1 =>
-    //            if ((message.manualAccess & 2) == 0) return item
-    //            if (!FluidContainerRegistry.isEmptyContainer(item)) return item
-    //            val itemFluidCap = FluidContainerRegistry.getContainerCapacity(tileSingleTank.tank.getFluid, item)
-    //            if (itemFluidCap == 0) return item
-    //            if (tileSingleTank.tank.getFluidAmount < itemFluidCap) return item
-    //            tileSingleTank.setUpdateTank()
-    //            FluidContainerRegistry.fillFluidContainer(tileSingleTank.tank.drain(itemFluidCap, true), item)
-    //        }
-    //      case _ =>
-    //        message.button match {
-    //          case 0 =>
-    //            if ((message.manualAccess & 1) == 0) return item
-    //            if (!FluidContainerRegistry.isFilledContainer(item)) return item
-    //            val itemFluid = FluidContainerRegistry.getFluidForFilledItem(item)
-    //            if (itemFluid.getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
-    //            val amt = tileMultiTank.tanks(message.tankID).fill(itemFluid, false)
-    //            if (amt < itemFluid.amount) return item
-    //            tileMultiTank.tanks(message.tankID).fill(itemFluid, true)
-    //            tileMultiTank.setUpdateTanks()
-    //            FluidContainerRegistry.drainFluidContainer(item)
-    //          case 1 =>
-    //            if ((message.manualAccess & 2) == 0) return item
-    //            if (!FluidContainerRegistry.isEmptyContainer(item)) return item
-    //            val itemFluidCap = FluidContainerRegistry.getContainerCapacity(tileMultiTank.tanks(message.tankID).getFluid, item)
-    //            if (itemFluidCap == 0) return item
-    //            if (tileMultiTank.tanks(message.tankID).getFluidAmount < itemFluidCap) return item
-    //            tileMultiTank.setUpdateTanks()
-    //            FluidContainerRegistry.fillFluidContainer(tileMultiTank.tanks(message.tankID).drain(itemFluidCap, true), item)
-    //        }
-    //  }
-  }
+  /*def handleClick(message: MessageFluidSlotClick, item: ItemStack): ItemStack = {
+    if (item == null) return item
+    if (!item.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null)) return handleAltClick(message, item)
+    val cap = item.getCapability[IFluidHandlerItem](CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null)
+    val contents = cap.drain(Int.MaxValue, false)
+    val simple = cap.isInstanceOf[FluidHandlerItemStackSimple]
+    message.tankID match {
+      case -1 =>
+        message.button match {
+          case 0 =>
+            if ((message.manualAccess & 1) == 0) return item
+            if (contents == null || contents.amount == 0) return item
+            if (FluidRegistry.getFluidName(contents) != message.filterFluid && message.filterFluid != null) return item
+            val amt = tileSingleTank.tank.fill(contents, false)
+            if (amt < contents.amount && simple) return item
+            tileSingleTank.tank.fill(itemFluid, true)
+            tileSingleTank.setUpdateTank()
+            FluidContainerRegistry.drainFluidContainer(item)
+          case 1 =>
+            if ((message.manualAccess & 2) == 0) return item
+            if (!FluidContainerRegistry.isEmptyContainer(item)) return item
+            val itemFluidCap = FluidContainerRegistry.getContainerCapacity(tileSingleTank.tank.getFluid, item)
+            if (itemFluidCap == 0) return item
+            if (tileSingleTank.tank.getFluidAmount < itemFluidCap) return item
+            tileSingleTank.setUpdateTank()
+            FluidContainerRegistry.fillFluidContainer(tileSingleTank.tank.drain(itemFluidCap, true), item)
+        }
+      case _ =>
+        message.button match {
+          case 0 =>
+            if ((message.manualAccess & 1) == 0) return item
+            if (!FluidContainerRegistry.isFilledContainer(item)) return item
+            val itemFluid = FluidContainerRegistry.getFluidForFilledItem(item)
+            if (itemFluid.getFluid.getID != message.filterFluid && message.filterFluid != -1) return item
+            val amt = tileMultiTank.tanks(message.tankID).fill(itemFluid, false)
+            if (amt < itemFluid.amount) return item
+            tileMultiTank.tanks(message.tankID).fill(itemFluid, true)
+            tileMultiTank.setUpdateTanks()
+            FluidContainerRegistry.drainFluidContainer(item)
+          case 1 =>
+            if ((message.manualAccess & 2) == 0) return item
+            if (!FluidContainerRegistry.isEmptyContainer(item)) return item
+            val itemFluidCap = FluidContainerRegistry.getContainerCapacity(tileMultiTank.tanks(message.tankID).getFluid, item)
+            if (itemFluidCap == 0) return item
+            if (tileMultiTank.tanks(message.tankID).getFluidAmount < itemFluidCap) return item
+            tileMultiTank.setUpdateTanks()
+            FluidContainerRegistry.fillFluidContainer(tileMultiTank.tanks(message.tankID).drain(itemFluidCap, true), item)
+        }
+      }
+  }*/
 
   private def FillTankFromHandler(tank: FluidTank, fluidHandler: IFluidHandler): Unit = {
-    val room = tileSingleTank.tank.getCapacity - tileSingleTank.tank.getFluidAmount
-    if (!fluidHandler.getTankProperties()(0).canDrain || !tileSingleTank.tank.canFill) return
-    if (!tileSingleTank.tank.canFillFluidType(fluidHandler.drain(room, false))) return
-    tileSingleTank.tank.fill(fluidHandler.drain(room, true), true)
+    val room = tank.getCapacity - tank.getFluidAmount
+    if (!fluidHandler.getTankProperties()(0).canDrain || !tank.canFill) return
+    val fl = fluidHandler.drain(room, false)
+    if (!tank.canFillFluidType(fl) || (tank.getFluid != null && !tank.getFluid.isFluidEqual(fl))) return
+    tank.fill(fluidHandler.drain(room, true), true)
   }
 
   private def DrainTankIntoHandler(tank: FluidTank, fluidHandler: IFluidHandler): Unit = {
-    if (tileSingleTank.tank.getFluidAmount == 0) return
-    if (!fluidHandler.getTankProperties()(0).canFill || !tileSingleTank.tank.canDrain) return
-    val wouldRet = tileSingleTank.tank.drain(tileSingleTank.tank.getFluidAmount, false)
-    if (!fluidHandler.getTankProperties()(0).canFillFluidType(wouldRet)) return
+    if (tank.getFluidAmount == 0) return
+    val prop = fluidHandler.getTankProperties()(0)
+    if (!prop.canFill || !tank.canDrain) return
+    val wouldRet = tank.drain(tank.getFluidAmount, false)
+    if (!prop.canFillFluidType(wouldRet) || (prop.getContents != null && !prop.getContents.isFluidEqual(wouldRet))) return
     val wouldFill = fluidHandler.fill(wouldRet, false)
-    fluidHandler.fill(tileSingleTank.tank.drain(wouldFill, true), true)
+    fluidHandler.fill(tank.drain(wouldFill, true), true)
   }
 
-  def handleAltClick(message: MessageFluidSlotClick, item: ItemStack): ItemStack = {
-    if (!item.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, EnumFacing.UP)) return item
-    val fluidHandler = item.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, EnumFacing.UP)
+  def handleClick(message: MessageFluidSlotClick, item: ItemStack): ItemStack = {
+    if (!item.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null)) return item
+    val fluidHandler = item.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null)
     message.tankID match {
       case -1 =>
         message.button match {
@@ -153,12 +155,12 @@ class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var
             if ((message.manualAccess & 1) == 0) return item
             FillTankFromHandler(tileSingleTank.tank, fluidHandler)
             tileSingleTank.setUpdateTank()
-            item
+            fluidHandler.getContainer
           case 1 =>
             if ((message.manualAccess & 2) == 0) return item
             DrainTankIntoHandler(tileSingleTank.tank, fluidHandler)
             tileSingleTank.setUpdateTank()
-            item
+            fluidHandler.getContainer
         }
       case _ =>
         message.button match {
@@ -166,12 +168,12 @@ class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var
             if ((message.manualAccess & 1) == 0) return item
             FillTankFromHandler(tileMultiTank.tanks(message.tankID), fluidHandler)
             tileMultiTank.setUpdateTanks()
-            item
+            fluidHandler.getContainer
           case 1 =>
             if ((message.manualAccess & 2) == 0) return item
             DrainTankIntoHandler(tileMultiTank.tanks(message.tankID), fluidHandler)
             tileMultiTank.setUpdateTanks()
-            item
+            fluidHandler.getContainer
         }
     }
   }
