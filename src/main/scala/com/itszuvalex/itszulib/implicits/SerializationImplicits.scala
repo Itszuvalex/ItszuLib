@@ -1,5 +1,7 @@
 package com.itszuvalex.itszulib.implicits
 
+import java.nio.charset.Charset
+
 import io.netty.buffer.ByteBuf
 
 /**
@@ -19,9 +21,8 @@ object SerializationImplicits {
         byteBuf.writeInt(0)
       }
       else {
-        val fluidNameBytes = string.getBytes()
-        byteBuf.writeInt(fluidNameBytes.length)
-        byteBuf.writeBytes(fluidNameBytes)
+        byteBuf.writeInt(string.length)
+        byteBuf.writeCharSequence(string, Charset.defaultCharset())
       }
     }
 
@@ -32,7 +33,7 @@ object SerializationImplicits {
     def readString(): String = {
       val stringLength = byteBuf.readInt()
       if (stringLength > 0) {
-        val fluidNameBytes = byteBuf.readBytes(stringLength)
+        val fluidNameBytes = byteBuf.readCharSequence(stringLength, Charset.defaultCharset())
         String.valueOf(fluidNameBytes)
       }
       else {
