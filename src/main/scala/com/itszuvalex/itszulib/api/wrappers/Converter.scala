@@ -1,10 +1,11 @@
 package com.itszuvalex.itszulib.api.wrappers
 
-import com.itszuvalex.itszulib.api.storage.{IItemStorage, ItemStorageInventory, ItemStorageItemHandler, ItemStorageSidedInventory}
+import com.itszuvalex.itszulib.api.storage._
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.capability.IFluidHandler
 import net.minecraftforge.items.{IItemHandler, IItemHandlerModifiable}
 
 /**
@@ -28,5 +29,9 @@ object Converter {
   def IItemStorageFromIItemHandler(handler: IItemHandler): IItemStorage = new ItemStorageItemHandler(handler)
 
   def IItemHandlerModifiableFromIItemStorage(storage: IItemStorage): IItemHandlerModifiable = new WrapperItemHandlerModifiable(storage)
+
+  def IFluidStorageFromIFluidHandler(handler: IFluidHandler): IFluidStorage = new WrapperFluidStorageHandler(handler)
+
+  def IFluidHandlerFromIFluidStorage(storage: IFluidStorage): IFluidHandler = storage
 
 }
