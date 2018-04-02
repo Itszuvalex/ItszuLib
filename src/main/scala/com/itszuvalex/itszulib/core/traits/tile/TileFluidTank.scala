@@ -1,41 +1,29 @@
 package com.itszuvalex.itszulib.core.traits.tile
 
+import com.itszuvalex.itszulib.api.storage.IFluidStorage
 import com.itszuvalex.itszulib.core.TileEntityBase
-import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
-import com.itszuvalex.itszulib.network.messages.MessageFluidTankUpdate
-import net.minecraftforge.fluids._
-import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties}
+import net.minecraft.nbt.NBTTagCompound
 
 /**
   * Created by Chris on 11/30/2014.
   */
-trait TileFluidTank extends TileEntityBase with IFluidHandler {
-  var tank                  = defaultTank
-  var updateNeeded: Boolean = false
+object TileFluidTank {
+  val TANK_NBT = "Tank"
+}
 
-  def defaultTank: FluidTank
+trait TileFluidTank extends TileEntityBase {
+  var tank = defaultTank
 
-  override def fill(resource: FluidStack, doFill: Boolean): Int = tank.fill(resource, doFill)
+  def defaultTank: IFluidStorage
 
-  override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = {
-    if (resource == null || !resource.isFluidEqual(tank.getFluid)) null
-    else tank.drain(resource.amount, doDrain)
+  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
+    super.deserializeNBT(nbt)
+    tank.deserializeNBT(nbt.getCompoundTag(TileFluidTank.TANK_NBT))
   }
 
-  override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = tank.drain(maxDrain, doDrain)
-
-  override def getTankProperties: Array[IFluidTankProperties] = tank.getTankProperties
-
-  /**
-    * If you change your tanks in serverUpdate, make sure to change them *BEFORE* calling super.serverUpdate().
-    * This way the client will get notified of the change in the same tick.
-    */
-  override def serverUpdate(): Unit = {
-    super.serverUpdate()
-    if (!updateNeeded) return
-    ItszuLibPacketHandler.INSTANCE.sendToDimension(new MessageFluidTankUpdate(getPos.getX, getPos.getY, getPos.getZ, if (tank.getFluid == null) null else FluidRegistry.getFluidName(tank.getFluid.getFluid), tank.getFluidAmount), getWorld.provider.getDimension)
-    updateNeeded = false
+  override def serializeNBT(): NBTTagCompound = {
+    val ret = super.serializeNBT()
+    ret.setTag(TileFluidTank.TANK_NBT, tank.serializeNBT())
+    ret
   }
-
-  def setUpdateTank() = updateNeeded = true
 }

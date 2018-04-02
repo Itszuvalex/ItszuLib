@@ -153,13 +153,13 @@ class MessageFluidSlotClick(var loc: Loc4, var tankID: Int, var button: Int, var
         message.button match {
           case 0 =>
             if ((message.manualAccess & 1) == 0) return item
-            FillTankFromHandler(tileSingleTank.tank, fluidHandler)
-            tileSingleTank.setUpdateTank()
+//            FillTankFromHandler(tileSingleTank.tank, fluidHandler)
+//            tileSingleTank.setUpdateTank()
             fluidHandler.getContainer
           case 1 =>
             if ((message.manualAccess & 2) == 0) return item
-            DrainTankIntoHandler(tileSingleTank.tank, fluidHandler)
-            tileSingleTank.setUpdateTank()
+//            DrainTankIntoHandler(tileSingleTank.tank, fluidHandler)
+//            tileSingleTank.setUpdateTank()
             fluidHandler.getContainer
         }
       case _ =>

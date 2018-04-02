@@ -5,8 +5,9 @@ import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.wrappers.Converter
 import com.itszuvalex.itszulib.core.TileEntityBase
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.ISidedInventory
+import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.text.ITextComponent
 import net.minecraftforge.common.capabilities.Capability
@@ -14,9 +15,13 @@ import net.minecraftforge.common.capabilities.Capability
 /**
   * Created by Chris on 11/29/2014.
   */
+object TileInventory {
+  val STORAGE_NBT = "Storage"
+}
+
 trait TileInventory extends TileEntityBase with ISidedInventory {
-  val storage   = defaultStorage
-  val inventory = Converter.IInventoryFromIItemStorage(storage)
+  val storage  : IItemStorage = defaultStorage
+  val inventory: IInventory   = Converter.IInventoryFromIItemStorage(storage)
 
   def defaultStorage: IItemStorage
 
@@ -90,4 +95,14 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
       super.hasCapability(capability, facing)
   }
 
+  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
+    super.deserializeNBT(nbt)
+    storage.deserializeNBT(nbt.getCompoundTag(TileInventory.STORAGE_NBT))
+  }
+
+  override def serializeNBT(): NBTTagCompound = {
+    val ret = super.serializeNBT()
+    ret.setTag(TileInventory.STORAGE_NBT, storage.serializeNBT())
+    ret
+  }
 }
