@@ -1,7 +1,6 @@
 package com.itszuvalex.itszulib.core.traits.tile
 
-import com.itszuvalex.itszulib.api.Capabilities
-import com.itszuvalex.itszulib.api.core.Saveable
+import com.itszuvalex.itszulib.api.ItszuLibCapabilities
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.wrappers.Converter
 import com.itszuvalex.itszulib.core.TileEntityBase
@@ -16,7 +15,6 @@ import net.minecraftforge.common.capabilities.Capability
   * Created by Chris on 11/29/2014.
   */
 trait TileInventory extends TileEntityBase with ISidedInventory {
-  @Saveable
   val storage   = defaultStorage
   val inventory = Converter.IInventoryFromIItemStorage(storage)
 
@@ -64,6 +62,12 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
     notifyNeighborsOfChange()
   }
 
+  override def getField(id: Int): Int = 0
+
+  override def setField(id: Int, value: Int): Unit = {}
+
+  override def getFieldCount: Int = 0
+
   override def isUsableByPlayer(player: EntityPlayer): Boolean = canPlayerUse(player)
 
   override def getStackInSlot(slot: Int) = inventory.getStackInSlot(slot)
@@ -72,7 +76,7 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
     if (capability == net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
       Converter.IItemHandlerModifiableFromIItemStorage(storage).asInstanceOf[T]
     }
-    else if (capability == Capabilities.ITEM_STORAGE) {
+    else if (capability == ItszuLibCapabilities.ITEM_STORAGE) {
       storage.asInstanceOf[T]
     }
     else
@@ -81,7 +85,7 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
 
   override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
     if (capability == net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) true
-    else if (capability == Capabilities.ITEM_STORAGE) true
+    else if (capability == ItszuLibCapabilities.ITEM_STORAGE) true
     else
       super.hasCapability(capability, facing)
   }

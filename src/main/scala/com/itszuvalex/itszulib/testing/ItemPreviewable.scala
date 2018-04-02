@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.testing
 
-import com.itszuvalex.itszulib.api.{Capabilities, IPreviewable}
+import com.itszuvalex.itszulib.api.{ItszuLibCapabilities, IPreviewable}
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -13,7 +13,7 @@ class ItemPreviewable extends Item {
   override def initCapabilities(stack: ItemStack, nbt: NBTTagCompound): ICapabilityProvider = {
     new ICapabilityProvider {
       override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
-        if (capability == Capabilities.ITEM_PREVIEWABLE)
+        if (capability == ItszuLibCapabilities.ITEM_PREVIEWABLE)
           new IPreviewable {
             /**
               *
@@ -27,7 +27,7 @@ class ItemPreviewable extends Item {
       }
 
       override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean =
-        capability == Capabilities.ITEM_PREVIEWABLE
+        capability == ItszuLibCapabilities.ITEM_PREVIEWABLE
     }
   }
 }

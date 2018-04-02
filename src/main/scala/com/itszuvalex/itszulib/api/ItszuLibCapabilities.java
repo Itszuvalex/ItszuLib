@@ -10,7 +10,7 @@ import net.minecraftforge.common.capabilities.CapabilityInject;
 /**
  * Created by Chris on 1/2/2017.
  */
-public class Capabilities {
+public class ItszuLibCapabilities {
     @CapabilityInject(IItemStorage.class)
     public static Capability<IItemStorage> ITEM_STORAGE = null;
 
