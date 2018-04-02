@@ -37,14 +37,14 @@ object GuiFluidTank {
   * @param drawTank       If false, only draws the fluid itself without tank and scale
   */
 class GuiFluidTank(override var anchorX: Int,
-                   override var anchorY: Int,
-                   var gui: GuiBase,
-                   var tileSingleTank: TileFluidTank,
-                   var tileMultiTank: TileMultiFluidTank,
-                   var tankID: Int,
-                   var manualAccess: Int,
-                   var filterFluid: Fluid,
-                   var drawTank: Boolean) extends GuiPanel {
+  override var anchorY: Int,
+  var gui: GuiBase,
+  var tileSingleTank: TileFluidTank,
+  var tileMultiTank: TileMultiFluidTank,
+  var tankID: Int,
+  var manualAccess: Int,
+  var filterFluid: Fluid,
+  var drawTank: Boolean) extends GuiPanel {
 
   override var _panelWidth : Int = 18
   override var _panelHeight: Int = 66
@@ -58,13 +58,13 @@ class GuiFluidTank(override var anchorX: Int,
     * Constructor that only uses a TileFluidTank. See main constructor for param description.
     */
   def this(x: Int, y: Int, guiObj: GuiBase, tile: TileFluidTank, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
-  this(x, y, guiObj, tile, null, -1, manAccess, filtFluid, _drawTank)
+    this(x, y, guiObj, tile, null, -1, manAccess, filtFluid, _drawTank)
 
   /**
     * Constructor that only uses a TileMultiFluidTank and Tank ID. See main constructor for param description.
     */
   def this(x: Int, y: Int, guiObj: GuiBase, tile: TileMultiFluidTank, _tankID: Int, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
-  this(x, y, guiObj, null, tile, _tankID, manAccess, filtFluid, _drawTank)
+    this(x, y, guiObj, null, tile, _tankID, manAccess, filtFluid, _drawTank)
 
   override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
     super.addTooltip(mouseX, mouseY, tooltip)
@@ -75,8 +75,8 @@ class GuiFluidTank(override var anchorX: Int,
     var ret = List.empty[String]
     tankID match {
       case -1 =>
-        ret :+= ("Fluid: " + (if (tileSingleTank.tank.getFluid == null) "None" else tileSingleTank.tank.getFluid.getFluid.getLocalizedName(tileSingleTank.tank.getFluid) + ", " + tileSingleTank.tank.getFluidAmount + "mB"))
-        ret :+= ("Capacity: " + tileSingleTank.tank.getCapacity + "mB")
+      //        ret :+= ("Fluid: " + (if (tileSingleTank.tank.getFluid == null) "None" else tileSingleTank.tank.getFluid.getFluid.getLocalizedName(tileSingleTank.tank.getFluid) + ", " + tileSingleTank.tank.getFluidAmount + "mB"))
+      //        ret :+= ("Capacity: " + tileSingleTank.tank.getCapacity + "mB")
       case _ =>
         ret :+= ("Fluid: " + (if (tileMultiTank.tanks(tankID).getFluid == null) "None" else tileMultiTank.tanks(tankID).getFluid.getFluid.getLocalizedName(tileMultiTank.tanks(tankID).getFluid) + ", " + tileMultiTank.tanks(tankID).getFluidAmount + "mB"))
         ret :+= ("Capacity: " + tileMultiTank.tanks(tankID).getCapacity + "mB")
@@ -148,10 +148,10 @@ class GuiFluidTank(override var anchorX: Int,
     var icon: TextureAtlasSprite = null
     tankID match {
       case -1 =>
-        if (tileSingleTank.tank.getFluid == null) return
-        if (tileSingleTank.tank.getFluid.amount == 0) return
-        icon = RenderUtils.getDefaultTextureForBlock(tileSingleTank.tank.getFluid.getFluid.getBlock)
-        height = math.floor((tileSingleTank.tank.getFluid.amount / tileSingleTank.tank.getCapacity.toDouble) * 64).toInt
+      //        if (tileSingleTank.tank.getFluid == null) return
+      //        if (tileSingleTank.tank.getFluid.amount == 0) return
+      //        icon = RenderUtils.getDefaultTextureForBlock(tileSingleTank.tank.getFluid.getFluid.getBlock)
+      //        height = math.floor((tileSingleTank.tank.getFluid.amount / tileSingleTank.tank.getCapacity.toDouble) * 64).toInt
       case _ =>
         if (tileMultiTank.tanks(tankID).getFluid == null) return
         if (tileMultiTank.tanks(tankID).getFluid.amount == 0) return

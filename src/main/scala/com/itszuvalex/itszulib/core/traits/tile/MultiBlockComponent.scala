@@ -11,7 +11,7 @@ import net.minecraft.nbt.NBTTagCompound
 trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
   val info = new MultiBlockInfo
 
-  def formMultiBlock(loc: Loc4, cloc: Loc4): Boolean = {
+  override def formMultiBlock(loc: Loc4, cloc: Loc4): Boolean = {
     val result = info.formMultiBlock(loc, cloc)
     setUpdate()
     notifyNeighborsOfChange()
@@ -30,7 +30,7 @@ trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
     result
   }
 
-  def getInfo = info
+  override def getInfo = info
 
   def forwardToController[T, B](f: T => B): B = {
     if (isValidMultiBlock)
@@ -49,7 +49,15 @@ trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
       }
   }
 
-  def isValidMultiBlock = info.isValidMultiBlock
+  override def isValidMultiBlock = info.isValidMultiBlock
 
-  def isController = info.isController
+  /**
+    *
+    * @param loc
+    *
+    * @return true if loc == controller location
+    */
+  override def isController(loc: Loc4): Boolean = info.isController(loc)
+
+  override def isController = info.isController
 }
