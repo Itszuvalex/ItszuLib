@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.render
 
-import com.itszuvalex.itszulib.api.Capabilities
+import com.itszuvalex.itszulib.api.ItszuLibCapabilities
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.util.PlayerUtils
 import net.minecraft.client.Minecraft
@@ -21,8 +21,8 @@ class PreviewableRenderHandler {
     player.getHeldEquipment.iterator().next() match {
       case null =>
       case stack if stack.isEmpty =>
-      case stack if stack.hasCapability(Capabilities.ITEM_PREVIEWABLE, null) =>
-        val prev = stack.getCapability(Capabilities.ITEM_PREVIEWABLE, null)
+      case stack if stack.hasCapability(ItszuLibCapabilities.ITEM_PREVIEWABLE, null) =>
+        val prev = stack.getCapability(ItszuLibCapabilities.ITEM_PREVIEWABLE, null)
         PreviewableRendererRegistry.getRenderer(prev.renderID) match {
           case Some(renderer) =>
             val px = player.prevPosX + (player.posX - player.prevPosX) * event.getPartialTicks

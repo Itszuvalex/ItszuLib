@@ -13,16 +13,33 @@ trait IMultiBlockComponent {
   def isValidMultiBlock: Boolean
 
   /**
-    * @param loc
-    * @return True if correctly forms, given controller block at x,y,z.
+    *
+    * @return true if this is the controller block
     */
-  def formMultiBlock(loc: Loc4): Boolean
+  def isController: Boolean
+
+  /**
+    *
+    * @param loc
+    *
+    * @return true if loc == controller location
+    */
+  def isController(loc: Loc4): Boolean
 
   /**
     * @param loc
+    * @param cloc
+    *
+    * @return True if correctly forms, given controller block at x,y,z.
+    */
+  def formMultiBlock(loc: Loc4, cloc: Loc4): Boolean
+
+  /**
+    * @param cloc
+    *
     * @return True if breaks without errors, given controller block at x,y,z.
     */
-  def breakMultiBlock(loc: Loc4): Boolean
+  def breakMultiBlock(cloc: Loc4): Boolean
 
   /**
     * @return MultiBlockInfo associated with this MultiBlockComponent

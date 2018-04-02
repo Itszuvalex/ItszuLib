@@ -8,20 +8,20 @@ import net.minecraftforge.common.util.INBTSerializable
 
 class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCompound] {
   private var isMultiBlock        = false
+  private var controller          = false
   private var controllerLoc: Loc4 = new Loc4(0, 0, 0, 0)
-
-  def isController(loc: Loc4) = isValidMultiBlock && loc.equals(controllerLoc)
 
   override def isValidMultiBlock = isMultiBlock
 
-  override def formMultiBlock(loc: Loc4): Boolean = {
+  override def formMultiBlock(loc: Loc4, cloc: Loc4): Boolean = {
     if (isMultiBlock) {
       if (loc != controllerLoc) {
         return false
       }
     }
     isMultiBlock = true
-    controllerLoc = loc
+    controllerLoc = cloc
+    controller = loc == cloc
     true
   }
 
@@ -34,6 +34,7 @@ class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCo
       }
     }
     isMultiBlock = false
+    controller = false
     true
   }
 
@@ -41,13 +42,29 @@ class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCo
 
   override def serializeNBT(): NBTTagCompound = {
     NBTCompound(
-                 "isFormed" -> isMultiBlock,
-                 "c_loc" -> controllerLoc
-               )
+      "isFormed" -> isMultiBlock,
+      "c_loc" -> controllerLoc,
+      "controller" -> controller
+    )
   }
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
     isMultiBlock = nbt.Bool("isFormed")
     controllerLoc = nbt.NBTCompound("c_loc")(Loc4(_))
+    controller = nbt.Bool("controller")
   }
+
+  /**
+    *
+    * @return
+    */
+  override def isController: Boolean = controller
+
+  /**
+    *
+    * @param loc
+    *
+    * @return true if loc == controller location
+    */
+  override def isController(loc: Loc4): Boolean = loc == controllerLoc
 }

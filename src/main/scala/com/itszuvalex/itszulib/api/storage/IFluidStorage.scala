@@ -10,7 +10,7 @@ import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties
   * Created by Christopher Harris (Itszuvalex) on 7/14/16.
   */
 object IFluidStorage {
-  val Empty = new IFluidStorage {
+  val Empty: IFluidStorage = new IFluidStorage {
     override def deserializeNBT(nbt: NBTTagCompound): Unit = {}
 
     override def serializeNBT(): NBTTagCompound = new NBTTagCompound

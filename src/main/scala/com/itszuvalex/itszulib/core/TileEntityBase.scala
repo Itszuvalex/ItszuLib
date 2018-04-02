@@ -21,7 +21,6 @@
 package com.itszuvalex.itszulib.core
 
 import com.itszuvalex.itszulib.api.core.Loc4
-import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
@@ -31,17 +30,6 @@ import net.minecraft.util.{EnumFacing, ITickable}
 import net.minecraftforge.common.capabilities.Capability
 
 abstract class TileEntityBase extends TileEntity with ITickable {
-  override def readFromNBT(par1nbtTagCompound: NBTTagCompound) {
-    super.readFromNBT(par1nbtTagCompound)
-    DataUtils.loadObjectFromNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
-  }
-
-  override def writeToNBT(par1nbtTagCompound: NBTTagCompound): NBTTagCompound = {
-    super.writeToNBT(par1nbtTagCompound)
-    DataUtils.saveObjectToNBT(par1nbtTagCompound, this, DataUtils.EnumSaveType.WORLD)
-    par1nbtTagCompound
-  }
-
   def update(): Unit = {
     if (!getWorld.isRemote) serverUpdate()
     else clientUpdate()
@@ -59,7 +47,6 @@ abstract class TileEntityBase extends TileEntity with ITickable {
   }
 
   def saveToDescriptionCompound(compound: NBTTagCompound) {
-    DataUtils.saveObjectToNBT(compound, this, DataUtils.EnumSaveType.DESCRIPTION)
   }
 
   def hasDescription: Boolean
@@ -74,7 +61,6 @@ abstract class TileEntityBase extends TileEntity with ITickable {
   }
 
   def handleDescriptionNBT(compound: NBTTagCompound) {
-    DataUtils.loadObjectFromNBT(compound, this, DataUtils.EnumSaveType.DESCRIPTION)
   }
 
   /**
@@ -94,14 +80,9 @@ abstract class TileEntityBase extends TileEntity with ITickable {
   def getLoc = new Loc4(this)
 
   def loadInfoFromItemNBT(compound: NBTTagCompound) {
-    if (compound == null) {
-      return
-    }
-    DataUtils.loadObjectFromNBT(compound, this, DataUtils.EnumSaveType.ITEM)
   }
 
   def saveInfoToItemNBT(compound: NBTTagCompound) {
-    DataUtils.saveObjectToNBT(compound, this, DataUtils.EnumSaveType.ITEM)
   }
 
   def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {

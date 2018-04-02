@@ -8,7 +8,7 @@ import net.minecraftforge.common.util.INBTSerializable
   * Created by Christopher Harris (Itszuvalex) on 7/14/16.
   */
 object IItemStorage {
-  val Empty = new IItemStorage {
+  val Empty: IItemStorage = new IItemStorage {
     /**
       *
       * @param i Index to update
@@ -22,7 +22,7 @@ object IItemStorage {
       *
       * @return Get IItemStack contained at this location.  This should never return null, as IItemStacks track their own emptiness.
       */
-    override def apply(i: Int) = IItemStack.Empty
+    override def apply(i: Int): IItemStack = IItemStack.Empty
 
     override def length = 0
   }

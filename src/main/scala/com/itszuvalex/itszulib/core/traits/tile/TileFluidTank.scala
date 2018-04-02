@@ -1,10 +1,8 @@
 package com.itszuvalex.itszulib.core.traits.tile
 
-import com.itszuvalex.itszulib.api.core.Saveable
 import com.itszuvalex.itszulib.core.TileEntityBase
 import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.network.messages.MessageFluidTankUpdate
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids._
 import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties}
 
@@ -12,8 +10,8 @@ import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties
   * Created by Chris on 11/30/2014.
   */
 trait TileFluidTank extends TileEntityBase with IFluidHandler {
-  @Saveable var tank                  = defaultTank
-            var updateNeeded: Boolean = false
+  var tank                  = defaultTank
+  var updateNeeded: Boolean = false
 
   def defaultTank: FluidTank
 

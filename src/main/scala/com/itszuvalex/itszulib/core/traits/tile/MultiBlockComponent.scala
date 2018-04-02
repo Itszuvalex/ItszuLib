@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.core.traits.tile
 
-import com.itszuvalex.itszulib.api.core.{Loc4, Saveable}
+import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.api.multiblock.{IMultiBlockComponent, MultiBlockInfo}
 import com.itszuvalex.itszulib.core.TileEntityBase
 import net.minecraft.nbt.NBTTagCompound
@@ -9,10 +9,10 @@ import net.minecraft.nbt.NBTTagCompound
   * Created by Chris on 12/7/2014.
   */
 trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
-  @Saveable(desc = true) val info = new MultiBlockInfo
+  val info = new MultiBlockInfo
 
-  def formMultiBlock(loc: Loc4): Boolean = {
-    val result = info.formMultiBlock(loc)
+  def formMultiBlock(loc: Loc4, cloc: Loc4): Boolean = {
+    val result = info.formMultiBlock(loc, cloc)
     setUpdate()
     notifyNeighborsOfChange()
     result
@@ -51,5 +51,5 @@ trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
 
   def isValidMultiBlock = info.isValidMultiBlock
 
-  def isController = info.isController(getLoc)
+  def isController = info.isController
 }
