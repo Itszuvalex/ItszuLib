@@ -16,13 +16,13 @@ trait TileFluidTank extends TileEntityBase {
 
   def defaultTank: IFluidStorage
 
-  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
-    super.deserializeNBT(nbt)
-    tank.deserializeNBT(nbt.getCompoundTag(TileFluidTank.TANK_NBT))
+  override def readFromNBT(compound: NBTTagCompound): Unit = {
+    super.readFromNBT(compound)
+    tank.deserializeNBT(compound.getCompoundTag(TileFluidTank.TANK_NBT))
   }
 
-  override def serializeNBT(): NBTTagCompound = {
-    val ret = super.serializeNBT()
+  override def writeToNBT(compound: NBTTagCompound): NBTTagCompound = {
+    val ret = super.writeToNBT(compound)
     ret.setTag(TileFluidTank.TANK_NBT, tank.serializeNBT())
     ret
   }

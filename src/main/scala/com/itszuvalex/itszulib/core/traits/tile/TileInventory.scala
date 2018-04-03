@@ -95,13 +95,13 @@ trait TileInventory extends TileEntityBase with ISidedInventory {
       super.hasCapability(capability, facing)
   }
 
-  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
-    super.deserializeNBT(nbt)
-    storage.deserializeNBT(nbt.getCompoundTag(TileInventory.STORAGE_NBT))
+  override def readFromNBT(compound: NBTTagCompound): Unit = {
+    super.readFromNBT(compound)
+    storage.deserializeNBT(compound.getCompoundTag(TileInventory.STORAGE_NBT))
   }
 
-  override def serializeNBT(): NBTTagCompound = {
-    val ret = super.serializeNBT()
+  override def writeToNBT(compound: NBTTagCompound): NBTTagCompound = {
+    val ret = super.writeToNBT(compound)
     ret.setTag(TileInventory.STORAGE_NBT, storage.serializeNBT())
     ret
   }
