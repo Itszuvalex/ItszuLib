@@ -69,6 +69,7 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
       setSlot(i, IItemStack.Empty)
     else {
       slot.stackSize -= a
+      setSlot(i, slot)
       ret.stackSize = a
     }
     ret
@@ -106,6 +107,7 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
       val room = max - slot.stackSize
       if (s.stackSize <= room) {
         slot.stackSize += s.stackSize
+        setSlot(i, slot)
         IItemStack.Empty
       }
       else {
@@ -193,7 +195,7 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
         t.hasKey(i.toString)).
       view.
       foreach(i =>
-        this (i) = IItemStack.createFromNBT(t.getCompoundTag(i.toString)))
+        this (i) = readItemFromSlot(t, i))
   }
 
   override def serializeNBT(): NBTTagCompound = {
@@ -203,9 +205,10 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
         it.isEmpty
       }
       .view
-      .foreach { case (it: IItemStack, i: Int) =>
-        ret.setTag(i.toString, it.serializeNBT())
-      }
+      .foreach { case (it: IItemStack, i: Int) => writeItemToNBT(ret, it, i) }
     ret
   }
+
+  def writeItemToNBT(nbt: NBTTagCompound, item: IItemStack, slot: Int): Unit = nbt.setTag(slot.toString, item.serializeNBT())
+  def readItemFromSlot(NBTTagCompound: NBTTagCompound, slot: Int): IItemStack = IItemStack.createFromNBT(NBTTagCompound.getCompoundTag(slot.toString))
 }

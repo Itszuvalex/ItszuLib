@@ -41,14 +41,14 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
     val newVal = valueFunction()
     if (!valueEqualsFunction(value, newVal)) {
       cachedValue = cache(newVal)
-      Debug.log(Level.WARN, "Updated.")
+      Debug.log(Level.TRACE, "Updated.")
       true
     } else false
   }
 
   override def sync(player: EntityPlayer): Unit = player match {
     case p: EntityPlayerMP =>
-      Debug.log(Level.WARN, "Sending Sync:" + this)
+      Debug.log(Level.TRACE, "Sending Sync:" + this)
       ItszuLibPacketHandler.INSTANCE.sendTo(new MessageSync(this), p)
     case _ =>
   }
