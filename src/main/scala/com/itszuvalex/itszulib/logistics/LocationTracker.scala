@@ -78,13 +78,15 @@ class LocationTracker {
   private def getChunkCoordsInRadiusInDim(loc: (Int, Int), radius: Int, dim: Int) = {
     trackerMap.getOrElse(dim, mutable.HashMap.empty).keys.filter { floc =>
       (floc._1 >= loc._1 - radius && floc._1 <= loc._1 + radius) &&
-      (floc._2 >= loc._2 - radius && floc._2 <= loc._2 + radius)
-                                                                 }
+        (floc._2 >= loc._2 - radius && floc._2 <= loc._2 + radius)
+    }
   }
-
 
   def clear(): Unit = {
     trackerMap.clear()
   }
 
+  def clearDim(id: Int): Unit = {
+    trackerMap.remove(id)
+  }
 }
