@@ -55,11 +55,25 @@ class TestItemStack(var testItem: Int, var testStack: Int, var testDamage: Int) 
     ret
   }
 
-  override def writeToNBT(nbt: NBTTagCompound): Unit = ???
+  override def writeToNBT(nbt: NBTTagCompound): Unit = {
+    nbt.setInteger("Item", testItem)
+    nbt.setInteger("Stack", testStack)
+    nbt.setInteger("Damage", testDamage)
+    nbt.setTag("NBT", testNBT)
+  }
 
-  override def deserializeNBT(nbt: NBTTagCompound): Unit = ???
+  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
+    testItem = nbt.getInteger("Item")
+    testStack = nbt.getInteger("Stack")
+    testDamage = nbt.getInteger("Damage")
+    testNBT = nbt.getCompoundTag("NBT")
+  }
 
-  override def serializeNBT(): NBTTagCompound = ???
+  override def serializeNBT(): NBTTagCompound = {
+    val nbt = new NBTTagCompound
+    writeToNBT(nbt)
+    nbt
+  }
 
   override def isItemEqual(o: IItemStack): Boolean = {
     if (o == null) return false
