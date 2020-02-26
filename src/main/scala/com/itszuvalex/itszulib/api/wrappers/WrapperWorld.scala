@@ -31,5 +31,8 @@ class WrapperWorld(private val world: World) extends IWorld {
 
   override def markChunkDirty(pos: BlockPos): Unit = world.markChunkDirty(pos, null)
 
+  override def dimensionId: Int = world.provider.getDimension
+
   override def toMinecraft: World = world
+
 }

@@ -22,6 +22,7 @@ package com.itszuvalex.itszulib.api.core
 
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.Overridable
+import com.itszuvalex.itszulib.api.wrappers.{IWorld, WrapperWorld}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -34,8 +35,8 @@ import net.minecraftforge.common.util.INBTSerializable
   * Created by Christopher Harris (Itszuvalex) on 5/9/14.
   */
 object Loc4 {
-  val worldIntMapper = new Overridable((w: World) => w.provider.getDimension)
-  val intWorldMapper = new Overridable[(Int) => _ <: World](ItszuLib.proxy.getWorld _)
+  val worldIntMapper = new Overridable((w: IWorld) => w.dimensionId)
+  val intWorldMapper = new Overridable[(Int) => _ <: IWorld](ItszuLib.proxy.getIWorld _)
 
   val ORIGIN = Loc4(0, 0, 0, 0)
 
@@ -48,17 +49,17 @@ object Loc4 {
     }
   }
 
-  def setWorldIntMapper(func: (World) => Int) = worldIntMapper.overrideDefault(func)
+  def setWorldIntMapper(func: (IWorld) => Int) = worldIntMapper.overrideDefault(func)
 
   def restoreDefaultWorldIntMapper() = worldIntMapper.revert()
 
-  def mapWorld(world: World): Int = worldIntMapper.apply(world)
+  def mapWorld(world: IWorld): Int = worldIntMapper.apply(world)
 
-  def setIntWorldMapper(func: (Int) => World) = intWorldMapper.overrideDefault(func)
+  def setIntWorldMapper(func: (Int) => IWorld) = intWorldMapper.overrideDefault(func)
 
   def restoreDefaultIntWorldMapper() = intWorldMapper.revert()
 
-  def mapInt(int: Int): World = intWorldMapper.apply(int)
+  def mapInt(int: Int): IWorld = intWorldMapper.apply(int)
 }
 
 case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSerializable[NBTTagCompound] with Comparable[Loc4] {
@@ -67,7 +68,9 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
 
   def this(loc: BlockPos, dim: Int) = this(loc.getX, loc.getY, loc.getZ, dim)
 
-  def this(world: World, pos: BlockPos) = this(pos, Loc4.mapWorld(world))
+  def this(world: World, pos: BlockPos) = this(pos, Loc4.mapWorld(new WrapperWorld(world)))
+
+  def this(world:IWorld, pos:BlockPos) = this(pos, Loc4.mapWorld(world))
 
   def this(te: TileEntity) = this(te.getWorld, te.getPos)
 

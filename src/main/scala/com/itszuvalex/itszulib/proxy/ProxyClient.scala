@@ -20,6 +20,7 @@
  */
 package com.itszuvalex.itszulib.proxy
 
+import com.itszuvalex.itszulib.api.wrappers.{IWorld, WrapperWorld}
 import com.itszuvalex.itszulib.{ItszuBlocks, ItszuLib}
 import com.itszuvalex.itszulib.gui.GuiStack
 import com.itszuvalex.itszulib.render.{PreviewableRenderHandler, PreviewableRendererRegistry, ShaderUtils}
@@ -68,5 +69,8 @@ class ProxyClient extends ProxyCommon {
 
   override def addScheduledTask(f: () => Unit): Unit = Minecraft.getMinecraft.addScheduledTask(new Runnable {override def run(): Unit = f()})
 
+  override def getIWorld(id: Int): IWorld = new WrapperWorld(Option(DimensionManager.getWorld(id)).getOrElse(Minecraft.getMinecraft.world))
+
   override def getWorld(id: Int): World = Option(DimensionManager.getWorld(id)).getOrElse(Minecraft.getMinecraft.world)
+
 }

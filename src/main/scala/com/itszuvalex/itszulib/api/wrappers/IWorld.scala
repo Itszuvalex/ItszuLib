@@ -31,5 +31,7 @@ trait IWorld {
 
   def markChunkDirty(pos: BlockPos): Unit
 
+  def dimensionId: Int
+
   def toMinecraft: World
 }

@@ -20,6 +20,7 @@
  */
 package com.itszuvalex.itszulib.proxy
 
+import com.itszuvalex.itszulib.api.wrappers.IWorld
 import com.itszuvalex.itszulib.gui.ItszuGuiHandler
 import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
 import net.minecraft.entity.player.EntityPlayer
@@ -65,4 +66,6 @@ abstract class ProxyCommon extends ItszuGuiHandler {
   def addScheduledTask(f: () => Unit)
 
   def getWorld(id: Int): World
+
+  def getIWorld(id: Int): IWorld
 }
