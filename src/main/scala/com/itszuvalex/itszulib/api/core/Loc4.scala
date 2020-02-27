@@ -22,7 +22,7 @@ package com.itszuvalex.itszulib.api.core
 
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.Overridable
-import com.itszuvalex.itszulib.api.wrappers.{IWorld, WrapperWorld}
+import com.itszuvalex.itszulib.api.wrappers.{IChunk, IWorld, WrapperWorld}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -113,8 +113,8 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
 
   def chunkCoords = (x >> 4, z >> 4)
 
-  def chunkContains(chunk: Chunk): Boolean = {
-    if (Loc4.mapWorld(chunk.getWorld) != dim) false
+  def chunkContains(chunk: IChunk): Boolean = {
+    if (Loc4.mapWorld(chunk.world) != dim) false
     else if (x <= chunk.x * 16) false
     else if (x > chunk.x * 16 + 16) false
     else if (z <= chunk.z * 16) false

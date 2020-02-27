@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.api.utility
 
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.api.wrappers.IWorld
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
@@ -41,9 +42,9 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
   def this(dim: Int, pos: BlockPos, modID: String, blockID: String, state: IBlockState, nbt: NBTTagCompound) =
     this(dim, pos, modID, blockID, state.getBlock.getMetaFromState(state), nbt)
 
-  def world: World = ItszuLib.proxy.getWorld(dimensionID)
+  def world: IWorld = ItszuLib.proxy.getIWorld(dimensionID)
 
-  def world_=(world: World): Unit = _dimensionID = world.provider.getDimension
+  def world_=(world: IWorld): Unit = _dimensionID = world.dimensionId
 
   def this(dimensionID: Int, pos: BlockPos, state: IBlockState, te: NBTTagCompound) =
     this(dimensionID,
@@ -53,8 +54,8 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
       state,
       te)
 
-  def this(world: World, pos: BlockPos, te: NBTTagCompound) =
-    this(world.provider.getDimension,
+  def this(world: IWorld, pos: BlockPos, te: NBTTagCompound) =
+    this(world.dimensionId,
       pos,
       world.getBlockState(pos),
       te)
@@ -68,7 +69,7 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
       null
     })
 
-  def this(world: World, pos: BlockPos, state: IBlockState, te: TileEntity) =
+  def this(world: IWorld, pos: BlockPos, state: IBlockState, te: TileEntity) =
     this(world, pos, if (te != null) {
       val nbt = new NBTTagCompound
       te.writeToNBT(nbt)
@@ -77,7 +78,7 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var modID: Stri
       null
     })
 
-  def this(world: World, pos: BlockPos) =
+  def this(world: IWorld, pos: BlockPos) =
     this(world, pos, world.getBlockState(pos), world.getTileEntity(pos))
 
   def this(loc: Loc4) = this(loc.getWorld.get, loc.getPos)

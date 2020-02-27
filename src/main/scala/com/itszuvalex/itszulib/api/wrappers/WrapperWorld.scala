@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import net.minecraft.block.state.IBlockState
+import net.minecraft.entity.Entity
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
@@ -11,6 +12,10 @@ class WrapperWorld(private val world: World) extends IWorld {
   override def getChunkFromBlockCoords(pos: BlockPos): IChunk = new WrapperChunk(world.getChunkFromBlockCoords(pos))
 
   override def getTileEntity(pos: BlockPos): TileEntity = world.getTileEntity(pos)
+
+  override def removeTileEntity(pos: BlockPos): Unit = world.removeTileEntity(pos)
+
+  override def setTileEntity(pos: BlockPos, tile: TileEntity): Unit = world.setTileEntity(pos, tile)
 
   override def getBlockState(pos: BlockPos): IBlockState = world.getBlockState(pos: BlockPos)
 
@@ -32,6 +37,10 @@ class WrapperWorld(private val world: World) extends IWorld {
   override def markChunkDirty(pos: BlockPos): Unit = world.markChunkDirty(pos, null)
 
   override def dimensionId: Int = world.provider.getDimension
+
+  override def isBlockLoaded(pos: BlockPos): Boolean = world.isBlockLoaded(pos)
+
+  override def spawnEntity(entity: Entity): Boolean = world.spawnEntity(entity)
 
   override def toMinecraft: World = world
 

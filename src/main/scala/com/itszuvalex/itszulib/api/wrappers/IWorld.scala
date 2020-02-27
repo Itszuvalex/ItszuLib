@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import net.minecraft.block.state.IBlockState
+import net.minecraft.entity.Entity
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
@@ -34,4 +35,12 @@ trait IWorld {
   def dimensionId: Int
 
   def toMinecraft: World
+
+  def isBlockLoaded(pos: BlockPos): Boolean
+
+  def spawnEntity(entity: Entity): Boolean
+
+  def removeTileEntity(pos: BlockPos): Unit
+
+  def setTileEntity(pos: BlockPos, tile: TileEntity): Unit
 }

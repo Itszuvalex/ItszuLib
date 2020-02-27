@@ -1,8 +1,8 @@
 package com.itszuvalex.itszulib.api
 
 import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 /**
@@ -20,8 +20,8 @@ trait IPreviewableRenderer {
     * @param ry    Y Render location
     * @param rz    Z Render location
     */
-  def renderAtLocation(stack: ItemStack, player: EntityPlayer, loc: Loc4, rx: Double, ry: Double, rz: Double): Unit
+  def renderAtLocation(stack: IItemStack, player: EntityPlayer, loc: Loc4, rx: Double, ry: Double, rz: Double): Unit
 
-  def render(stack: ItemStack, player: EntityPlayer)
+  def render(stack: IItemStack, player: EntityPlayer)
 
 }
