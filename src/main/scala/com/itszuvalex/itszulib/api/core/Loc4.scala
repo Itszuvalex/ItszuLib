@@ -22,7 +22,7 @@ package com.itszuvalex.itszulib.api.core
 
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.Overridable
-import com.itszuvalex.itszulib.api.wrappers.{IChunk, IWorld, WrapperWorld}
+import com.itszuvalex.itszulib.api.wrappers.{IChunk, ITileEntity, IWorld, WrapperWorld}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -90,8 +90,13 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
     dim = compound.getInteger("dim")
   }
 
-  def getTileEntity(force: Boolean = false) = getWorld match {
+  def getTileEntity(force: Boolean = false): Option[TileEntity] = getWorld match {
     case Some(a) => Option(if (a.isBlockLoaded(getPos) || force) a.getTileEntity(getPos) else null)
+    case None => None
+  }
+
+  def getITileEntity(force: Boolean = false): Option[ITileEntity] = getWorld match {
+    case Some(a) => Option(if (a.isBlockLoaded(getPos) || force) a.getITileEntity(getPos) else null)
     case None => None
   }
 

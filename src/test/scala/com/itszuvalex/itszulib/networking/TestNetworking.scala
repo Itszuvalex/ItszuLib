@@ -4,6 +4,7 @@ import com.itszuvalex.itszulib.TestBase
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.logistics.{TileNetwork, TileNetworkNode}
 import net.minecraftforge.common.capabilities.Capability
+import scala.collection.JavaConversions._
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 4/14/15.
@@ -13,7 +14,7 @@ class TestNetworking extends TestBase {
   trait Network {
     TestNetworkManager.networkMap.clear()
     TestNetworkManager.nextId = 0
-    val network = new TestNetwork(TestNetworkManager.getID)
+    val network = new TestableNetwork(TestNetworkManager.getID)
     network.register()
   }
 
@@ -68,7 +69,7 @@ class TestNetworking extends TestBase {
 
     "creating" should {
       "make a network of the same type" in new Network {
-        network.create() shouldBe a[TestNetwork]
+        network.create() shouldBe a[TestableNetwork]
       }
     }
 
@@ -92,17 +93,6 @@ class TestNetworking extends TestBase {
         edges.size() shouldBe 2
         edges should contain allOf(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0), Loc4(1, 0, 0, 0) -> Loc4(2, 0, 0, 0))
       }
-
-      /*
-      Cannot test this.
-
-      Reason being, relies upon worldObj().getTileEntity() calls, which cannot be easily tested in this environment.
-
-
-    */
-
-
-      /*
 
       "when removing nodes" should {
         "on edge" should {
@@ -192,9 +182,7 @@ class TestNetworking extends TestBase {
           }
         }
 
-
         "two at a time" should {
-
             "have 1 nodes" in new NetworkWithOrigin {
               val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
               val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
@@ -217,8 +205,6 @@ class TestNetworking extends TestBase {
             }
         }
       }
-      */
-
     }
     "adding two connectable nodes in L" should {
       "have 3 nodes" in new NetworkWithOrigin {
@@ -274,7 +260,7 @@ class TestNetworking extends TestBase {
   TEST CLASS EXTENSIONS
    */
 
-  class TestNetwork(_id: Int) extends TileNetwork[TestNode, TestNetwork](_id) {
+  class TestableNetwork(_id: Int) extends TileNetwork[TestNode, TestableNetwork](_id) {
 
     override def networkCapability: Capability[TestNode] = null
 
@@ -290,21 +276,21 @@ class TestNetworking extends TestBase {
       *
       * @return Create an empty new network of this type.
       */
-    override def create() = new TestNetwork(TestNetworkManager.getID)
+    override def create() = new TestableNetwork(TestNetworkManager.getID)
 
     /**
       * Called on networks by another network, when that network is incorporating this network.
       *
       * @param iNetwork Network that is taking over this network.
       */
-    override def onTakeover(iNetwork: TestNetwork): Unit = {}
+    override def onTakeover(iNetwork: TestableNetwork): Unit = {}
 
     /**
       * Called on sub networks by a main network, when that network is splitting apart.
       *
       * @param iNetwork Network that will split into this sub network.
       */
-    override def onSplit(iNetwork: TestNetwork): Unit = {}
+    override def onSplit(iNetwork: TestableNetwork): Unit = {}
 
     /**
       * Called when a tick starts.
@@ -321,12 +307,12 @@ class TestNetworking extends TestBase {
     override def onTickEnd(): Unit = {}
   }
 
-  class TestNode(val loc: Loc4) extends TileNetworkNode[TestNode, TestNetwork] {
+  class TestNode(val loc: Loc4) extends TileNetworkNode[TestNode, TestableNetwork] {
     override def getLoc: Loc4 = loc
   }
 
   object TestNetworkManager {
-    val networkMap = scala.collection.mutable.HashMap[Int, TestNetwork]()
+    val networkMap = scala.collection.mutable.HashMap[Int, TestableNetwork]()
     var nextId     = 0
 
     def getID = { nextId += 1; nextId }

@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.wrappers.{IItemStack, WrapperVanillaItemStack}
-import com.itszuvalex.itszulib.{TestBase, TestItemStack}
+import com.itszuvalex.itszulib.{TestBase, TestableItemStack}
 import net.minecraft.nbt.NBTTagCompound
 
 /**
@@ -13,7 +13,7 @@ class TestItemStorageNBT extends TestBase {
     val invSize = 10
 
     IItemStack.nbtLoader.overrideDefault(nbt => {
-      val stack = new TestItemStack()
+      val stack = new TestableItemStack()
       if (nbt.hasNoTags)
         IItemStack.Empty
       else {
@@ -25,13 +25,13 @@ class TestItemStorageNBT extends TestBase {
 
     val nbt     = new NBTTagCompound
     val storage = new ItemStorageNBT(nbt, invSize)
-    val item0   = new TestItemStack(1, 1)
-    val item1   = new TestItemStack(1, 5)
-    val item2   = new TestItemStack(1, 10)
-    val item3   = new TestItemStack(1, 1, 1)
-    val item4   = new TestItemStack(1, 2, 2)
-    val item5   = new TestItemStack(2)
-    val item6   = new TestItemStack(2, 3, 1)
+    val item0   = new TestableItemStack(1, 1)
+    val item1   = new TestableItemStack(1, 5)
+    val item2   = new TestableItemStack(1, 10)
+    val item3   = new TestableItemStack(1, 1, 1)
+    val item4   = new TestableItemStack(1, 2, 2)
+    val item5   = new TestableItemStack(2)
+    val item6   = new TestableItemStack(2, 3, 1)
     storage(0) = item0
     storage(1) = item1
     storage(2) = item2
@@ -93,13 +93,13 @@ class TestItemStorageNBT extends TestBase {
         copy.isItemEqual(storage(1)) shouldBe true
       }
       "when inserting a new itemstack into an empty slot insert the entire stack and return empty" in new withStorage {
-        val ins = new TestItemStack(1, 2)
+        val ins = new TestableItemStack(1, 2)
         storage(9) shouldBe 'Empty
         val ret = storage.insert(9, ins)
         ret shouldBe 'Empty
       }
       "when inserting an itemstack that matches in a slot with room, add the contents together and return empty" in new withStorage {
-        val ins = new TestItemStack(1, 3)
+        val ins = new TestableItemStack(1, 3)
         val cur = storage(1)
         cur.stackSize shouldBe 5
         ins.isItemEqual(cur) shouldBe true
@@ -107,7 +107,7 @@ class TestItemStorageNBT extends TestBase {
         storage(1).stackSize shouldBe 8
       }
       "when inserting an itemstack that matches in a slot with limited room, add until at max and return the remains" in new withStorage {
-        val ins = new TestItemStack(1, 63)
+        val ins = new TestableItemStack(1, 63)
         val cur = storage(1)
         cur.stackSize shouldBe 5
         ins.isItemEqual(cur) shouldBe true
@@ -119,7 +119,7 @@ class TestItemStorageNBT extends TestBase {
         ret.stackSize shouldBe 4
       }
       "when inserting an itemstack into an empty slot with greater than the amount of room, set the slot with as much as can fit return the remains" in new withStorage {
-        val ins = new TestItemStack(1, 200)
+        val ins = new TestableItemStack(1, 200)
         val cur = storage(9)
         cur shouldBe 'Empty
         val ret = storage.insert(9, ins)
@@ -129,7 +129,7 @@ class TestItemStorageNBT extends TestBase {
         storage(9).stackSize shouldBe storage.maxStackSize(9)
       }
       "when inserting an itemstack into a slot that contains a different itemstack, return the insert and modify nothing" in new withStorage {
-        val ins      = new TestItemStack(3, 20)
+        val ins      = new TestableItemStack(3, 20)
         val insCopy  = ins.copy()
         val slotCopy = storage(1).copy()
         val ret      = storage.insert(1, ins)
@@ -142,7 +142,7 @@ class TestItemStorageNBT extends TestBase {
     "transferring into another storage" should {
       "empty first inventory and insert into second" in {
         val emptyarray = new Array[IItemStack](1)
-        val emptyitem = new TestItemStack(1, 1)
+        val emptyitem = new TestableItemStack(1, 1)
         emptyarray(0) = emptyitem
         val emptying = new ItemStorageArray(emptyarray)
         val fillarray = new Array[IItemStack](1)
@@ -159,7 +159,7 @@ class TestItemStorageNBT extends TestBase {
 
       "reduce first inventory and insert into second" in {
         val emptyarray = new Array[IItemStack](1)
-        val emptyitem = new TestItemStack(1, 2)
+        val emptyitem = new TestableItemStack(1, 2)
         emptyarray(0) = emptyitem
         val emptying = new ItemStorageArray(emptyarray)
         val fillarray = new Array[IItemStack](1)
@@ -177,7 +177,7 @@ class TestItemStorageNBT extends TestBase {
 
       "empty first inventory and insert into second and return remaining" in {
         val emptyarray = new Array[IItemStack](1)
-        val emptyitem = new TestItemStack(1, 1)
+        val emptyitem = new TestableItemStack(1, 1)
         emptyarray(0) = emptyitem
         val emptying = new ItemStorageArray(emptyarray)
         val fillarray = new Array[IItemStack](1)
@@ -194,12 +194,12 @@ class TestItemStorageNBT extends TestBase {
 
       "overflow into the second slot" in {
         val emptyarray = new Array[IItemStack](1)
-        val emptyitem = new TestItemStack(1, 5)
+        val emptyitem = new TestableItemStack(1, 5)
         emptyarray(0) = emptyitem
         val emptying = new ItemStorageArray(emptyarray)
         val fillarray = new Array[IItemStack](2)
-        fillarray(0) = new TestItemStack(1, 63)
-        fillarray(1) = new TestItemStack(1, 1)
+        fillarray(0) = new TestableItemStack(1, 63)
+        fillarray(1) = new TestableItemStack(1, 1)
         val filling = new ItemStorageArray(fillarray)
 
         val ret = emptying.transferIntoStorage(filling, 2)
@@ -215,8 +215,8 @@ class TestItemStorageNBT extends TestBase {
 
       "transfer multiple types of items" in {
         val emptyarray = new Array[IItemStack](2)
-        val emptyitem0 = new TestItemStack(0)
-        val emptyitem1 = new TestItemStack(1)
+        val emptyitem0 = new TestableItemStack(0)
+        val emptyitem1 = new TestableItemStack(1)
         emptyarray(0) = emptyitem0
         emptyarray(1) = emptyitem1
         val emptying = new ItemStorageArray(emptyarray)
@@ -240,8 +240,8 @@ class TestItemStorageNBT extends TestBase {
 
       "merge items together" in {
         val emptyarray = new Array[IItemStack](2)
-        val emptyitem0 = new TestItemStack(1)
-        val emptyitem1 = new TestItemStack(1)
+        val emptyitem0 = new TestableItemStack(1)
+        val emptyitem1 = new TestableItemStack(1)
         emptyarray(0) = emptyitem0
         emptyarray(1) = emptyitem1
         val emptying = new ItemStorageArray(emptyarray)
@@ -260,12 +260,12 @@ class TestItemStorageNBT extends TestBase {
 
       "prioritize matching over empty" in {
         val emptyarray = new Array[IItemStack](1)
-        val emptyitem = new TestItemStack(1, 1)
+        val emptyitem = new TestableItemStack(1, 1)
         emptyarray(0) = emptyitem
         val emptying = new ItemStorageArray(emptyarray)
         val fillarray = new Array[IItemStack](2)
         fillarray(0) = IItemStack.Empty
-        fillarray(1) = new TestItemStack(1, 1)
+        fillarray(1) = new TestableItemStack(1, 1)
         val filling = new ItemStorageArray(fillarray)
 
         val ret = emptying.transferIntoStorage(filling, 1)
@@ -279,11 +279,11 @@ class TestItemStorageNBT extends TestBase {
 
       "move nothing if there is no room" in {
         val emptyarray = new Array[IItemStack](1)
-        val emptyitem = new TestItemStack(1, 1)
+        val emptyitem = new TestableItemStack(1, 1)
         emptyarray(0) = emptyitem
         val emptying = new ItemStorageArray(emptyarray)
         val fillarray = new Array[IItemStack](1)
-        fillarray(0) = new TestItemStack(2, 1)
+        fillarray(0) = new TestableItemStack(2, 1)
         val filling = new ItemStorageArray(fillarray)
 
         val ret = emptying.transferIntoStorage(filling, 1)

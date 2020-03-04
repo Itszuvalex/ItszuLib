@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api.wrappers
 
+import com.itszuvalex.itszulib.api.core.ChunkCoord
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.tileentity.TileEntity
@@ -7,6 +8,9 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 class WrapperWorld(private val world: World) extends IWorld {
+
+  override def getChunkFromChunkCoord(cc: ChunkCoord): IChunk = new WrapperChunk(world.getChunkFromChunkCoords(cc.x, cc.z))
+
   override def getChunkFromChunkCoords(x: Int, z: Int): IChunk = new WrapperChunk(world.getChunkFromChunkCoords(x, z))
 
   override def getChunkFromBlockCoords(pos: BlockPos): IChunk = new WrapperChunk(world.getChunkFromBlockCoords(pos))
@@ -44,4 +48,7 @@ class WrapperWorld(private val world: World) extends IWorld {
 
   override def toMinecraft: World = world
 
+  override def getITileEntity(pos: BlockPos): ITileEntity = new WrapperTileEntity(world.getTileEntity(pos))
+
+  override def setITileEntity(pos: BlockPos, tile: ITileEntity): Unit = world.setTileEntity(pos, tile.toMinecraft)
 }

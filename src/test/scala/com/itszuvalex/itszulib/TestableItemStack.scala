@@ -9,7 +9,7 @@ import net.minecraftforge.common.capabilities.Capability
 /**
   * Created by Christopher Harris (Itszuvalex) on 7/31/16.
   */
-class TestItemStack(var testItem: Int, var testStack: Int, var testDamage: Int) extends IItemStack {
+class TestableItemStack(var testItem: Int, var testStack: Int, var testDamage: Int) extends IItemStack {
 
   def this() = this(-1, 0, 0)
 
@@ -50,7 +50,7 @@ class TestItemStack(var testItem: Int, var testStack: Int, var testDamage: Int) 
   override def isEmpty: Boolean = testItem == -1
 
   override def copy(): IItemStack = {
-    val ret = new TestItemStack(testItem, testStack, testDamage)
+    val ret = new TestableItemStack(testItem, testStack, testDamage)
     ret.nbt = Option(testNBT).map(_.copy()).orNull
     ret
   }
@@ -77,8 +77,8 @@ class TestItemStack(var testItem: Int, var testStack: Int, var testDamage: Int) 
 
   override def isItemEqual(o: IItemStack): Boolean = {
     if (o == null) return false
-    if (!o.isInstanceOf[TestItemStack]) return false
-    val other = o.asInstanceOf[TestItemStack]
+    if (!o.isInstanceOf[TestableItemStack]) return false
+    val other = o.asInstanceOf[TestableItemStack]
     if (other.testItem != testItem) return false
     if (o.damage != damage) return false
     if (o.nbt != nbt) return false

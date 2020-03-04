@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api.wrappers
 
+import com.itszuvalex.itszulib.api.core.ChunkCoord
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.tileentity.TileEntity
@@ -8,11 +9,15 @@ import net.minecraft.world.World
 
 trait IWorld {
 
+  def getChunkFromChunkCoord(cc: ChunkCoord): IChunk
+
   def getChunkFromChunkCoords(x: Int, z: Int): IChunk
 
   def getChunkFromBlockCoords(pos: BlockPos): IChunk
 
   def getTileEntity(pos: BlockPos): TileEntity
+
+  def getITileEntity(pos: BlockPos): ITileEntity
 
   def getBlockState(pos: BlockPos): IBlockState
 
@@ -43,4 +48,6 @@ trait IWorld {
   def removeTileEntity(pos: BlockPos): Unit
 
   def setTileEntity(pos: BlockPos, tile: TileEntity): Unit
+
+  def setITileEntity(pos: BlockPos, tile: ITileEntity): Unit
 }
