@@ -28,7 +28,6 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.util.INBTSerializable
 
 /**
@@ -36,7 +35,7 @@ import net.minecraftforge.common.util.INBTSerializable
   */
 object Loc4 {
   val worldIntMapper = new Overridable((w: IWorld) => w.dimensionId)
-  val intWorldMapper = new Overridable[(Int) => _ <: IWorld](ItszuLib.proxy.getIWorld _)
+  val intWorldMapper = new Overridable(ItszuLib.proxy.getIWorld(_))
 
   val ORIGIN = Loc4(0, 0, 0, 0)
 
@@ -70,7 +69,7 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
 
   def this(world: World, pos: BlockPos) = this(pos, Loc4.mapWorld(new WrapperWorld(world)))
 
-  def this(world:IWorld, pos:BlockPos) = this(pos, Loc4.mapWorld(world))
+  def this(world: IWorld, pos: BlockPos) = this(pos, Loc4.mapWorld(world))
 
   def this(te: TileEntity) = this(te.getWorld, te.getPos)
 
@@ -136,8 +135,8 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
   }
 
   def getOffset(dir: EnumFacing, distance: Int = 1): Loc4 = getOffset(distance * dir.getFrontOffsetX,
-    distance * dir.getFrontOffsetY,
-    distance * dir.getFrontOffsetZ)
+                                                                      distance * dir.getFrontOffsetY,
+                                                                      distance * dir.getFrontOffsetZ)
 
 
   def getOffset(xOffset: Int, yOffset: Int, zOffset: Int): Loc4 = new Loc4(x + xOffset, y + yOffset, z + zOffset, dim)

@@ -7,7 +7,6 @@ import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.api.wrappers.ITileEntity
 import com.itszuvalex.itszulib.logistics.TileNetwork.NetworkExplorer
 import com.itszuvalex.itszulib.util.Debug
-import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.capabilities.Capability
 
 import scala.collection.JavaConversions._
@@ -64,7 +63,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     //Map nodes to locations
     val nodeLocs = HashSet() ++ nodes.map(_.getLoc)
     //Find all edges.  These are the set of locations that are connected to nodeLocs, that aren't nodeLocs themselves.
-    val edges = nodes.flatMap(a => getConnections(a.getLoc)).flatten.toSet -- nodeLocs
+    val edges    = nodes.flatMap(a => getConnections(a.getLoc)).flatten.toSet -- nodeLocs
     //Removal all edges that touch nodeLocs.
     nodeLocs.foreach { a =>
       (Set[Loc4]() ++ getConnections(a).getOrElse(Set())).foreach(removeConnectionBatch(a, _))
@@ -93,7 +92,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     */
   override def split(edges: util.Set[Loc4]): Unit = {
     val workingSet = mutable.HashSet() ++= edges
-    val networks = mutable.ArrayBuffer[util.Collection[Loc4]]()
+    val networks   = mutable.ArrayBuffer[util.Collection[Loc4]]()
     while (workingSet.nonEmpty) {
       val first = workingSet.head
       val nodes = NetworkExplorer.explore[C, N](first, this)
@@ -109,8 +108,8 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
       val edgeTuples = getEdges
 
       networks.foreach { collect =>
-        val nodes = collect.flatMap(_.getTileEntity()).withFilter(_.hasCapability(networkCapability, null)).map(_.getCapability(networkCapability, null)).asJavaCollection
-        val edges = edgeTuples.filter { case (loc1, loc2) => collect.contains(loc1)
+        val nodes   = collect.flatMap(_.getITileEntity()).withFilter(_.hasCapability(networkCapability, null)).map(_.getCapability(networkCapability, null)).asJavaCollection
+        val edges   = edgeTuples.filter { case (loc1, loc2) => collect.contains(loc1)
           /*&& collect.contains(loc2)  Not necessary, as these are fully explored graphs.*/
         }.toSet
         val network = create(nodes, edges)
@@ -156,7 +155,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     (a.getITileEntity().orNull, b.getITileEntity().orNull) match {
       case (null, _) =>
       case (_, null) =>
-      case (nodeA: TileEntity, nodeB: TileEntity) if nodeA.hasCapability(networkCapability, null) && nodeB.hasCapability(networkCapability, null) =>
+      case (nodeA: ITileEntity, nodeB: ITileEntity) if nodeA.hasCapability(networkCapability, null) && nodeB.hasCapability(networkCapability, null) =>
         val aCap = nodeA.getCapability(networkCapability, null)
         val bCap = nodeB.getCapability(networkCapability, null)
 
@@ -220,7 +219,6 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     *
     * @param nodes Nodes to make a new network out of
     * @param edges Edges to include in the network.
-    *
     * @return Create a new network of this type from the given collection of nodes.
     */
   override def create(nodes: util.Collection[C], edges: util.Set[(Loc4, Loc4)]): N = {
