@@ -108,7 +108,8 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
       val edgeTuples = getEdges
 
       networks.foreach { collect =>
-        val nodes   = collect.flatMap(_.getITileEntity()).withFilter(_.hasCapability(networkCapability, null)).map(_.getCapability(networkCapability, null)).asJavaCollection
+        val nodes = collect.map(nodeMap(_))
+        //val nodes   = collect.flatMap(_.getITileEntity()).withFilter(_.hasCapability(networkCapability, null)).map(_.getCapability(networkCapability, null)).asJavaCollection
         val edges   = edgeTuples.filter { case (loc1, loc2) => collect.contains(loc1)
           /*&& collect.contains(loc2)  Not necessary, as these are fully explored graphs.*/
         }.toSet
