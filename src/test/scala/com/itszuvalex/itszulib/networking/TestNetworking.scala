@@ -1,9 +1,13 @@
 package com.itszuvalex.itszulib.networking
 
 import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.api.wrappers.ITileEntity
 import com.itszuvalex.itszulib.logistics.{TileNetwork, TileNetworkNode}
 import com.itszuvalex.itszulib.{TestBase, TestableWorld}
+import net.minecraft.nbt.{NBTBase, NBTTagCompound}
+import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.capabilities.Capability
+import net.minecraftforge.common.capabilities.Capability.IStorage
 
 import scala.collection.JavaConversions._
 
@@ -22,10 +26,11 @@ class TestNetworking extends TestBase {
   }
 
   trait OriginNode {
-    val origin = new TestNode(Loc4(0, 0, 0, 0))
+    val origin     = new TestNode(Loc4(0, 0, 0, 0))
+    val originTile = TileNodeForTestNode(origin)
   }
 
-  trait NetworkWithOrigin extends Network with OriginNode {network.addNode(origin)}
+  trait NetworkWithOrigin extends Network with OriginNode {network.addNode(origin); testableWorld.setITileEntity(origin.getLoc.getPos, originTile)}
 
   "A Network" when {
     "constructing" should {
@@ -261,9 +266,24 @@ class TestNetworking extends TestBase {
   TEST CLASS EXTENSIONS
    */
 
+  val capabilityFactory = {
+    () =>
+      new Capability[TestNode]("TestCapability", new IStorage[TestNode] {
+        override def writeNBT(capability: Capability[TestNode], instance: TestNode, side: EnumFacing): NBTBase = new NBTTagCompound()
+
+        override def readNBT(capability: Capability[TestNode], instance: TestNode, side: EnumFacing, nbt: NBTBase): Unit = {}
+      }, capabilityFactory _)
+  }
+
+  val testNodeCapability: Capability[TestNode] = new Capability[TestNode]("TestCapability", new IStorage[TestNode] {
+    override def writeNBT(capability: Capability[TestNode], instance: TestNode, side: EnumFacing): NBTBase = new NBTTagCompound()
+
+    override def readNBT(capability: Capability[TestNode], instance: TestNode, side: EnumFacing, nbt: NBTBase): Unit = {}
+  }, capabilityFactory _)
+
   class TestableNetwork(_id: Int) extends TileNetwork[TestNode, TestableNetwork](_id) {
 
-    override def networkCapability: Capability[TestNode] = null
+    override def networkCapability: Capability[TestNode] = testNodeCapability
 
     override def addConnection(a: Loc4, b: Loc4): Unit = {
       addConnectionSilently(a, b)
@@ -317,6 +337,15 @@ class TestNetworking extends TestBase {
     var nextId     = 0
 
     def getID = {nextId += 1; nextId}
+  }
+
+  def TileNodeForTestNode(node: TestNode): ITileEntity = {
+    val originTile = mock[ITileEntity]
+    (originTile.hasCapability _).expects(testNodeCapability, _).anyNumberOfTimes().returns(true)
+    (originTile.getCapability[TestNode] _).expects(testNodeCapability, _).anyNumberOfTimes().returns(node)
+    (originTile.getPos _).expects().returns(node.getLoc.getPos)
+
+    originTile
   }
 
 }
