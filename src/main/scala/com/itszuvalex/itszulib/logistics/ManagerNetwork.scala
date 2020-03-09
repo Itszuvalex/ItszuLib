@@ -19,42 +19,63 @@ import scala.collection.JavaConverters._
   * Created by Christopher on 4/5/2015.
   */
 object ManagerNetwork {
-  val INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(ItszuLib.ID.toLowerCase + "|" + "logistics")
+  val NETWORK_CHANNEL_INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(ItszuLib.ID.toLowerCase + "|" + "logistics")
+  private var INSTANCE: INetworkManager = new ManagerNetwork()
 
+  def instance: INetworkManager = INSTANCE
+
+  def init(): Unit = {
+    MinecraftForge.EVENT_BUS.register(this)
+  }
+
+  def setInstance(instance: INetworkManager): Unit = INSTANCE = instance
+
+  @SubscribeEvent def onTickBegin(event: TickEvent.ServerTickEvent): Unit = {
+    event.phase match {
+      case TickEvent.Phase.START => INSTANCE.onTickStart()
+      case TickEvent.Phase.END => INSTANCE.onTickEnd()
+      case _ =>
+    }
+  }
+
+  @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload): Unit = {
+    val server = FMLCommonHandler.instance().getMinecraftServerInstance
+    if (server == null || !server.isServerRunning) {
+      INSTANCE.clear()
+    }
+  }
+}
+
+class ManagerNetwork extends INetworkManager {
   private val nextID     = new AtomicInteger(0)
   private val networkMap = new ConcurrentHashMap[Int, INetwork[_, _]].asScala
 
-  def getNextID = nextID.getAndIncrement
+  override def getNextID: Int = nextID.getAndIncrement
 
-  def addNetwork(network: INetwork[_, _]) = {
+  override def addNetwork(network: INetwork[_, _]): Unit = {
     Debug.log(Level.WARN, "Added Network:" + network.ID)
     Debug.log(Level.WARN, "Active Networks:" + networkMap.size)
     networkMap(network.ID) = network
     Debug.log(Level.WARN, "Active Network After Addition:" + networkMap.size)
   }
 
-  def removeNetwork(network: INetwork[_, _]) = {
+  override def removeNetwork(network: INetwork[_, _]): Unit = {
     Debug.log(Level.WARN, "Removed Network:" + network.ID)
     Debug.log(Level.WARN, "Active Networks:" + networkMap.size)
     networkMap.remove(network.ID)
     Debug.log(Level.WARN, "Active Networks After Removal:" + networkMap.size)
   }
 
-  def init(): Unit = {
-    MinecraftForge.EVENT_BUS.register(this)
-  }
+  override def getNetwork(id: Int): Option[INetwork[_, _]] = networkMap.get(id)
 
-  def getNetwork(id: Int) = networkMap.get(id)
+  override def onTickStart(): Unit = networkMap.values.foreach(_.onTickStart())
 
-  @SubscribeEvent def onTickBegin(event: TickEvent.ServerTickEvent): Unit = {
-    if (event.phase == TickEvent.Phase.START) networkMap.values.foreach(_.onTickStart())
-    if (event.phase == TickEvent.Phase.END) networkMap.values.foreach(_.onTickEnd())
-  }
+  override def onTickEnd(): Unit = networkMap.values.foreach(_.onTickEnd())
 
-  @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload): Unit = {
-    val server = FMLCommonHandler.instance().getMinecraftServerInstance
-    if (server == null || !server.isServerRunning) {
-      networkMap.clear()
-    }
-  }
+  override def clear(): Unit = networkMap.clear()
+
+  override def networkCount: Int = networkMap.size
+
+  override def networks: Iterable[INetwork[_, _]] = networkMap.values
+
 }

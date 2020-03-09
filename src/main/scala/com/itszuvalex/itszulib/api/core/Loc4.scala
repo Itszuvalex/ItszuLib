@@ -73,6 +73,8 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
 
   def this(te: TileEntity) = this(te.getWorld, te.getPos)
 
+  def this(ite: ITileEntity) = this(ite.getWorld, ite.getPos)
+
   override def serializeNBT(): NBTTagCompound = {
     val compound = new NBTTagCompound
     compound.setInteger("x", x)

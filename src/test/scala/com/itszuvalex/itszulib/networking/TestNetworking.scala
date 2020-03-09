@@ -1,13 +1,9 @@
 package com.itszuvalex.itszulib.networking
 
 import com.itszuvalex.itszulib.api.core.Loc4
-import com.itszuvalex.itszulib.api.wrappers.ITileEntity
-import com.itszuvalex.itszulib.logistics.{TileNetwork, TileNetworkNode}
+import com.itszuvalex.itszulib.logistics.{ManagerNetwork, TileNetwork, TileNetworkNode}
 import com.itszuvalex.itszulib.{TestBase, TestableWorld}
-import net.minecraft.nbt.{NBTBase, NBTTagCompound}
-import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.capabilities.Capability
-import net.minecraftforge.common.capabilities.Capability.IStorage
 
 import scala.collection.JavaConversions._
 
@@ -17,9 +13,10 @@ import scala.collection.JavaConversions._
 class TestNetworking extends TestBase {
 
   trait Network {
-    TestNetworkManager.networkMap.clear()
-    TestNetworkManager.nextId = 0
-    val network = new TestableNetwork(TestNetworkManager.getID)
+    val testableNetworkManager = new ManagerNetwork
+    testableNetworkManager.clear()
+    ManagerNetwork.setInstance(testableNetworkManager)
+    val network = new TestableNetwork(testableNetworkManager.getNextID)
     network.register()
     val testableWorld = new TestableWorld(0)
     Loc4.intWorldMapper.overrideDefault(_ => testableWorld)
@@ -148,7 +145,7 @@ class TestNetworking extends TestBase {
               network.removeNode(neighbor)
               network.getNodes.isEmpty shouldBe true
               network.getEdges.isEmpty shouldBe true
-              TestNetworkManager.networkMap.contains(network.id) shouldBe false
+              testableNetworkManager.getNetwork(network.id) shouldBe None
             }
 
             "and" should {
@@ -159,7 +156,7 @@ class TestNetworking extends TestBase {
                 network.addNode(neighbor)
                 network.addNode(neighbor2)
                 network.removeNode(neighbor)
-                TestNetworkManager.networkMap.values.size shouldBe 2
+                testableNetworkManager.networkCount shouldBe 2
               }
 
               "each should have 1 node" in new NetworkWithOrigin {
@@ -168,9 +165,8 @@ class TestNetworking extends TestBase {
                 network.addNode(neighbor)
                 network.addNode(neighbor2)
                 network.removeNode(neighbor)
-                val networks = TestNetworkManager.networkMap.values.toArray
-                networks(0).getNodes.size shouldBe 1
-                networks(1).getNodes.size shouldBe 1
+                val networks = testableNetworkManager.networks
+                networks.foreach(_.getNodes.size shouldBe 1)
               }
               "each should have 0 edges" in new NetworkWithOrigin {
                 val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
@@ -178,12 +174,10 @@ class TestNetworking extends TestBase {
                 network.addNode(neighbor)
                 network.addNode(neighbor2)
                 network.removeNode(neighbor)
-                val networks = TestNetworkManager.networkMap.values.toArray
-                networks(0).getEdges.size shouldBe 0
-                networks(1).getEdges.size shouldBe 0
+                val networks = testableNetworkManager.networks
+                networks.foreach(_.getEdges.size shouldBe 0)
               }
             }
-
           }
         }
 
@@ -278,12 +272,6 @@ class TestNetworking extends TestBase {
     }
 
     /**
-      *
-      * @return Create an empty new network of this type.
-      */
-    override def create() = new TestableNetwork(TestNetworkManager.getID)
-
-    /**
       * Called on networks by another network, when that network is incorporating this network.
       *
       * @param iNetwork Network that is taking over this network.
@@ -302,24 +290,20 @@ class TestNetworking extends TestBase {
       */
     override def onTickStart(): Unit = {}
 
-    override def unregister(): Unit = {TestNetworkManager.networkMap.remove(ID)}
-
-    override def register(): Unit = {TestNetworkManager.networkMap(ID) = this}
-
     /**
       * Called when a tick ends.
       */
     override def onTickEnd(): Unit = {}
+
+    /**
+      *
+      * @return Create an empty new network of this type.
+      */
+    override def create(): TestableNetwork = new TestableNetwork(ManagerNetwork.instance.getNextID)
   }
 
   class TestNode(val loc: Loc4) extends TileNetworkNode[TestNode, TestableNetwork] {
     override def getLoc: Loc4 = loc
   }
 
-  object TestNetworkManager {
-    val networkMap = scala.collection.mutable.HashMap[Int, TestableNetwork]()
-    var nextId     = 0
-
-    def getID = {nextId += 1; nextId}
-  }
 }
