@@ -117,7 +117,7 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
     case None => None
   }
 
-  def chunkCoords = (x >> 4, z >> 4)
+  def chunkCoords = ChunkCoord(getPos)
 
   def chunkContains(chunk: IChunk): Boolean = {
     if (Loc4.mapWorld(chunk.world) != dim) false
