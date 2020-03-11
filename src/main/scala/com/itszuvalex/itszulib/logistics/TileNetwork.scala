@@ -160,12 +160,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
         val aCap = nodeA.getCapability(networkCapability, null)
         val bCap = nodeB.getCapability(networkCapability, null)
 
-        if (aCap.getNetwork != bCap.getNetwork) {
-          if (aCap.getNetwork == this) takeover(bCap.getNetwork)
-          else takeover(aCap.getNetwork)
-        }
-        aCap.connect(b)
-        bCap.connect(a)
+        addConnectionInternal(aCap, bCap)
       case _ =>
     }
   }
@@ -252,4 +247,28 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
       setB -= a
       if (setB.isEmpty) connectionMap.remove(b)
     }
+
+  override def canConnectNodes(a: C, b: C): Boolean = canConnect(a.getLoc, b.getLoc)
+
+  override def addConnectionNodes(a: C, b: C): Unit = {
+    addConnectionSilently(a.getLoc, b.getLoc)
+    addConnectionInternal(a, b)
+  }
+
+  private def addConnectionInternal(a: C, b: C): Unit = {
+    if (a.getNetwork != b.getNetwork) {
+      if (a.getNetwork == this) takeover(b.getNetwork)
+      else takeover(a.getNetwork)
+    }
+    a.connect(b.getLoc)
+    b.connect(a.getLoc)
+  }
+
+  override def removeConnectionNodes(a: C, b: C): Unit = {
+    removeConnectionSilently(a.getLoc, b.getLoc)
+    a.disconnect(b.getLoc)
+    b.disconnect(a.getLoc)
+    split(Set(a.getLoc, b.getLoc))
+  }
+
 }

@@ -204,6 +204,42 @@ class TestNetworking extends TestBase {
           }
         }
       }
+
+      "takeover" in new NetworkWithOrigin {
+        val network2 = new TestableNetwork(testableNetworkManager.getNextID)
+        network2.register()
+        val network3 = new TestableNetwork(testableNetworkManager.getNextID)
+        network3.register()
+        val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
+        val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+        network2.addNode(neighbor)
+        network3.addNode(neighbor2)
+
+        network.addConnectionNodes(origin, neighbor)
+
+        network2.getNodes.size() shouldBe 0
+        network2.getEdges.size() shouldBe 0
+        testableNetworkManager.getNetwork(network2.id) shouldBe None
+
+        var nodes = network.getNodes
+        var edges = network.getEdges
+        nodes.size() shouldBe 2
+        nodes should contain allOf(origin, neighbor)
+        edges should contain(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0))
+
+        network.addConnectionNodes(neighbor, neighbor2)
+
+        network3.getNodes.size() shouldBe 0
+        network3.getEdges.size() shouldBe 0
+        testableNetworkManager.getNetwork(network3.id) shouldBe None
+
+        nodes = network.getNodes
+        edges = network.getEdges
+
+        nodes.size() shouldBe 3
+        nodes should contain allOf(origin, neighbor, neighbor2)
+        edges should contain allOf(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0), Loc4(1, 0, 0, 0) -> Loc4(2, 0, 0, 0))
+      }
     }
     "adding two connectable nodes in L" should {
       "have 3 nodes" in new NetworkWithOrigin {
@@ -263,6 +299,7 @@ class TestNetworking extends TestBase {
 
     override def networkCapability: Capability[TestNode] = null
 
+    /*
     override def addConnection(a: Loc4, b: Loc4): Unit = {
       addConnectionSilently(a, b)
     }
@@ -270,6 +307,7 @@ class TestNetworking extends TestBase {
     override def removeConnection(a: Loc4, b: Loc4): Unit = {
       removeConnectionSilently(a, b)
     }
+    */
 
     /**
       * Called on networks by another network, when that network is incorporating this network.

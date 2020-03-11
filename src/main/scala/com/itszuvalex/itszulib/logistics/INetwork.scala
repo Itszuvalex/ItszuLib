@@ -51,9 +51,15 @@ trait INetwork[C <: INetworkNode[C, N], N <: INetwork[C, N]] {
     */
   def getEdges: util.Set[(Loc4, Loc4)]
 
+  def canConnectNodes(a: C, b: C): Boolean
+
   def canConnect(a: Loc4, b: Loc4): Boolean
 
+  def addConnectionNodes(a: C, b: C): Unit
+
   def addConnection(a: Loc4, b: Loc4): Unit
+
+  def removeConnectionNodes(a: C, b: C): Unit
 
   def removeConnection(a: Loc4, b: Loc4): Unit
 
