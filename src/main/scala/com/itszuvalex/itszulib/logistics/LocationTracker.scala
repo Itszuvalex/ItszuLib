@@ -46,15 +46,23 @@ class LocationTracker {
     trackerMap.values.view.flatMap(_.values).flatten
   }
 
-  def getLocationsInRange(loc: Loc4, range: Float): Iterable[Loc4] = for {
-    chunk <- getChunkCoordsInRadius(loc.chunkCoords, Math.ceil(range / CHUNK_SIZE).toInt)
-    checkLoc <- getLocationsInChunk(loc.dim, chunk)
-    if checkLoc.distSqr(loc) <= range * range
-  } yield checkLoc
+  def getLocationsInRange(loc: Loc4, range: Float): Iterable[Loc4] = {
+    val radius = Math.ceil(range / CHUNK_SIZE).toInt
+    for {
+      chunk <- if (radius * radius < trackerMap.get(loc.dim).map(_.size).getOrElse(0))
+        getChunkCoordsInRadius((loc.x >> 4, loc.z >> 4), radius)
+      else
+        getChunkCoordsInRadiusInDim((loc.x >> 4, loc.z >> 4), radius, loc.dim)
+
+      checkLoc <- getLocationsInChunk(loc.dim, chunk)
+      if checkLoc.distSqr(loc) <= range * range
+    } yield checkLoc
+  }
+
 
   def getLocationsInRange(dim: Int, loc: (Float, Float, Float), range: Float): Iterable[Loc4] = {
     val (x, y, z) = loc
-    val radius = Math.ceil(range / CHUNK_SIZE).toInt
+    val radius    = Math.ceil(range / CHUNK_SIZE).toInt
     for {
       chunk <- if (radius * radius < trackerMap.get(dim).map(_.size).getOrElse(0))
         getChunkCoordsInRadius((x.toInt >> 4, z.toInt >> 4), radius)
@@ -78,7 +86,7 @@ class LocationTracker {
   private def getChunkCoordsInRadiusInDim(loc: (Int, Int), radius: Int, dim: Int) = {
     trackerMap.getOrElse(dim, mutable.HashMap.empty).keys.filter { floc =>
       (floc._1 >= loc._1 - radius && floc._1 <= loc._1 + radius) &&
-        (floc._2 >= loc._2 - radius && floc._2 <= loc._2 + radius)
+      (floc._2 >= loc._2 - radius && floc._2 <= loc._2 + radius)
     }
   }
 
