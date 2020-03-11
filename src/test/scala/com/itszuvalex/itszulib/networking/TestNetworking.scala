@@ -221,6 +221,8 @@ class TestNetworking extends TestBase {
         network2.getEdges.size() shouldBe 0
         testableNetworkManager.getNetwork(network2.id) shouldBe None
 
+        neighbor.network should be theSameInstanceAs network
+
         var nodes = network.getNodes
         var edges = network.getEdges
         nodes.size() shouldBe 2
@@ -232,6 +234,8 @@ class TestNetworking extends TestBase {
         network3.getNodes.size() shouldBe 0
         network3.getEdges.size() shouldBe 0
         testableNetworkManager.getNetwork(network3.id) shouldBe None
+
+        neighbor2.network should be theSameInstanceAs network
 
         nodes = network.getNodes
         edges = network.getEdges
