@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib
 
+import com.itszuvalex.itszulib.api.core.ItemIdentifier
 import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
@@ -85,4 +86,6 @@ class TestableItemStack(var testItem: Int, var testStack: Int, var testDamage: I
     if (o.nbt != null && !o.nbt.equals(nbt)) return false
     true
   }
+
+  override def identifier: ItemIdentifier = ItemIdentifier("test", testItem.toString)
 }

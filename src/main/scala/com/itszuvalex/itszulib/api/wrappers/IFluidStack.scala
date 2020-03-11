@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
+import com.itszuvalex.itszulib.api.core.FluidIdentifier
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.INBTSerializable
 import net.minecraftforge.fluids.{Fluid, FluidStack}
@@ -70,5 +71,7 @@ trait IFluidStack extends INBTSerializable[NBTTagCompound] {
   def isFluidEqual(o: IFluidStack): Boolean = IFluidStack.fluidEquality.apply(this, o)
 
   def writeToNBT(nbt: NBTTagCompound): Unit
+
+  def identifier: FluidIdentifier
 
 }

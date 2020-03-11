@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
+import com.itszuvalex.itszulib.api.core.ItemIdentifier
 import com.itszuvalex.itszulib.implicits.IDImplicits._
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
@@ -22,7 +23,7 @@ object WrapperVanillaItemStack {
   def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
 
   val nbtWriter = new Overridable((c: WrapperVanillaItemStack, nbt: NBTTagCompound) =>
-    Option(c.toMinecraft).foreach(_.writeToNBT(nbt)))
+                                    Option(c.toMinecraft).foreach(_.writeToNBT(nbt)))
 
   val nbtSerializer = new Overridable((c: WrapperVanillaItemStack) => {
     Option(c.toMinecraft).map(_.serializeNBT()).orNull
@@ -81,4 +82,6 @@ class WrapperVanillaItemStack(private var stack: ItemStack) extends IItemStack {
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
     stack = new ItemStack(nbt)
   }
+
+  override def identifier: ItemIdentifier = ItemIdentifier(item)
 }

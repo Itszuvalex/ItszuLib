@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
+import com.itszuvalex.itszulib.api.core.FluidIdentifier
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fluids.{Fluid, FluidStack}
 
@@ -32,7 +33,7 @@ object WrapperVanillaFluidStack {
   val nbtDeserializer = new Overridable((n: NBTTagCompound) => {
     new WrapperVanillaFluidStack(FluidStack.loadFluidStackFromNBT(n))
   }
-                                       )
+                                        )
 
   val nbtSelfModifyingDeserializer = new Overridable((c: WrapperVanillaFluidStack, n: NBTTagCompound) => {
     c.fluidStack = FluidStack.loadFluidStackFromNBT(n)
@@ -79,4 +80,6 @@ class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFlui
   override def writeToNBT(nbt: NBTTagCompound): Unit = WrapperVanillaFluidStack.nbtWriter.apply(this, nbt)
 
   override def isEmpty: Boolean = fluidStack == null
+
+  override def identifier: FluidIdentifier = FluidIdentifier(fluid)
 }

@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
+import com.itszuvalex.itszulib.api.core.ItemIdentifier
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -74,6 +75,8 @@ trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
   def hasNbt: Boolean = nbt != null
 
   def toMinecraft: ItemStack
+
+  def identifier: ItemIdentifier
 
   def isEmpty: Boolean
 
