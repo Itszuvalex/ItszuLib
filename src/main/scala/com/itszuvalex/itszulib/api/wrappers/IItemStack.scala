@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
-import com.itszuvalex.itszulib.api.core.ItemIdentifier
+import com.itszuvalex.itszulib.api.core.{INBTObjectSerializer, ItemIdentifier}
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -11,7 +11,7 @@ import net.minecraftforge.common.capabilities.{Capability, ICapabilitySerializab
   * Created by Chris on 4/17/2016.
   */
 object IItemStack {
-  val Empty: IItemStack = new WrapperVanillaItemStack() {
+  val Empty: IItemStack = new IItemStack {
     override def copy(): IItemStack = IItemStack.Empty
 
     override def damageMax: Int = 0
@@ -37,13 +37,31 @@ object IItemStack {
     override def stackSizeMax: Int = 64
 
     override def toMinecraft: ItemStack = ItemStack.EMPTY
+
+    override def identifier: ItemIdentifier = ItemIdentifier("minecraft", "air")
+
+    override def writeToNBT(nbt: NBTTagCompound): Unit = {}
+
+    override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = false
+
+    override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = null.asInstanceOf[T]
+
+    override def serializeNBT(): NBTTagCompound = new NBTTagCompound
+
+    override def deserializeNBT(nbt: NBTTagCompound): Unit = {}
   }
 
-  val nbtLoader = new Overridable((nbt: NBTTagCompound) => {
-    WrapperVanillaItemStack.nbtDeserializer.apply(nbt)
-  })
+  def Serializer: INBTObjectSerializer[IItemStack, NBTTagCompound] = OverrideSerializer.getOrElse(VanillaSerializer)
 
-  def createFromNBT(nbt: NBTTagCompound): IItemStack = nbtLoader.apply(nbt)
+  val VanillaSerializer: INBTObjectSerializer[IItemStack, NBTTagCompound] = new INBTObjectSerializer[IItemStack, NBTTagCompound] {
+    override def serialize(obj: IItemStack, nbt: NBTTagCompound): Unit = obj.writeToNBT(nbt)
+
+    override def deserialize(nbt: NBTTagCompound): IItemStack = WrapperVanillaItemStack.nbtDeserializer.apply(nbt)
+  }
+
+  var OverrideSerializer: Option[INBTObjectSerializer[IItemStack, NBTTagCompound]] = None
+
+  def createFromNBT(nbt: NBTTagCompound): IItemStack = Serializer.deserialize(nbt)
 
   val itemStackEquality = new Overridable((a: IItemStack, b: IItemStack) => {
     (a == null && b == null) || !(a == null || b == null) && (ItemStack.areItemsEqual(a.toMinecraft, b.toMinecraft) && ItemStack.areItemStackTagsEqual(a.toMinecraft, b.toMinecraft))

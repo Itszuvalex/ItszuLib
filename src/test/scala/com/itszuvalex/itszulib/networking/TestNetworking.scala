@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.networking
 
-import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.api.core.{DimensionMapper, Loc4}
+import com.itszuvalex.itszulib.api.wrappers.IWorld
 import com.itszuvalex.itszulib.logistics.{ManagerNetwork, TileNetwork, TileNetworkNode}
 import com.itszuvalex.itszulib.{TestBase, TestableWorld}
 import net.minecraftforge.common.capabilities.Capability
@@ -19,7 +20,11 @@ class TestNetworking extends TestBase {
     val network = new TestableNetwork(testableNetworkManager.getNextID)
     network.register()
     val testableWorld = new TestableWorld(0)
-    Loc4.intWorldMapper.overrideDefault(_ => testableWorld)
+    Loc4.OverrideDimensionMapper = Some(new DimensionMapper {
+      override def dimensionIdForWorld(w: IWorld): Int = testableWorld.dimensionId
+
+      override def worldForDimensionId(i: Int): IWorld = testableWorld
+    })
   }
 
   trait OriginNode {

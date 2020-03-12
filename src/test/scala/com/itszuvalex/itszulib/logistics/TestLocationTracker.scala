@@ -33,6 +33,17 @@ class TestLocationTracker extends TestBase {
       tracker.isLocationTracked(loc) shouldBe false
       tracker.isLocationTracked(loc1) shouldBe false
     }
+    "clear dims" in new TestTracker {
+      val loc  = Loc4(0, 0, 0, 0)
+      val loc1 = Loc4(0, 0, 0, 1)
+      tracker.trackLocation(loc)
+      tracker.trackLocation(loc1)
+      tracker.isLocationTracked(loc) shouldBe true
+      tracker.isLocationTracked(loc1) shouldBe true
+      tracker.clearDim(0)
+      tracker.isLocationTracked(loc) shouldBe false
+      tracker.isLocationTracked(loc1) shouldBe true
+    }
 
     "Track locations by dim" in new TestTracker {
       val loc  = Loc4(0, 0, 0, 0)
@@ -79,7 +90,34 @@ class TestLocationTracker extends TestBase {
         val timeoutMillis = 5000
         val time          = System.currentTimeMillis()
         while (thread.isAlive && ((System.currentTimeMillis() - time) < timeoutMillis)) {
-          Thread.sleep(100)
+          Thread.sleep(10)
+        }
+
+        val timeWaited = System.currentTimeMillis() - time
+        (timeWaited < timeoutMillis) shouldBe true
+
+        if (thread.isAlive) thread.interrupt()
+        thread.join()
+
+        locs should contain allOf(loc, loc1)
+      }
+      "not die on big ranges for player coords" in new TestTracker {
+        val loc  = Loc4(0, 0, 0, 0)
+        val loc1 = Loc4(0, 3000000, 0, 0)
+        tracker.trackLocation(loc)
+        tracker.trackLocation(loc1)
+        var locs: Iterable[Loc4] = List()
+
+        val thread = new Thread {
+          override def run(): Unit = {
+            locs = tracker.getLocationsInRange(0, (0f, 0f, 0f), 5000000f)
+          }
+        }
+        thread.start()
+        val timeoutMillis = 5000
+        val time          = System.currentTimeMillis()
+        while (thread.isAlive && ((System.currentTimeMillis() - time) < timeoutMillis)) {
+          Thread.sleep(10)
         }
 
         val timeWaited = System.currentTimeMillis() - time

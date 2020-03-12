@@ -21,8 +21,9 @@
 package com.itszuvalex.itszulib.api.core
 
 import com.itszuvalex.itszulib.ItszuLib
-import com.itszuvalex.itszulib.api.Overridable
 import com.itszuvalex.itszulib.api.wrappers.{IChunk, ITileEntity, IWorld, WrapperWorld}
+import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
@@ -34,10 +35,18 @@ import net.minecraftforge.common.util.INBTSerializable
   * Created by Christopher Harris (Itszuvalex) on 5/9/14.
   */
 object Loc4 {
-  val worldIntMapper = new Overridable((w: IWorld) => w.dimensionId)
-  val intWorldMapper = new Overridable(ItszuLib.proxy.getIWorld(_))
 
-  val ORIGIN = Loc4(0, 0, 0, 0)
+  val VanillaDimensionMapper: DimensionMapper = new DimensionMapper {
+    override def dimensionIdForWorld(w: IWorld): Int = w.dimensionId
+
+    override def worldForDimensionId(i: Int): IWorld = ItszuLib.proxy.getIWorld(i)
+  }
+
+  var OverrideDimensionMapper: Option[DimensionMapper] = None
+
+  def DimensionMapper: DimensionMapper = OverrideDimensionMapper.getOrElse(VanillaDimensionMapper)
+
+  val ORIGIN: Loc4 = Loc4(0, 0, 0, 0)
 
   def apply(compound: NBTTagCompound): Loc4 = {
     if (compound == null) null
@@ -47,18 +56,6 @@ object Loc4 {
       loc
     }
   }
-
-  def setWorldIntMapper(func: (IWorld) => Int) = worldIntMapper.overrideDefault(func)
-
-  def restoreDefaultWorldIntMapper() = worldIntMapper.revert()
-
-  def mapWorld(world: IWorld): Int = worldIntMapper.apply(world)
-
-  def setIntWorldMapper(func: (Int) => IWorld) = intWorldMapper.overrideDefault(func)
-
-  def restoreDefaultIntWorldMapper() = intWorldMapper.revert()
-
-  def mapInt(int: Int): IWorld = intWorldMapper.apply(int)
 }
 
 case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSerializable[NBTTagCompound] with Comparable[Loc4] {
@@ -67,9 +64,9 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
 
   def this(loc: BlockPos, dim: Int) = this(loc.getX, loc.getY, loc.getZ, dim)
 
-  def this(world: World, pos: BlockPos) = this(pos, Loc4.mapWorld(new WrapperWorld(world)))
+  def this(world: World, pos: BlockPos) = this(pos, Loc4.DimensionMapper.dimensionIdForWorld(new WrapperWorld(world)))
 
-  def this(world: IWorld, pos: BlockPos) = this(pos, Loc4.mapWorld(world))
+  def this(world: IWorld, pos: BlockPos) = this(pos, Loc4.DimensionMapper.dimensionIdForWorld(world))
 
   def this(te: TileEntity) = this(te.getWorld, te.getPos)
 
@@ -101,26 +98,26 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
     case None => None
   }
 
-  def getBlock(force: Boolean = false) = getBlockState(force).map(_.getBlock)
+  def getBlock(force: Boolean = false): Option[Block] = getBlockState(force).map(_.getBlock)
 
-  def getBlockState(force: Boolean = false) = getWorld match {
+  def getBlockState(force: Boolean = false): Option[IBlockState] = getWorld match {
     case Some(a) => Option(if (a.isBlockLoaded(getPos) || force) a.getBlockState(getPos) else null)
     case None => None
   }
 
   def getPos = new BlockPos(x, y, z)
 
-  def getWorld = Option(Loc4.mapInt(dim))
+  def getWorld: Option[IWorld] = Option(Loc4.DimensionMapper.worldForDimensionId(dim))
 
-  def getChunk(force: Boolean = false) = getWorld match {
+  def getChunk(force: Boolean = false): Option[IChunk] = getWorld match {
     case Some(a) => Option(if (a.isBlockLoaded(getPos) || force) a.getChunkFromBlockCoords(getPos) else null)
     case None => None
   }
 
-  def chunkCoords = ChunkCoord(getPos)
+  def chunkCoords: ChunkCoord = ChunkCoord(getPos)
 
   def chunkContains(chunk: IChunk): Boolean = {
-    if (Loc4.mapWorld(chunk.world) != dim) false
+    if (Loc4.DimensionMapper.dimensionIdForWorld(chunk.world) != dim) false
     else if (x <= chunk.x * 16) false
     else if (x > chunk.x * 16 + 16) false
     else if (z <= chunk.z * 16) false
