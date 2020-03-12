@@ -416,6 +416,60 @@ class TestNetworking extends TestBase {
         edges should contain allOf(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0), Loc4(0, 0, 0, 0) -> Loc4(0, 1, 0, 0), Loc4(1, 0, 0, 0) -> Loc4(1, 1, 0, 0),
           Loc4(0, 1, 0, 0) -> Loc4(1, 1, 0, 0))
       }
+
+      "when 2 connections removed should split" in new NetworkWithOrigin {
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+        val neighbor2   = new TestNode(Loc4(0, 1, 0, 0))
+        val neighbor2TE = new TestableTileEntity(Loc4(0, 1, 0, 0), testableWorld, neighbor2)
+        testableWorld.setITileEntity(Loc4(0, 1, 0, 0).getPos, neighbor2TE)
+        val neighbor3   = new TestNode(Loc4(1, 1, 0, 0))
+        val neighbor3TE = new TestableTileEntity(Loc4(1, 1, 0, 0), testableWorld, neighbor3)
+        testableWorld.setITileEntity(Loc4(1, 1, 0, 0).getPos, neighbor3TE)
+        network.addNode(neighbor)
+        network.addNode(neighbor2)
+        network.addNode(neighbor3)
+        var nodes = network.getNodes
+        nodes.size() shouldBe 4
+        nodes should contain allOf(origin, neighbor, neighbor2, neighbor3)
+        var edges = network.getEdges
+        edges.size() shouldBe 4
+        edges should contain allOf(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0), Loc4(0, 0, 0, 0) -> Loc4(0, 1, 0, 0), Loc4(1, 0, 0, 0) -> Loc4(1, 1, 0, 0),
+          Loc4(0, 1, 0, 0) -> Loc4(1, 1, 0, 0))
+
+        network.removeConnection(Loc4(0, 0, 0, 0), Loc4(0, 1, 0, 0))
+        nodes = network.getNodes
+        nodes.size() shouldBe 4
+        nodes should contain allOf(origin, neighbor, neighbor2, neighbor3)
+        edges = network.getEdges
+        edges.size() shouldBe 3
+        edges should contain allOf(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0), Loc4(1, 0, 0, 0) -> Loc4(1, 1, 0, 0), Loc4(0, 1, 0, 0) -> Loc4(1, 1, 0, 0))
+
+        network.removeConnection(Loc4(1, 0, 0, 0), Loc4(1, 1, 0, 0))
+        origin.network should be theSameInstanceAs neighbor.network
+        val newNetwork = origin.getNetwork
+        nodes = newNetwork.getNodes
+        nodes.size() shouldBe 2
+        nodes should contain allOf(origin, neighbor)
+        edges = newNetwork.getEdges
+        edges.size() shouldBe 1
+        edges should contain(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0))
+
+        neighbor2.network should be theSameInstanceAs neighbor3.network
+        val network2 = neighbor2.network
+        nodes = network2.getNodes
+        nodes.size() shouldBe 2
+        nodes should contain allOf(neighbor2, neighbor3)
+        edges = network2.getEdges
+        edges.size() shouldBe 1
+        edges should contain(Loc4(0, 1, 0, 0) -> Loc4(1, 1, 0, 0))
+
+        newNetwork shouldNot be theSameInstanceAs network2
+
+        testableNetworkManager.networks.size() shouldBe 2
+        testableNetworkManager.getNetwork(network.id) shouldBe None
+      }
     }
   }
 
