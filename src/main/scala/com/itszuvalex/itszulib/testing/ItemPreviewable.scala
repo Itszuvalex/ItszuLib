@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.testing
 
-import com.itszuvalex.itszulib.api.{ItszuLibCapabilities, IPreviewable}
+import com.itszuvalex.itszulib.api.ItszuLibCapabilities
+import com.itszuvalex.itszulib.api.client.IPreviewable
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing

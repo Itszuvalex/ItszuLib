@@ -1,9 +1,12 @@
 package com.itszuvalex.itszulib.networking
 
-import com.itszuvalex.itszulib.api.core.{DimensionMapper, Loc4}
-import com.itszuvalex.itszulib.api.wrappers.IWorld
+import com.itszuvalex.itszulib.api.core.{DimensionMapper, Loc4, Module}
+import com.itszuvalex.itszulib.api.wrappers.{ITileEntity, IWorld}
 import com.itszuvalex.itszulib.logistics.{ManagerNetwork, TileNetwork, TileNetworkNode}
 import com.itszuvalex.itszulib.{TestBase, TestableWorld}
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.math.BlockPos
 import net.minecraftforge.common.capabilities.Capability
 
 import scala.collection.JavaConversions._
@@ -27,11 +30,12 @@ class TestNetworking extends TestBase {
     })
   }
 
-  trait OriginNode {
-    val origin = new TestNode(Loc4(0, 0, 0, 0))
+  trait NetworkWithOrigin extends Network {
+    val origin   = new TestNode(Loc4(0, 0, 0, 0))
+    val originTE = new TestableTileEntity(Loc4(0, 0, 0, 0), testableWorld, origin)
+    testableWorld.setITileEntity(new BlockPos(0, 0, 0), originTE)
+    network.addNode(origin)
   }
-
-  trait NetworkWithOrigin extends Network with OriginNode {network.addNode(origin)}
 
   "A Network" when {
     "constructing" should {
@@ -60,7 +64,9 @@ class TestNetworking extends TestBase {
 
     "adding connectable node" should {
       "have 2 nodes" in new NetworkWithOrigin {
-        val neighbor = new TestNode(Loc4(1, 0, 0, 0))
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
         network.addNode(neighbor)
         val nodes = network.getNodes
         nodes.size() shouldBe 2
@@ -68,7 +74,9 @@ class TestNetworking extends TestBase {
       }
 
       "have 1 edge" in new NetworkWithOrigin {
-        val neighbor = new TestNode(Loc4(1, 0, 0, 0))
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
         network.addNode(neighbor)
         val edges = network.getEdges
         edges.size() shouldBe 1
@@ -84,8 +92,12 @@ class TestNetworking extends TestBase {
 
     "adding two connectable nodes linearly" should {
       "have 3 nodes" in new NetworkWithOrigin {
-        val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-        val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+        val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+        val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+        testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
         network.addNode(neighbor)
         network.addNode(neighbor2)
         val nodes = network.getNodes
@@ -94,8 +106,12 @@ class TestNetworking extends TestBase {
       }
 
       "have 2 edges" in new NetworkWithOrigin {
-        val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-        val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+        val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+        val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+        testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
         network.addNode(neighbor)
         network.addNode(neighbor2)
         val edges = network.getEdges
@@ -106,8 +122,12 @@ class TestNetworking extends TestBase {
       "when removing nodes" should {
         "on edge" should {
           "have 2 nodes" in new NetworkWithOrigin {
-            val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-            val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+            val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+            val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+            testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+            val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+            val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+            testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
             network.addNode(neighbor)
             network.addNode(neighbor2)
             network.removeNode(neighbor2)
@@ -117,8 +137,12 @@ class TestNetworking extends TestBase {
           }
 
           "have 1 edge" in new NetworkWithOrigin {
-            val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-            val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+            val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+            val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+            testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+            val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+            val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+            testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
             network.addNode(neighbor)
             network.addNode(neighbor2)
             network.removeNode(neighbor2)
@@ -132,8 +156,12 @@ class TestNetworking extends TestBase {
         "on center" should {
           "split and after splitting" should {
             "be empty" in new NetworkWithOrigin {
-              val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-              val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+              val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+              val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+              testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+              val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+              val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+              testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
               network.addNode(neighbor)
               network.addNode(neighbor2)
               network.removeNode(neighbor)
@@ -143,8 +171,12 @@ class TestNetworking extends TestBase {
             }
 
             "not be registered" in new NetworkWithOrigin {
-              val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-              val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+              val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+              val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+              testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+              val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+              val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+              testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
               network.addNode(neighbor)
               network.addNode(neighbor2)
               network.removeNode(neighbor)
@@ -156,8 +188,12 @@ class TestNetworking extends TestBase {
             "and" should {
 
               "should create 2 new networks" in new NetworkWithOrigin {
-                val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-                val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+                val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+                val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+                testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+                val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+                val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+                testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
                 network.addNode(neighbor)
                 network.addNode(neighbor2)
                 network.removeNode(neighbor)
@@ -165,8 +201,12 @@ class TestNetworking extends TestBase {
               }
 
               "each should have 1 node" in new NetworkWithOrigin {
-                val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-                val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+                val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+                val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+                testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+                val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+                val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+                testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
                 network.addNode(neighbor)
                 network.addNode(neighbor2)
                 network.removeNode(neighbor)
@@ -174,8 +214,12 @@ class TestNetworking extends TestBase {
                 networks.foreach(_.getNodes.size shouldBe 1)
               }
               "each should have 0 edges" in new NetworkWithOrigin {
-                val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-                val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+                val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+                val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+                testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+                val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+                val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+                testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
                 network.addNode(neighbor)
                 network.addNode(neighbor2)
                 network.removeNode(neighbor)
@@ -188,8 +232,12 @@ class TestNetworking extends TestBase {
 
         "two at a time" should {
           "have 1 nodes" in new NetworkWithOrigin {
-            val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-            val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+            val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+            val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+            testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+            val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+            val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+            testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
             network.addNode(neighbor)
             network.addNode(neighbor2)
             network.removeNodes(List(neighbor, neighbor2))
@@ -199,8 +247,12 @@ class TestNetworking extends TestBase {
           }
 
           "have 0 edges" in new NetworkWithOrigin {
-            val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-            val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+            val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+            val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+            testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+            val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+            val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+            testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
             network.addNode(neighbor)
             network.addNode(neighbor2)
             network.removeNodes(List(neighbor, neighbor2))
@@ -210,13 +262,17 @@ class TestNetworking extends TestBase {
         }
       }
 
-      "takeover" in new NetworkWithOrigin {
+      "takeover by nodes" in new NetworkWithOrigin {
         val network2 = new TestableNetwork(testableNetworkManager.getNextID)
         network2.register()
         val network3 = new TestableNetwork(testableNetworkManager.getNextID)
         network3.register()
-        val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-        val neighbor2 = new TestNode(Loc4(2, 0, 0, 0))
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+        val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+        val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+        testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
         network2.addNode(neighbor)
         network3.addNode(neighbor2)
 
@@ -249,11 +305,59 @@ class TestNetworking extends TestBase {
         nodes should contain allOf(origin, neighbor, neighbor2)
         edges should contain allOf(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0), Loc4(1, 0, 0, 0) -> Loc4(2, 0, 0, 0))
       }
+
+      "takeover by loc" in new NetworkWithOrigin {
+        val network2 = new TestableNetwork(testableNetworkManager.getNextID)
+        network2.register()
+        val network3 = new TestableNetwork(testableNetworkManager.getNextID)
+        network3.register()
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+        val neighbor2   = new TestNode(Loc4(2, 0, 0, 0))
+        val neighbor2TE = new TestableTileEntity(Loc4(2, 0, 0, 0), testableWorld, neighbor2)
+        testableWorld.setITileEntity(Loc4(2, 0, 0, 0).getPos, neighbor2TE)
+        network2.addNode(neighbor)
+        network3.addNode(neighbor2)
+
+        network.addConnection(origin.getLoc, neighbor.getLoc)
+
+        network2.getNodes.size() shouldBe 0
+        network2.getEdges.size() shouldBe 0
+        testableNetworkManager.getNetwork(network2.id) shouldBe None
+
+        neighbor.network should be theSameInstanceAs network
+
+        var nodes = network.getNodes
+        var edges = network.getEdges
+        nodes.size() shouldBe 2
+        nodes should contain allOf(origin, neighbor)
+        edges should contain(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0))
+
+        network.addConnection(neighbor.getLoc, neighbor2.getLoc)
+
+        network3.getNodes.size() shouldBe 0
+        network3.getEdges.size() shouldBe 0
+        testableNetworkManager.getNetwork(network3.id) shouldBe None
+
+        neighbor2.network should be theSameInstanceAs network
+
+        nodes = network.getNodes
+        edges = network.getEdges
+
+        nodes.size() shouldBe 3
+        nodes should contain allOf(origin, neighbor, neighbor2)
+        edges should contain allOf(Loc4(0, 0, 0, 0) -> Loc4(1, 0, 0, 0), Loc4(1, 0, 0, 0) -> Loc4(2, 0, 0, 0))
+      }
     }
     "adding two connectable nodes in L" should {
       "have 3 nodes" in new NetworkWithOrigin {
-        val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-        val neighbor2 = new TestNode(Loc4(0, 1, 0, 0))
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+        val neighbor2   = new TestNode(Loc4(0, 1, 0, 0))
+        val neighbor2TE = new TestableTileEntity(Loc4(0, 1, 0, 0), testableWorld, neighbor2)
+        testableWorld.setITileEntity(Loc4(0, 1, 0, 0).getPos, neighbor2TE)
         network.addNode(neighbor)
         network.addNode(neighbor2)
         val nodes = network.getNodes
@@ -262,8 +366,12 @@ class TestNetworking extends TestBase {
       }
 
       "have 2 edges" in new NetworkWithOrigin {
-        val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-        val neighbor2 = new TestNode(Loc4(0, 1, 0, 0))
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+        val neighbor2   = new TestNode(Loc4(0, 1, 0, 0))
+        val neighbor2TE = new TestableTileEntity(Loc4(0, 1, 0, 0), testableWorld, neighbor2)
+        testableWorld.setITileEntity(Loc4(0, 1, 0, 0).getPos, neighbor2TE)
         network.addNode(neighbor)
         network.addNode(neighbor2)
         val edges = network.getEdges
@@ -273,9 +381,15 @@ class TestNetworking extends TestBase {
     }
     "adding three connectable nodes in square" should {
       "have 4 nodes" in new NetworkWithOrigin {
-        val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-        val neighbor2 = new TestNode(Loc4(0, 1, 0, 0))
-        val neighbor3 = new TestNode(Loc4(1, 1, 0, 0))
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+        val neighbor2   = new TestNode(Loc4(0, 1, 0, 0))
+        val neighbor2TE = new TestableTileEntity(Loc4(0, 1, 0, 0), testableWorld, neighbor2)
+        testableWorld.setITileEntity(Loc4(0, 1, 0, 0).getPos, neighbor2TE)
+        val neighbor3   = new TestNode(Loc4(1, 1, 0, 0))
+        val neighbor3TE = new TestableTileEntity(Loc4(1, 1, 0, 0), testableWorld, neighbor3)
+        testableWorld.setITileEntity(Loc4(1, 1, 0, 0).getPos, neighbor3TE)
         network.addNode(neighbor)
         network.addNode(neighbor2)
         network.addNode(neighbor3)
@@ -285,9 +399,15 @@ class TestNetworking extends TestBase {
       }
 
       "have 4 edges" in new NetworkWithOrigin {
-        val neighbor  = new TestNode(Loc4(1, 0, 0, 0))
-        val neighbor2 = new TestNode(Loc4(0, 1, 0, 0))
-        val neighbor3 = new TestNode(Loc4(1, 1, 0, 0))
+        val neighbor   = new TestNode(Loc4(1, 0, 0, 0))
+        val neighborTE = new TestableTileEntity(Loc4(1, 0, 0, 0), testableWorld, neighbor)
+        testableWorld.setITileEntity(Loc4(1, 0, 0, 0).getPos, neighborTE)
+        val neighbor2   = new TestNode(Loc4(0, 1, 0, 0))
+        val neighbor2TE = new TestableTileEntity(Loc4(0, 1, 0, 0), testableWorld, neighbor2)
+        testableWorld.setITileEntity(Loc4(0, 1, 0, 0).getPos, neighbor2TE)
+        val neighbor3   = new TestNode(Loc4(1, 1, 0, 0))
+        val neighbor3TE = new TestableTileEntity(Loc4(1, 1, 0, 0), testableWorld, neighbor3)
+        testableWorld.setITileEntity(Loc4(1, 1, 0, 0).getPos, neighbor3TE)
         network.addNode(neighbor)
         network.addNode(neighbor2)
         network.addNode(neighbor3)
@@ -303,10 +423,11 @@ class TestNetworking extends TestBase {
   /*
   TEST CLASS EXTENSIONS
    */
+  val TestableNetworkModule: Module[TestNode] = new Module[TestNode]()
 
   class TestableNetwork(_id: Int) extends TileNetwork[TestNode, TestableNetwork](_id) {
 
-    override def networkCapability: Capability[TestNode] = null
+    override def networkModule: Module[TestNode] = TestableNetworkModule
 
     /*
     override def addConnection(a: Loc4, b: Loc4): Unit = {
@@ -351,6 +472,26 @@ class TestNetworking extends TestBase {
 
   class TestNode(val loc: Loc4) extends TileNetworkNode[TestNode, TestableNetwork] {
     override def getLoc: Loc4 = loc
+  }
+
+  class TestableTileEntity(val loc: Loc4, val world: IWorld, val testNode: TestNode) extends ITileEntity {
+
+    override def toMinecraft: TileEntity = null
+
+    override def getPos: BlockPos = loc.getPos
+
+    override def getWorld: IWorld = world
+
+    override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = false
+
+    override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = null.asInstanceOf[T]
+
+    override def hasModule(mod: Module[_], facing: EnumFacing): Boolean = mod == TestableNetworkModule
+
+    override def getModule[T](mod: Module[T], facing: EnumFacing): T = mod match {
+      case TestableNetworkModule => testNode.asInstanceOf[T]
+      case _ => null.asInstanceOf[T]
+    }
   }
 
 }

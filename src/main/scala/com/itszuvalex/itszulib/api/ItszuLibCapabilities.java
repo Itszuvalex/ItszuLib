@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api;
 
+import com.itszuvalex.itszulib.api.client.IPreviewable;
 import com.itszuvalex.itszulib.api.multiblock.MultiBlockInfo;
 import com.itszuvalex.itszulib.api.storage.IFluidStorage;
 import com.itszuvalex.itszulib.api.storage.IItemStorage;

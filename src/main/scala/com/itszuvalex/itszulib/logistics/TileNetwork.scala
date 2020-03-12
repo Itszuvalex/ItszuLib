@@ -3,11 +3,10 @@ package com.itszuvalex.itszulib.logistics
 import java.util
 import java.util.concurrent.ConcurrentHashMap
 
-import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.api.core.{Loc4, Module}
 import com.itszuvalex.itszulib.api.wrappers.ITileEntity
 import com.itszuvalex.itszulib.logistics.TileNetwork.NetworkExplorer
 import com.itszuvalex.itszulib.util.Debug
-import net.minecraftforge.common.capabilities.Capability
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -42,12 +41,12 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
 
   val connectionMap = mutable.HashMap[Loc4, mutable.HashSet[Loc4]]()
 
-  def networkCapability: Capability[C]
+  def networkModule: Module[C]
 
   override def canConnect(a: Loc4, b: Loc4): Boolean = (a.getITileEntity().orNull, b.getITileEntity().orNull) match {
     case (null, _) => false
     case (_, null) => false
-    case (nodeA: ITileEntity, nodeB: ITileEntity) if nodeA.hasCapability(networkCapability, null) && nodeB.hasCapability(networkCapability, null) => nodeA.getCapability(networkCapability, null).canConnect(b) && nodeB.getCapability(networkCapability, null).canConnect(a)
+    case (nodeA: ITileEntity, nodeB: ITileEntity) if nodeA.hasModule(networkModule, null) && nodeB.hasModule(networkModule, null) => nodeA.getModule(networkModule, null).canConnect(b) && nodeB.getModule(networkModule, null).canConnect(a)
     case _ => false
   }
 
@@ -125,11 +124,11 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
   def removeConnectionBatch(a: Loc4, b: Loc4): Unit = {
     removeConnectionSilently(a, b)
 
-    a.getITileEntity().withFilter(_.hasCapability(networkCapability, null)).foreach { tile =>
-      tile.getCapability(networkCapability, null).disconnect(b)
+    a.getITileEntity().withFilter(_.hasModule(networkModule, null)).foreach { tile =>
+      tile.getModule(networkModule, null).disconnect(b)
     }
-    b.getITileEntity().withFilter(_.hasCapability(networkCapability, null)).foreach { tile =>
-      tile.getCapability(networkCapability, null).disconnect(a)
+    b.getITileEntity().withFilter(_.hasModule(networkModule, null)).foreach { tile =>
+      tile.getModule(networkModule, null).disconnect(a)
     }
   }
 
@@ -156,9 +155,9 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     (a.getITileEntity().orNull, b.getITileEntity().orNull) match {
       case (null, _) =>
       case (_, null) =>
-      case (nodeA: ITileEntity, nodeB: ITileEntity) if nodeA.hasCapability(networkCapability, null) && nodeB.hasCapability(networkCapability, null) =>
-        val aCap = nodeA.getCapability(networkCapability, null)
-        val bCap = nodeB.getCapability(networkCapability, null)
+      case (nodeA: ITileEntity, nodeB: ITileEntity) if nodeA.hasModule(networkModule, null) && nodeB.hasModule(networkModule, null) =>
+        val aCap = nodeA.getModule(networkModule, null)
+        val bCap = nodeB.getModule(networkModule, null)
 
         addConnectionInternal(aCap, bCap)
       case _ =>

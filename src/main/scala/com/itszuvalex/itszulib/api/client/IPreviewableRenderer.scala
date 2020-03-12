@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib.api
+package com.itszuvalex.itszulib.api.client
 
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.api.wrappers.IItemStack

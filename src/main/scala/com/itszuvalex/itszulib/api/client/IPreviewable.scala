@@ -1,6 +1,5 @@
-package com.itszuvalex.itszulib.api
+package com.itszuvalex.itszulib.api.client
 
-import com.itszuvalex.itszulib.util.PlayerUtils
 import net.minecraft.item.Item
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 

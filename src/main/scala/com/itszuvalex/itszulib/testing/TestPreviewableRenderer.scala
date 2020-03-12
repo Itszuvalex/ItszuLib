@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.testing
 
-import com.itszuvalex.itszulib.api.IPreviewableRenderer
+import com.itszuvalex.itszulib.api.client.IPreviewableRenderer
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import com.itszuvalex.itszulib.render.RenderUtils._
