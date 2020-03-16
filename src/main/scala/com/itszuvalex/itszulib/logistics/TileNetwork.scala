@@ -39,7 +39,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
 
   val nodeMap = new ConcurrentHashMap[Loc4, C]().asScala
 
-  val connectionMap = mutable.HashMap[Loc4, mutable.HashSet[Loc4]]()
+  val connectionMap: mutable.Map[Loc4, mutable.HashSet[Loc4]] = mutable.HashMap[Loc4, mutable.HashSet[Loc4]]()
 
   def networkModule: Module[C]
 
@@ -189,9 +189,9 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
 
   override def canAddNode(node: C): Boolean = true
 
-  override def ID = id
+  override def ID: Int = id
 
-  override def size = nodeMap.size
+  override def size: Int = nodeMap.size
 
   override def clear(): Unit = {
     nodeMap.clear()
@@ -202,9 +202,9 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     getNodes.foreach(_.refresh())
   }
 
-  override def getNodes = nodeMap.values.asJavaCollection
+  override def getNodes: util.Collection[C] = nodeMap.values.asJavaCollection
 
-  override def removeNode(node: C) = removeNodes(List(node))
+  override def removeNode(node: C): Unit = removeNodes(List(node))
 
   override def register(): Unit = ManagerNetwork.instance.addNetwork(this)
 

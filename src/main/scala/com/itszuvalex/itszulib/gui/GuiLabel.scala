@@ -8,18 +8,18 @@ import org.lwjgl.opengl.GL11
   * Created by Christopher Harris (Itszuvalex) on 9/17/15.
   */
 object GuiLabel {
-  val DEFAULT_FONT_COLOR = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
+  val DEFAULT_FONT_COLOR: Int = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
 }
 
 class GuiLabel(override var anchorX: Int,
-  override var anchorY: Int,
-  override var _panelWidth: Int,
-  override var _panelHeight: Int,
-  var text: () => String = () => "",
-  var scaling: Float = 1f) extends GuiPanel {
-  var colorFont = GuiLabel.DEFAULT_FONT_COLOR
-  var xPadding  = 0
-  var yPadding  = 0
+               override var anchorY: Int,
+               override var _panelWidth: Int,
+               override var _panelHeight: Int,
+               var text: () => String = () => "",
+               var scaling: Float = 1f) extends GuiPanel {
+  var colorFont: Int = GuiLabel.DEFAULT_FONT_COLOR
+  var xPadding       = 0
+  var yPadding       = 0
 
   override def render(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)

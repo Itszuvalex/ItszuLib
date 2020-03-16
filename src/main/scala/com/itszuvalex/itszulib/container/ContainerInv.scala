@@ -43,7 +43,7 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
   protected final val HOTBAR_START: Int          = INV_END + 1
   protected final val HOTBAR_END  : Int          = HOTBAR_START + 8
 
-  def canInteractWith(entityplayer: EntityPlayer) = inventory.canPlayerUse(entityplayer)
+  def canInteractWith(entityplayer: EntityPlayer): Boolean = inventory.canPlayerUse(entityplayer)
 
   /**
     * Called when a player shift-clicks on a slot. You must override this or you will crash when someone does that.

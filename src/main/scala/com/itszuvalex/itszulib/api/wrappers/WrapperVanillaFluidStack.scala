@@ -9,13 +9,13 @@ import net.minecraftforge.fluids.{Fluid, FluidStack}
   * Created by Chris on 7/6/2016.
   */
 object WrapperVanillaFluidStack {
-  def apply(fluid: FluidStack) = {
+  def apply(fluid: FluidStack): IFluidStack = {
     if (fluid == null)
       IFluidStack.Empty
     else new WrapperVanillaFluidStack(fluid)
   }
 
-  def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
+  def loadFromNBT(n: NBTTagCompound): WrapperVanillaFluidStack = nbtDeserializer.apply(n)
 
   val nbtWriter = new Overridable((c: WrapperVanillaFluidStack, nbt: NBTTagCompound) =>
                                     Option(c.toMinecraft).foreach(_.writeToNBT(nbt)))
@@ -44,7 +44,7 @@ class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFlui
 
   def this() = this(null)
 
-  override def toMinecraft = fluidStack
+  override def toMinecraft: FluidStack = fluidStack
 
   override def fluid: Fluid = toMinecraft.getFluid
 
@@ -52,7 +52,7 @@ class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFlui
 
   override def amount: Int = toMinecraft.amount
 
-  override def amountMax = Int.MaxValue
+  override def amountMax: Int = Int.MaxValue
 
   override def copy(): IFluidStack = WrapperVanillaFluidStack(Option(toMinecraft).map(_.copy()).orNull)
 

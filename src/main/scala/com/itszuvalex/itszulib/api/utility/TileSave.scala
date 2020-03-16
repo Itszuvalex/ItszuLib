@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.api.utility
 import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.core.{BlockIdentifier, Loc4}
 import com.itszuvalex.itszulib.api.wrappers.IWorld
+import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
@@ -10,7 +11,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraftforge.common.util.INBTSerializable
 
 object TileSave {
-  def apply(nBTTagCompound: NBTTagCompound) = loadFromNBT(nBTTagCompound)
+  def apply(nBTTagCompound: NBTTagCompound): TileSave = loadFromNBT(nBTTagCompound)
 
 
   def loadFromNBT(compound: NBTTagCompound): TileSave = {
@@ -26,7 +27,7 @@ object TileSave {
 
 class TileSave(private var _dimensionID: Int, var pos: BlockPos, var bi: BlockIdentifier, var meta: Int, var te: NBTTagCompound) extends INBTSerializable[NBTTagCompound] {
 
-  lazy val block = bi.block
+  lazy val block: Block = bi.block
 
   def this(dim: Int, x: Int, y: Int, z: Int, bi: BlockIdentifier, meta: Int, nbt: NBTTagCompound) =
     this(dim, new BlockPos(x, y, z), bi, meta, nbt)
@@ -89,9 +90,9 @@ class TileSave(private var _dimensionID: Int, var pos: BlockPos, var bi: BlockId
     compound
   }
 
-  def dimensionID = _dimensionID
+  def dimensionID: Int = _dimensionID
 
-  def dimensionID_=(dim: Int) = _dimensionID = dim
+  def dimensionID_=(dim: Int): Unit = _dimensionID = dim
 
   override def deserializeNBT(compound: NBTTagCompound): Unit = {
     _dimensionID = compound.getInteger("dimension")

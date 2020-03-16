@@ -105,7 +105,7 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
     case None => None
   }
 
-  def getPos = new BlockPos(x, y, z)
+  def getPos: BlockPos = new BlockPos(x, y, z)
 
   def getWorld: Option[IWorld] = Option(Loc4.DimensionMapper.worldForDimensionId(dim))
 
@@ -153,7 +153,7 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
     dist(other.x, other.y, other.z)
   }
 
-  def dist(x: Int, y: Int, z: Int) = Math.sqrt(distSqr(x, y, z))
+  def dist(x: Int, y: Int, z: Int): Double = Math.sqrt(distSqr(x, y, z))
 
   def compareTo(o: Loc4): Int = {
     if (x < o.x) return -1

@@ -20,6 +20,6 @@ object PreviewableRendererRegistry {
     id
   }
 
-  def getRenderer(id: Int) = renderMap.get(id)
+  def getRenderer(id: Int): Option[IPreviewableRenderer] = renderMap.get(id)
 
 }

@@ -35,11 +35,11 @@ import scala.collection.JavaConverters._
     portal = ShaderUtils.loadShader("/assets/itszulib/shader/portal.vert", "/assets/itszulib/shader/portal.frag")
   }
 
-  def loadShader(vertFile: String, fragFile: String) = createProgram(vertFile, fragFile)
+  def loadShader(vertFile: String, fragFile: String): Int = createProgram(vertFile, fragFile)
 
   private def createProgram(vert: String, frag: String): Int = {
-    var vertId = 0
-    var fragId = 0
+    var vertId  = 0
+    var fragId  = 0
     var program = 0
     if (vert != null) vertId = createShader(vert, VERT)
     if (frag != null) fragId = createShader(frag, FRAG)
@@ -84,9 +84,9 @@ import scala.collection.JavaConverters._
 
   @throws[Exception]
   private def readFileAsString(filename: String): String = {
-    val source = new StringBuilder
-    val in = getClass.getResourceAsStream(filename)
-    var e: Exception = null
+    val source                 = new StringBuilder
+    val in                     = getClass.getResourceAsStream(filename)
+    var e     : Exception      = null
     var reader: BufferedReader = null
     try {
       reader = new BufferedReader(new InputStreamReader(in, "UTF-8"))
@@ -114,7 +114,7 @@ import scala.collection.JavaConverters._
 
   private def getLogInfo(obj: Int): String = ARBShaderObjects.glGetInfoLogARB(obj, ARBShaderObjects.glGetObjectParameteriARB(obj, ARBShaderObjects.GL_OBJECT_INFO_LOG_LENGTH_ARB))
 
-  def canUseShaders = OpenGlHelper.shadersSupported
+  def canUseShaders: Boolean = OpenGlHelper.shadersSupported
 
   def registerShaderAdditionalParams(shader: Int, values: util.Map[String, (Unit) => Any]): Unit = {
     shaderParameterMap(shader) = values
@@ -136,12 +136,12 @@ import scala.collection.JavaConverters._
             case fb: FloatBuffer => ARBShaderObjects.glUniform1ARB(loc, fb)
             case _ =>
           }
-                                  }
+        }
         case None =>
       }
     } catch {case _: Throwable => releaseShader()}
   }
 
-  def releaseShader() = bindShader(0)
+  def releaseShader(): Unit = bindShader(0)
 
 }

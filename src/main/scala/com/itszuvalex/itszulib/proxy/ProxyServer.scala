@@ -14,7 +14,7 @@ class ProxyServer extends ProxyCommon {
 
   override def addScheduledTask(f: () => Unit): Unit = FMLCommonHandler.instance().getMinecraftServerInstance.addScheduledTask(
     new Runnable {
-      override def run() = f()
+      override def run(): Unit = f()
     })
 
   override def getWorld(id: Int): World = DimensionManager.getWorld(id)

@@ -18,7 +18,7 @@ object RenderPortalTest {
 
 class RenderPortalTest extends TileEntitySpecialRenderer[PortalTileTest] {
 
-  override def render(te: PortalTileTest, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int, alpha: Float) = {
+  override def render(te: PortalTileTest, x: Double, y: Double, z: Double, partialTicks: Float, destroyStage: Int, alpha: Float): Unit = {
     renderBackground(x, y, z)
 
     //    bindTexture(RenderPortalTest.skyLocation)

@@ -16,11 +16,11 @@ import scala.collection.mutable.ListBuffer
   * Created by Alex on 04.10.2015.
   */
 object GuiFluidTank {
-  val DEFAULT_RAISED_COLOR     = Color(255.toByte, 64, 64, 64).toInt
-  val DEFAULT_LOWERED_COLOR    = Color(255.toByte, 15, 15, 15).toInt
-  val DEFAULT_BACKGROUND_COLOR = Color(255.toByte, 40, 40, 40).toInt
-  val DEFAULT_FLUID_BACK_COLOR = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
-  val DEFAULT_SCALE_COLOR      = Color(255.toByte, 200.toByte, 0, 0).toInt
+  val DEFAULT_RAISED_COLOR    : Int = Color(255.toByte, 64, 64, 64).toInt
+  val DEFAULT_LOWERED_COLOR   : Int = Color(255.toByte, 15, 15, 15).toInt
+  val DEFAULT_BACKGROUND_COLOR: Int = Color(255.toByte, 40, 40, 40).toInt
+  val DEFAULT_FLUID_BACK_COLOR: Int = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
+  val DEFAULT_SCALE_COLOR     : Int = Color(255.toByte, 200.toByte, 0, 0).toInt
 }
 
 /**
@@ -37,22 +37,22 @@ object GuiFluidTank {
   * @param drawTank       If false, only draws the fluid itself without tank and scale
   */
 class GuiFluidTank(override var anchorX: Int,
-  override var anchorY: Int,
-  var gui: GuiBase,
-  var tileSingleTank: TileFluidTank,
-  var tileMultiTank: TileMultiFluidTank,
-  var tankID: Int,
-  var manualAccess: Int,
-  var filterFluid: Fluid,
-  var drawTank: Boolean) extends GuiPanel {
+                   override var anchorY: Int,
+                   var gui: GuiBase,
+                   var tileSingleTank: TileFluidTank,
+                   var tileMultiTank: TileMultiFluidTank,
+                   var tankID: Int,
+                   var manualAccess: Int,
+                   var filterFluid: Fluid,
+                   var drawTank: Boolean) extends GuiPanel {
 
   override var _panelWidth : Int = 18
   override var _panelHeight: Int = 66
-  var colorRaised     = GuiFluidTank.DEFAULT_RAISED_COLOR
-  var colorLowered    = GuiFluidTank.DEFAULT_LOWERED_COLOR
-  var colorBackground = GuiFluidTank.DEFAULT_BACKGROUND_COLOR
-  var colorFluidBack  = GuiFluidTank.DEFAULT_FLUID_BACK_COLOR
-  var colorScale      = GuiFluidTank.DEFAULT_SCALE_COLOR
+  var colorRaised    : Int = GuiFluidTank.DEFAULT_RAISED_COLOR
+  var colorLowered   : Int = GuiFluidTank.DEFAULT_LOWERED_COLOR
+  var colorBackground: Int = GuiFluidTank.DEFAULT_BACKGROUND_COLOR
+  var colorFluidBack : Int = GuiFluidTank.DEFAULT_FLUID_BACK_COLOR
+  var colorScale     : Int = GuiFluidTank.DEFAULT_SCALE_COLOR
 
   /**
     * Constructor that only uses a TileFluidTank. See main constructor for param description.
@@ -144,8 +144,8 @@ class GuiFluidTank(override var anchorX: Int,
   }
 
   def drawFluid(screenX: Int, screenY: Int): Unit = {
-    var height: Int = 0
-    var icon: TextureAtlasSprite = null
+    var height: Int                = 0
+    var icon  : TextureAtlasSprite = null
     tankID match {
       case -1 =>
       //        if (tileSingleTank.tank.getFluid == null) return

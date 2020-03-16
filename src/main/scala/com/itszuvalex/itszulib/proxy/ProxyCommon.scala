@@ -30,7 +30,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.fml.relauncher.Side
 
 abstract class ProxyCommon extends ItszuGuiHandler {
-  def preInit() = {}
+  def preInit(): Unit = {}
 
   def init(): Unit = {
     registerRendering()

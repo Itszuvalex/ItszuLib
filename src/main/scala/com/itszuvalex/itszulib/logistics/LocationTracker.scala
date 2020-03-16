@@ -17,11 +17,11 @@ object LocationTracker {
 class LocationTracker {
   private val trackerMap = mutable.HashMap[Int, mutable.HashMap[ChunkCoord, mutable.HashSet[Loc4]]]()
 
-  def trackLocation(loc: Loc4) = {
+  def trackLocation(loc: Loc4): mutable.Set[Loc4] = {
     trackerMap.getOrElseUpdate(loc.dim, mutable.HashMap[ChunkCoord, mutable.HashSet[Loc4]]()).getOrElseUpdate(loc.chunkCoords, mutable.HashSet[Loc4]()) += loc
   }
 
-  def removeLocation(loc: Loc4) = {
+  def removeLocation(loc: Loc4): Any = {
     trackerMap.get(loc.dim) match {
       case None =>
       case Some(dim) =>

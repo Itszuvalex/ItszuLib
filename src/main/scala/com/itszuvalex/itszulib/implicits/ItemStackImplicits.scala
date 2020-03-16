@@ -28,10 +28,10 @@ object ItemStackImplicits {
   }
 
   implicit class ItemStackOreDictionaryComparison(item: ItemStack) {
-    def ==(oreDictionary: String) = isOre(oreDictionary)
+    def ==(oreDictionary: String): Boolean = isOre(oreDictionary)
 
-    def isOre(oreDictionary: String) = OreDictionary.getOres(oreDictionary)
-      .exists(ItemStack.areItemStacksEqual(_, item))
+    def isOre(oreDictionary: String): Boolean = OreDictionary.getOres(oreDictionary)
+                                                             .exists(ItemStack.areItemStacksEqual(_, item))
   }
 
   implicit class ForcedNBT(i: ItemStack) {

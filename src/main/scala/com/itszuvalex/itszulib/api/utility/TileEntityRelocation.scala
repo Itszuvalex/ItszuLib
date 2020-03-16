@@ -6,7 +6,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.{World, WorldServer}
+import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.BlockSnapshot
 import net.minecraftforge.event.world.BlockEvent.{BreakEvent, PlaceEvent}
@@ -53,7 +53,7 @@ object TileEntityRelocation {
     snapshot
   }
 
-  def applySnapshot(s: TileSave, player: EntityPlayer): Unit = applySnapshot(s, s.world, s.pos, player): Boolean
+  def applySnapshot(s: TileSave, player: EntityPlayer): Boolean = applySnapshot(s, s.world, s.pos, player)
 
   def applySnapshot(s: TileSave, destWorld: IWorld, destPos: BlockPos, player: EntityPlayer): Boolean = {
     if (s == null) return false

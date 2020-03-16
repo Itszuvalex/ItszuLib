@@ -51,21 +51,21 @@ class GuiFlowLayout(override var anchorX: Int,
   }
 
 
-  override def panelWidth_=(width: Int) = {
+  override def panelWidth_=(width: Int): Unit = {
     super.panelWidth_=(width)
     onChanged()
   }
 
-  override def panelHeight_=(height: Int) = {
+  override def panelHeight_=(height: Int): Unit = {
     super.panelHeight_=(height)
     onChanged()
   }
 
-  def numElements = subElements.size
+  def numElements: Int = subElements.size
 
-  def startingIndex = startIndex // subElements.firstIndexWhere(_.shouldRender)
+  def startingIndex: Int = startIndex // subElements.firstIndexWhere(_.shouldRender)
 
-  def endingIndex = subElements.lastIndexWhere(_.shouldRender)
+  def endingIndex: Int = subElements.lastIndexWhere(_.shouldRender)
 
   def pageForward(num: Int = 1) = {
     if ((startIndex < subElements.size - 1) && !subElements.last.shouldRender) {
@@ -73,7 +73,7 @@ class GuiFlowLayout(override var anchorX: Int,
         startIndex += 1
         onChanged()
         subElements.last.shouldRender
-                        }
+      }
     }
   }
 

@@ -36,7 +36,7 @@ case class ItemIdentifier(var modId: String, var itemId: String) extends INBTSer
   }
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
-    modId = nbt.getString(ItemIdentifier.NBT_ITEM_ID_KEY)
-    itemId = nbt.getString(ItemIdentifier.NBT_MOD_ID_KEY)
+    modId = nbt.getString(ItemIdentifier.NBT_MOD_ID_KEY)
+    itemId = nbt.getString(ItemIdentifier.NBT_ITEM_ID_KEY)
   }
 }

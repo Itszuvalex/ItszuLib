@@ -14,23 +14,23 @@ import scala.collection.mutable.ListBuffer
   * Created by Christopher Harris (Itszuvalex) on 9/3/15.
   */
 object GuiButton {
-  val DEFAULT_RAISED_COLOR    = Color(255.toByte, 64, 64, 64).toInt
-  val DEFAULT_LOWERED_COLOR   = Color(255.toByte, 15, 15, 15).toInt
-  val DEFAULT_BUTTON_COLOR    = Color(255.toByte, 40, 40, 40).toInt
-  val DEFAULT_HIGHLIGHT_COLOR = Color(60, 45, 0, 110).toInt
-  val DEFAULT_FONT_COLOR      = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
+  val DEFAULT_RAISED_COLOR   : Int = Color(255.toByte, 64, 64, 64).toInt
+  val DEFAULT_LOWERED_COLOR  : Int = Color(255.toByte, 15, 15, 15).toInt
+  val DEFAULT_BUTTON_COLOR   : Int = Color(255.toByte, 40, 40, 40).toInt
+  val DEFAULT_HIGHLIGHT_COLOR: Int = Color(60, 45, 0, 110).toInt
+  val DEFAULT_FONT_COLOR     : Int = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
 }
 
 class GuiButton(override var anchorX: Int,
-  override var anchorY: Int,
-  override var _panelWidth: Int,
-  override var _panelHeight: Int,
-  var text: String = "") extends GuiPanel {
-  var colorRaised    = GuiButton.DEFAULT_RAISED_COLOR
-  var colorLowered   = GuiButton.DEFAULT_LOWERED_COLOR
-  var colorDefault   = GuiButton.DEFAULT_BUTTON_COLOR
-  var colorHighlight = GuiButton.DEFAULT_HIGHLIGHT_COLOR
-  var colorFont      = GuiButton.DEFAULT_FONT_COLOR
+                override var anchorY: Int,
+                override var _panelWidth: Int,
+                override var _panelHeight: Int,
+                var text: String = "") extends GuiPanel {
+  var colorRaised   : Int = GuiButton.DEFAULT_RAISED_COLOR
+  var colorLowered  : Int = GuiButton.DEFAULT_LOWERED_COLOR
+  var colorDefault  : Int = GuiButton.DEFAULT_BUTTON_COLOR
+  var colorHighlight: Int = GuiButton.DEFAULT_HIGHLIGHT_COLOR
+  var colorFont     : Int = GuiButton.DEFAULT_FONT_COLOR
 
   var disabled = false
 
@@ -41,13 +41,6 @@ class GuiButton(override var anchorX: Int,
     }
     else false
   }
-
-  def isDisabled = disabled
-
-  override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
-  }
-
-  override def update(): Unit = {}
 
   override def render(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
     super.render(screenX, screenY, mouseX, mouseY, partialTicks)
@@ -66,13 +59,13 @@ class GuiButton(override var anchorX: Int,
     if (!isDisabled && isMousedOver)
       Gui.drawRect(screenX, screenY, screenX + panelWidth, screenY + panelHeight, colorHighlight)
 
-    val fr = Minecraft.getMinecraft.fontRenderer
-    val lines = fr.listFormattedStringToWidth(text, panelWidth - 2)
+    val fr     = Minecraft.getMinecraft.fontRenderer
+    val lines  = fr.listFormattedStringToWidth(text, panelWidth - 2)
     var height = 0
     lines.foreach { _ =>
       if (height == 0 || !((height + fr.FONT_HEIGHT) < (panelHeight - 2))) height += fr.FONT_HEIGHT
     }
-    val yBuff = (panelHeight - height - 2) / 2
+    val yBuff   = (panelHeight - height - 2) / 2
     var yOffset = 0
     lines.foreach { line =>
       val xBuff = (panelWidth - fr.getStringWidth(line) - 2) / 2
@@ -80,4 +73,11 @@ class GuiButton(override var anchorX: Int,
       yOffset += fr.FONT_HEIGHT
     }
   }
+
+  override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
+  }
+
+  override def update(): Unit = {}
+
+  def isDisabled: Boolean = disabled
 }

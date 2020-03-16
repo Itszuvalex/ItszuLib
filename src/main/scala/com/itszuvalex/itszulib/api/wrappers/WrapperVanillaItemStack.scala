@@ -20,7 +20,7 @@ object WrapperVanillaItemStack {
       new WrapperVanillaItemStack(stack)
   }
 
-  def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
+  def loadFromNBT(n: NBTTagCompound): IItemStack = nbtDeserializer.apply(n)
 
   val nbtWriter = new Overridable((c: WrapperVanillaItemStack, nbt: NBTTagCompound) =>
                                     Option(c.toMinecraft).foreach(_.writeToNBT(nbt)))

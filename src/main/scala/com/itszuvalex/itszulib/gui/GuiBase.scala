@@ -16,15 +16,15 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
 
   def GuiID: Int
 
-  override def _panelWidth = xSize
+  override def _panelWidth: Int = xSize
 
-  override def _panelWidth_=(_width: Int) = {
+  override def _panelWidth_=(_width: Int): Unit = {
     xSize = _width
   }
 
-  override def _panelHeight = ySize
+  override def _panelHeight: Int = ySize
 
-  override def _panelHeight_=(_height: Int) = {
+  override def _panelHeight_=(_height: Int): Unit = {
     ySize = _height
   }
 
@@ -53,15 +53,15 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
       super.mouseClickMove(mouseX, mouseY, button, timeSinceLastClick)
   }
 
-  override def anchorX = guiLeft
+  override def anchorX: Int = guiLeft
 
-  override def anchorX_=(_x: Int) = {
+  override def anchorX_=(_x: Int): Unit = {
     guiLeft = _x
   }
 
-  override def anchorY = guiTop
+  override def anchorY: Int = guiTop
 
-  override def anchorY_=(_y: Int) = {
+  override def anchorY_=(_y: Int): Unit = {
     guiTop = _y
   }
 
@@ -95,7 +95,7 @@ abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
     }
   }
 
-  def addGuiAndSync(storage: IItemStorage, ind: Int, x: Int, y: Int) = {
+  def addGuiAndSync(storage: IItemStorage, ind: Int, x: Int, y: Int): Unit = {
     val gui = new GuiIItemStorageSlot(x, y, storage, ind)
     gui.sync = new SyncItemStorageItemStack(GuiID, storage, ind)
     this.add(gui)

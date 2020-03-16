@@ -9,29 +9,30 @@ import net.minecraft.item.{Item, ItemStack}
 object IDImplicits {
 
   implicit class ItemIDImplicits(i: Item) {
-    def itemID = Item.getIdFromItem(i)
+    def itemID: Int = Item.getIdFromItem(i)
 
-    def getBlock = Block.getBlockFromItem(i)
+    def getBlock: Block = Block.getBlockFromItem(i)
   }
 
   implicit class BlockIDImplicits(b: Block) {
-    def getItem = Item.getItemFromBlock(b)
+    def getItem: Item = Item.getItemFromBlock(b)
 
-    def blockID = Block.getIdFromBlock(b)
+    def blockID: Int = Block.getIdFromBlock(b)
 
   }
 
   implicit class ItemStackImplicits(i: ItemStack) {
-    def itemID = Item.getIdFromItem(i.getItem)
+    def itemID: Int = Item.getIdFromItem(i.getItem)
   }
 
   implicit class IntegerIDImplicits(i: Int) {
-    def getItem = Item.getItemById(i)
+    def getItem: Item = Item.getItemById(i)
 
-    def getBlock = Block.getBlockById(i)
+    def getBlock: Block = Block.getBlockById(i)
   }
 
   implicit class StringIDImplicits(s: String) {
-    def getBlock = Block.getBlockFromName(s)
+    def getBlock: Block = Block.getBlockFromName(s)
   }
+
 }

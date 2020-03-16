@@ -33,12 +33,12 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
   /**
     * Increments the cursor counter
     */
-  def updateCursorCounter() = cursorCounter += 1
+  def updateCursorCounter(): Unit = cursorCounter += 1
 
   /**
     * Returns the contents of the textbox
     */
-  def getText = textString
+  def getText: String = textString
 
 
   /**
@@ -57,12 +57,12 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
   /**
     * sets the cursors position to after the text
     */
-  def setCursorPositionEnd() = setCursorPosition(textString.length)
+  def setCursorPositionEnd(): Unit = setCursorPosition(textString.length)
 
   /**
     * returns the text between the cursor and selectionEnd
     */
-  def getSelectedText = {
+  def getSelectedText: String = {
     val i = if (cursorPosition < selectionEnd) cursorPosition else selectionEnd
     val j = if (cursorPosition < selectionEnd) selectionEnd else cursorPosition
     textString.substring(i, j)
@@ -74,9 +74,9 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
   def writeText(itext: String) {
     var s1 = ""
     val s2 = ChatAllowedCharacters.filterAllowedCharacters(itext)
-    val i = if (cursorPosition < selectionEnd) cursorPosition else selectionEnd
-    val j = if (cursorPosition < selectionEnd) selectionEnd else cursorPosition
-    val k = maxStringLength - textString.length - (i - selectionEnd)
+    val i  = if (cursorPosition < selectionEnd) cursorPosition else selectionEnd
+    val j  = if (cursorPosition < selectionEnd) selectionEnd else cursorPosition
+    val k  = maxStringLength - textString.length - (i - selectionEnd)
     if (textString.length > 0) {
       s1 = s1 + textString.substring(0, i)
     }
@@ -121,9 +121,9 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
       }
       else {
         val flag: Boolean = number < 0
-        val j = if (flag) cursorPosition + number else cursorPosition
-        val k = if (flag) cursorPosition else cursorPosition + number
-        var s: String = ""
+        val j             = if (flag) cursorPosition + number else cursorPosition
+        val k             = if (flag) cursorPosition else cursorPosition + number
+        var s   : String  = ""
         if (j >= 0) {
           s = textString.substring(0, j)
         }
@@ -141,7 +141,7 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
   /**
     * see @getNthNextWordFromPos() params: N, position
     */
-  def getNthWordFromCursor(num: Int) = getNthWordFromPos(num, getCursorPosition)
+  def getNthWordFromCursor(num: Int): Int = getNthWordFromPos(num, getCursorPosition)
 
   /**
     * gets the position of the nth word. N may be negative, then it looks backwards. params: N, position
@@ -149,10 +149,10 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
   def getNthWordFromPos(num: Int, pos: Int): Int = func_146197_a(num, getCursorPosition, true)
 
   def func_146197_a(p_146197_1_ : Int, p_146197_2_ : Int, p_146197_3_ : Boolean): Int = {
-    var k: Int = p_146197_2_
+    var k    : Int     = p_146197_2_
     val flag1: Boolean = p_146197_1_ < 0
-    val l: Int = Math.abs(p_146197_1_)
-    var i1: Int = 0
+    val l    : Int     = Math.abs(p_146197_1_)
+    var i1   : Int     = 0
     (0 until l).foreach { i1 =>
       while (i1 < l) {
 
@@ -177,19 +177,19 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
           }
         }
       }
-                        }
+    }
     k
   }
 
   /**
     * Moves the text cursor by a specified number of characters and clears the selection
     */
-  def moveCursorBy(num: Int) = setCursorPosition(selectionEnd + num)
+  def moveCursorBy(num: Int): Unit = setCursorPosition(selectionEnd + num)
 
   /**
     * sets the cursors position to the beginning
     */
-  def setCursorPositionZero() = setCursorPosition(0)
+  def setCursorPositionZero(): Unit = setCursorPosition(0)
 
   /**
     * Call this method from your GuiScreen to process the keys into the textbox
@@ -354,9 +354,9 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
       if (lineScrollOffset > textLength) {
         lineScrollOffset = textLength
       }
-      val k: Int = getWidth
+      val k: Int    = getWidth
       val s: String = fontRenderer.trimStringToWidth(textString.substring(lineScrollOffset), k)
-      val l: Int = s.length + lineScrollOffset
+      val l: Int    = s.length + lineScrollOffset
       if (pos == lineScrollOffset) {
         lineScrollOffset -= fontRenderer.trimStringToWidth(textString, k, true).length
       }
@@ -398,15 +398,15 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
         Gui.drawRect(screenX - 1, screenY - 1, screenX + width + 1, screenY + height + 1, -6250336)
         Gui.drawRect(screenX, screenY, screenX + width, screenY + height, -16777216)
       }
-      val i: Int = if (!disabled) enabledColor else disabledColor
-      val j: Int = cursorPosition - lineScrollOffset
-      var k: Int = selectionEnd - lineScrollOffset
-      val s: String = fontRenderer.trimStringToWidth(textString.substring(lineScrollOffset), getWidth)
-      val flag: Boolean = j >= 0 && j <= s.length
+      val i    : Int     = if (!disabled) enabledColor else disabledColor
+      val j    : Int     = cursorPosition - lineScrollOffset
+      var k    : Int     = selectionEnd - lineScrollOffset
+      val s    : String  = fontRenderer.trimStringToWidth(textString.substring(lineScrollOffset), getWidth)
+      val flag : Boolean = j >= 0 && j <= s.length
       val flag1: Boolean = isFocused && cursorCounter / 6 % 2 == 0 && flag
-      val l: Int = if (enableBackgroundDrawing) anchorX + 4 else anchorX
-      val i1: Int = if (enableBackgroundDrawing) anchorY + (height - 8) / 2 else anchorY
-      var j1: Int = l
+      val l    : Int     = if (enableBackgroundDrawing) anchorX + 4 else anchorX
+      val i1   : Int     = if (enableBackgroundDrawing) anchorY + (height - 8) / 2 else anchorY
+      var j1   : Int     = l
       if (k > s.length) {
         k = s.length
       }
@@ -415,7 +415,7 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
         j1 = fontRenderer.drawStringWithShadow(s1, l, i1, i)
       }
       val flag2: Boolean = cursorPosition < textString.length || textString.length >= getMaxStringLength
-      var k1: Int = j1
+      var k1   : Int     = j1
       if (!flag) {
         k1 = if (j > 0) l + width else l
       }
@@ -444,32 +444,32 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
   /**
     * returns the width of the textbox depending on if background drawing is enabled
     */
-  def getWidth = if (getEnableBackgroundDrawing) panelWidth - 8 else panelWidth
+  def getWidth: Int = if (getEnableBackgroundDrawing) panelWidth - 8 else panelWidth
 
   /**
     * get enable drawing background and outline
     */
-  def getEnableBackgroundDrawing = enableBackgroundDrawing
+  def getEnableBackgroundDrawing: Boolean = enableBackgroundDrawing
 
   /**
     * enable drawing background and outline
     */
-  def setEnableBackgroundDrawing(enableBackground: Boolean) = enableBackgroundDrawing = enableBackground
+  def setEnableBackgroundDrawing(enableBackground: Boolean): Unit = enableBackgroundDrawing = enableBackground
 
   /**
     * Getter for the focused field
     */
-  def isFocused = GuiTextBox.activeTextBox == this
+  def isFocused: Boolean = GuiTextBox.activeTextBox == this
 
   /**
     * draws the vertical line cursor in the textbox
     */
   private def drawCursorVertical(ileftX: Int, itopY: Int, irightX: Int, ibotY: Int) {
     var swap: Int = 0
-    var leftX = ileftX
-    var rightX = irightX
-    var topY = itopY
-    var botY = ibotY
+    var leftX     = ileftX
+    var rightX    = irightX
+    var topY      = itopY
+    var botY      = ibotY
     if (leftX < rightX) {
       swap = leftX
       leftX = rightX
@@ -491,11 +491,11 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
     GL11.glEnable(GL11.GL_COLOR_LOGIC_OP)
     GL11.glLogicOp(GL11.GL_OR_REVERSE)
     drawBlock(DefaultVertexFormats.POSITION) {
-                                               addVertex(leftX.toDouble, botY.toDouble, 0.0D).endVertex()
-                                               addVertex(rightX.toDouble, botY.toDouble, 0.0D).endVertex()
-                                               addVertex(rightX.toDouble, topY.toDouble, 0.0D).endVertex()
-                                               addVertex(leftX.toDouble, topY.toDouble, 0.0D).endVertex()
-                                             }
+      addVertex(leftX.toDouble, botY.toDouble, 0.0D).endVertex()
+      addVertex(rightX.toDouble, botY.toDouble, 0.0D).endVertex()
+      addVertex(rightX.toDouble, topY.toDouble, 0.0D).endVertex()
+      addVertex(leftX.toDouble, topY.toDouble, 0.0D).endVertex()
+    }
     GL11.glDisable(GL11.GL_COLOR_LOGIC_OP)
     GL11.glEnable(GL11.GL_TEXTURE_2D)
   }
@@ -503,7 +503,7 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
   /**
     * returns the maximum number of character that can be contained in this textbox
     */
-  def getMaxStringLength = maxStringLength
+  def getMaxStringLength: Int = maxStringLength
 
   def setMaxStringLength(length: Int) {
     maxStringLength = length
@@ -515,22 +515,22 @@ class GuiTextBox(private val fontRenderer: FontRenderer, anchorX: Int, anchorY: 
   /**
     * returns true if this textbox is visible
     */
-  def getVisible = !disabled
+  def getVisible: Boolean = !disabled
 
   /**
     * returns the current position of the cursor
     */
-  def getCursorPosition = cursorPosition
+  def getCursorPosition: Int = cursorPosition
 
   /**
     * Sets the text colour for this textbox (disabled text will not use this colour)
     */
-  def setTextColor(color: Int) = enabledColor = color
+  def setTextColor(color: Int): Unit = enabledColor = color
 
-  def setDisabledTextColour(color: Int) = disabledColor = color
+  def setDisabledTextColour(color: Int): Unit = disabledColor = color
 
   /**
     * the side of the selection that is not the cursor, may be the same as the cursor
     */
-  def getSelectionEnd = selectionEnd
+  def getSelectionEnd: Int = selectionEnd
 }

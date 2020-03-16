@@ -33,7 +33,7 @@ case class PowerBattery(private var power: Double, private var powerMax: Double)
     nbt
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
+  override def writeToNBT(nbt: NBTTagCompound): Unit = {
     val wrap = new WrapperNBTBattery(nbt)
     wrap.maxStorage = maxStorage
     wrap.storage = storage

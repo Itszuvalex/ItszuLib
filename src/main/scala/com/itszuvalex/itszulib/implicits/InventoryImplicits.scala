@@ -14,7 +14,7 @@ object InventoryImplicits {
     class InventoryIterator(private val inventory: IInventory) extends Iterator[ItemStack] {
       var index = 0
 
-      override def hasNext = index < inventory.getSizeInventory
+      override def hasNext: Boolean = index < inventory.getSizeInventory
 
       override def next(): ItemStack = {
         val ret = inventory.getStackInSlot(index)
