@@ -3,7 +3,7 @@ package com.itszuvalex.itszulib.logistics
 import java.util
 import java.util.concurrent.ConcurrentHashMap
 
-import com.itszuvalex.itszulib.api.core.{Loc4, Module}
+import com.itszuvalex.itszulib.api.core.{IModule, Loc4}
 import com.itszuvalex.itszulib.api.wrappers.ITileEntity
 import com.itszuvalex.itszulib.logistics.TileNetwork.NetworkExplorer
 import com.itszuvalex.itszulib.util.Debug
@@ -41,7 +41,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
 
   val connectionMap: mutable.Map[Loc4, mutable.HashSet[Loc4]] = mutable.HashMap[Loc4, mutable.HashSet[Loc4]]()
 
-  def networkModule: Module[C]
+  def networkModule: IModule[C]
 
   override def canConnect(a: Loc4, b: Loc4): Boolean = (a.getITileEntity().orNull, b.getITileEntity().orNull) match {
     case (null, _) => false

@@ -1,16 +1,15 @@
 package com.itszuvalex.itszulib.core
 
 import com.itszuvalex.itszulib.TestBase
-import com.itszuvalex.itszulib.api.core.Module
-import net.minecraft.nbt.{NBTBase, NBTTagCompound}
+import com.itszuvalex.itszulib.api.core.{IModule, Module}
 import net.minecraft.util.EnumFacing
-import net.minecraftforge.common.capabilities.Capability
 
 class TestModuleCapabilityMap extends TestBase {
 
   trait TestMap {
-    val capmap      = new ModuleCapabilityMap
-    val emptyModule = new Module[Int]()
+    Module.clear()
+    val capmap                    = new ModuleCapabilityMap
+    val emptyModule: IModule[Int] = Module.registerModule("TestModule", null)
   }
 
   "TestModuleCapabilityMap" should {

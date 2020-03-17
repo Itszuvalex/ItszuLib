@@ -1,16 +1,16 @@
 package com.itszuvalex.itszulib.core
 
-import com.itszuvalex.itszulib.api.core.Module
+import com.itszuvalex.itszulib.api.core.IModule
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.common.capabilities.Capability
 
 import scala.collection.mutable
 
 class ModuleCapabilityMap {
-  private val modMap = new mutable.HashMap[Module[_], EnumFacing => Option[_]]()
+  private val modMap = new mutable.HashMap[IModule[_], EnumFacing => Option[_]]()
   private val capMap = new mutable.HashMap[Capability[_], EnumFacing => Option[_]]()
 
-  def addModule[T <: Any](mod: Module[T], func: EnumFacing => Option[T]): Unit = {
+  def addModule[T <: Any](mod: IModule[T], func: EnumFacing => Option[T]): Unit = {
     modMap(mod) = func
     if (mod.hasCapability) {
       val cap = mod.capability
@@ -20,15 +20,15 @@ class ModuleCapabilityMap {
     }
   }
 
-  def hasModule(mod: Module[_], facing: EnumFacing): Boolean = {
+  def hasModule(mod: IModule[_], facing: EnumFacing): Boolean = {
     modMap.get(mod).exists(_.apply(facing).isDefined)
   }
 
-  def getModule[T <: Any](mod: Module[T], facing: EnumFacing): T = {
+  def getModule[T <: Any](mod: IModule[T], facing: EnumFacing): T = {
     modMap.get(mod).flatMap(_.apply(facing)).orNull.asInstanceOf[T]
   }
 
-  def moduleOption[T <: Any](mod: Module[T], facing: EnumFacing): Option[T] = {
+  def moduleOption[T <: Any](mod: IModule[T], facing: EnumFacing): Option[T] = {
     Option(getModule(mod, facing))
   }
 

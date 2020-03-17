@@ -1,11 +1,34 @@
 package com.itszuvalex.itszulib.api.core
 
+import com.sun.javaws.exceptions.InvalidArgumentException
 import net.minecraftforge.common.capabilities.Capability
 
-class Module[T](val capabilityGetter: () => Capability[T]) {
-  def this() = this(null)
+import scala.collection.mutable
 
-  def hasCapability: Boolean = capabilityGetter != null
+object Module {
+  val modules = new mutable.HashMap[String, IModule[_]]()
 
-  def capability: Capability[T] = capabilityGetter()
+  def registerModule[T](name: String, capabilityGetter: () => Capability[T]): IModule[T] = {
+    if (modules.contains(name))
+      throw new InvalidArgumentException(Array(s"Module with name: $name already registered."))
+    val m = new Module(name, capabilityGetter)
+    modules(name) = m
+    m
+  }
+
+  /**
+    * Test only, do not use while Minecraft is actually running.
+    */
+  def clear(): Unit = {
+    modules.clear()
+  }
+}
+
+private class Module[T](val n: String, val capabilityGetter: () => Capability[T]) extends IModule[T] {
+
+  override def name: String = n
+
+  override def hasCapability: Boolean = capabilityGetter != null
+
+  override def capability: Capability[T] = capabilityGetter()
 }

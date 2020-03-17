@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 trait IWorld {
+  def isRemote: Boolean
 
   def getChunkFromChunkCoord(cc: ChunkCoord): IChunk
 

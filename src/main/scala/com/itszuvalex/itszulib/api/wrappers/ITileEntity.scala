@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.api.wrappers
 
-import com.itszuvalex.itszulib.api.core.Module
+import com.itszuvalex.itszulib.api.core.{BlockIdentifier, IModule}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
@@ -12,7 +12,7 @@ trait ITileEntity {
 
   def getPos: BlockPos
 
-  def getWorld: IWorld
+  def getIWorld: IWorld
 
   def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean
 
@@ -20,9 +20,15 @@ trait ITileEntity {
 
   def capabilityOption[T](capability: Capability[T], facing: EnumFacing): Option[T] = if (hasCapability(capability, facing)) Option(getCapability(capability, facing)) else None
 
-  def hasModule(mod: Module[_], facing: EnumFacing): Boolean
+  def hasModule(mod: IModule[_], facing: EnumFacing): Boolean
 
-  def getModule[T](mod: Module[T], facing: EnumFacing): T
+  def getModule[T](mod: IModule[T], facing: EnumFacing): T
 
-  def moduleOption[T](mod: Module[T], facing: EnumFacing): Option[T] = if (hasModule(mod, facing)) Option(getModule(mod, facing)) else None
+  def moduleOption[T](mod: IModule[T], facing: EnumFacing): Option[T] = if (hasModule(mod, facing)) Option(getModule(mod, facing)) else None
+
+  def getBlockIdentifier: BlockIdentifier
+
+  def markDirtyForSave(): Unit
+
+  def hasIWorld: Boolean
 }

@@ -9,6 +9,8 @@ import net.minecraft.world.World
 
 class WrapperWorld(private val world: World) extends IWorld {
 
+  override def isRemote: Boolean = world.isRemote
+
   override def getChunkFromChunkCoord(cc: ChunkCoord): IChunk = new WrapperChunk(world.getChunkFromChunkCoords(cc.x, cc.z))
 
   override def getChunkFromChunkCoords(x: Int, z: Int): IChunk = new WrapperChunk(world.getChunkFromChunkCoords(x, z))

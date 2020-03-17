@@ -70,7 +70,7 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
 
   def this(te: TileEntity) = this(te.getWorld, te.getPos)
 
-  def this(ite: ITileEntity) = this(ite.getWorld, ite.getPos)
+  def this(ite: ITileEntity) = this(ite.getIWorld, ite.getPos)
 
   override def serializeNBT(): NBTTagCompound = {
     val compound = new NBTTagCompound
@@ -86,11 +86,6 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
     y = compound.getInteger("y")
     z = compound.getInteger("z")
     dim = compound.getInteger("dim")
-  }
-
-  def getTileEntity(force: Boolean = false): Option[TileEntity] = getWorld match {
-    case Some(a) => Option(if (a.isBlockLoaded(getPos) || force) a.getTileEntity(getPos) else null)
-    case None => None
   }
 
   def getITileEntity(force: Boolean = false): Option[ITileEntity] = getWorld match {
