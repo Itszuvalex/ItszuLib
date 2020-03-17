@@ -50,7 +50,7 @@ class WrapperWorld(private val world: World) extends IWorld {
 
   override def toMinecraft: World = world
 
-  override def getITileEntity(pos: BlockPos): ITileEntity = new WrapperTileEntity(world.getTileEntity(pos))
+  override def getITileEntity(pos: BlockPos): ITileEntity = Converter.ITileEntityFromTileEntity(world.getTileEntity(pos))
 
-  override def setITileEntity(pos: BlockPos, tile: ITileEntity): Unit = world.setTileEntity(pos, tile.toMinecraft)
+  override def setITileEntity(pos: BlockPos, tile: ITileEntity): Unit = world.setTileEntity(pos, Converter.TileEntityFromITileEntity(tile))
 }

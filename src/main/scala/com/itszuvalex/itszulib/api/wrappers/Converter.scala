@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.api.wrappers
 import com.itszuvalex.itszulib.api.storage._
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.IFluidHandler
@@ -24,7 +25,7 @@ object Converter {
 
   def IFluidStackFromFluidStack(fluid: FluidStack): IFluidStack = WrapperVanillaFluidStack(fluid)
 
-  def FluidStackFromIFluidSTack(fluid: IFluidStack): FluidStack = fluid.toMinecraft
+  def FluidStackFromIFluidStack(fluid: IFluidStack): FluidStack = fluid.toMinecraft
 
   def IItemStorageFromIItemHandler(handler: IItemHandler): IItemStorage = new ItemStorageItemHandler(handler)
 
@@ -33,5 +34,14 @@ object Converter {
   def IFluidStorageFromIFluidHandler(handler: IFluidHandler): IFluidStorage = new WrapperFluidStorageHandler(handler)
 
   def IFluidHandlerFromIFluidStorage(storage: IFluidStorage): IFluidHandler = storage
+
+  def ITileEntityFromTileEntity(te: TileEntity): ITileEntity = te match {
+    case null => null
+    case ite: ITileEntity => ite
+    case te: TileEntity => new WrapperTileEntity(te)
+    case _ => null
+  }
+
+  def TileEntityFromITileEntity(ite: ITileEntity): TileEntity = ite.toMinecraft
 
 }

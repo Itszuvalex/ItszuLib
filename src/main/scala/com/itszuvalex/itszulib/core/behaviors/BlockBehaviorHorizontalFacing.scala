@@ -1,7 +1,8 @@
-package com.itszuvalex.itszulib.core
+package com.itszuvalex.itszulib.core.behaviors
 
 import com.itszuvalex.itszulib.api.wrappers.{IItemStack, IWorld}
-import com.itszuvalex.itszulib.core.BlockBehaviorHorizontalFacing.FACING
+import com.itszuvalex.itszulib.core.IBlockBehavior
+import com.itszuvalex.itszulib.core.behaviors.BlockBehaviorHorizontalFacing.FACING
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
 import net.minecraft.block.{Block, BlockHorizontal}
 import net.minecraft.entity.EntityLivingBase
@@ -12,7 +13,7 @@ object BlockBehaviorHorizontalFacing {
   final val FACING = BlockHorizontal.FACING
 }
 
-class BlockBehaviorHorizontalFacing extends IBlockBehavior {
+private class BlockBehaviorHorizontalFacing extends IBlockBehavior {
   override def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit = {
     iworld.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing.getOpposite), 2)
   }

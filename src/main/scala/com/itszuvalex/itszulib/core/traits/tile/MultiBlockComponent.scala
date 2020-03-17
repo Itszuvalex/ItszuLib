@@ -49,7 +49,7 @@ trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
       }
   }
 
-  override def isValidMultiBlock = info.isValidMultiBlock
+  override def isValidMultiBlock: Boolean = info.isValidMultiBlock
 
   /**
     *
@@ -59,5 +59,5 @@ trait MultiBlockComponent extends TileEntityBase with IMultiBlockComponent {
     */
   override def isController(loc: Loc4): Boolean = info.isController(loc)
 
-  override def isController = info.isController
+  override def isController: Boolean = info.isController
 }
