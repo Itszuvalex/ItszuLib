@@ -11,8 +11,6 @@ object ItszuItems {
 
   @SubscribeEvent
   def registerItems(event: RegistryEvent.Register[Item]): Unit = {
-    event.getRegistry.register(new ItemBlock(ItszuBlocks.blockTankTest).setRegistryName(ItszuBlocks.blockTankTest.getRegistryName))
-    event.getRegistry.register(new ItemBlock(ItszuBlocks.blockInvTest).setRegistryName(ItszuBlocks.blockInvTest.getRegistryName))
     event.getRegistry.register(new ItemBlock(ItszuBlocks.blockPortalTest).setRegistryName(ItszuBlocks.blockPortalTest.getRegistryName))
     val prev = new ItemPreviewable().setRegistryName(new ResourceLocation("TilePreviewable"))
     prev.setCreativeTab(CreativeTabs.DECORATIONS)

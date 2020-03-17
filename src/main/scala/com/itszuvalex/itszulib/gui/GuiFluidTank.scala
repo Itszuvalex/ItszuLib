@@ -1,70 +1,40 @@
-package com.itszuvalex.itszulib.gui
+package com.itszuvalex.femtocraft.logistics.gui
 
-import com.itszuvalex.itszulib.core.traits.tile.{TileFluidTank, TileMultiFluidTank}
-import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
-import com.itszuvalex.itszulib.network.messages.MessageFluidSlotClick
+import com.itszuvalex.itszulib.api.storage.{IFluidStorage, IFluidStorageProperties}
+import com.itszuvalex.itszulib.gui.{GuiBase, GuiPanel}
 import com.itszuvalex.itszulib.render.RenderUtils
 import com.itszuvalex.itszulib.util.Color
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
-import net.minecraft.util.text.TextFormatting
-import net.minecraftforge.fluids._
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.collection.mutable.ListBuffer
 
-/**
-  * Created by Alex on 04.10.2015.
-  */
+@SideOnly(Side.CLIENT)
 object GuiFluidTank {
-  val DEFAULT_RAISED_COLOR    : Int = Color(255.toByte, 64, 64, 64).toInt
-  val DEFAULT_LOWERED_COLOR   : Int = Color(255.toByte, 15, 15, 15).toInt
-  val DEFAULT_BACKGROUND_COLOR: Int = Color(255.toByte, 40, 40, 40).toInt
-  val DEFAULT_FLUID_BACK_COLOR: Int = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
-  val DEFAULT_SCALE_COLOR     : Int = Color(255.toByte, 200.toByte, 0, 0).toInt
+  val DEFAULT_RAISED_COLOR     = Color(255.toByte, 64, 64, 64).toInt
+  val DEFAULT_LOWERED_COLOR    = Color(255.toByte, 15, 15, 15).toInt
+  val DEFAULT_BACKGROUND_COLOR = Color(255.toByte, 40, 40, 40).toInt
+  val DEFAULT_FLUID_BACK_COLOR = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
+  val DEFAULT_SCALE_COLOR      = Color(255.toByte, 200.toByte, 0, 0).toInt
 }
 
-/**
-  * Fluid display slot that allows manual player interaction if desired.
-  *
-  * @param anchorX
-  * @param anchorY
-  * @param gui            GuiBase object
-  * @param tileSingleTank TileFluidTank TE, only required if tileMultiTank is null.
-  * @param tileMultiTank  TileMultiFluidTank TE, only required if tileSingleTank is null.
-  * @param tankID         ID of the tank in tileMultiTank, -1 if tileSingleTank is used instead.
-  * @param manualAccess   0 = no access, 1 = input only, 2 = output only, 3 = both
-  * @param filterFluid    Only this fluid will be accepted, null means any fluid
-  * @param drawTank       If false, only draws the fluid itself without tank and scale
-  */
-class GuiFluidTank(override var anchorX: Int,
-                   override var anchorY: Int,
-                   var gui: GuiBase,
-                   var tileSingleTank: TileFluidTank,
-                   var tileMultiTank: TileMultiFluidTank,
-                   var tankID: Int,
-                   var manualAccess: Int,
-                   var filterFluid: Fluid,
-                   var drawTank: Boolean) extends GuiPanel {
+@SideOnly(Side.CLIENT)
+class GuiFluidTank(
+                    override var anchorX: Int,
+                    override var anchorY: Int,
+                    var gui: GuiBase,
+                    var storage: IFluidStorage,
+                    var tankID: Int,
+                    var drawTank: Boolean) extends GuiPanel {
 
   override var _panelWidth : Int = 18
   override var _panelHeight: Int = 66
-  var colorRaised    : Int = GuiFluidTank.DEFAULT_RAISED_COLOR
-  var colorLowered   : Int = GuiFluidTank.DEFAULT_LOWERED_COLOR
-  var colorBackground: Int = GuiFluidTank.DEFAULT_BACKGROUND_COLOR
-  var colorFluidBack : Int = GuiFluidTank.DEFAULT_FLUID_BACK_COLOR
-  var colorScale     : Int = GuiFluidTank.DEFAULT_SCALE_COLOR
-
-  /**
-    * Constructor that only uses a TileFluidTank. See main constructor for param description.
-    */
-  def this(x: Int, y: Int, guiObj: GuiBase, tile: TileFluidTank, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
-    this(x, y, guiObj, tile, null, -1, manAccess, filtFluid, _drawTank)
-
-  /**
-    * Constructor that only uses a TileMultiFluidTank and Tank ID. See main constructor for param description.
-    */
-  def this(x: Int, y: Int, guiObj: GuiBase, tile: TileMultiFluidTank, _tankID: Int, manAccess: Int, filtFluid: Fluid, _drawTank: Boolean) =
-    this(x, y, guiObj, null, tile, _tankID, manAccess, filtFluid, _drawTank)
+  var colorRaised     = GuiFluidTank.DEFAULT_RAISED_COLOR
+  var colorLowered    = GuiFluidTank.DEFAULT_LOWERED_COLOR
+  var colorBackground = GuiFluidTank.DEFAULT_BACKGROUND_COLOR
+  var colorFluidBack  = GuiFluidTank.DEFAULT_FLUID_BACK_COLOR
+  var colorScale      = GuiFluidTank.DEFAULT_SCALE_COLOR
 
   override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
     super.addTooltip(mouseX, mouseY, tooltip)
@@ -73,36 +43,9 @@ class GuiFluidTank(override var anchorX: Int,
 
   def getTooltip: List[String] = {
     var ret = List.empty[String]
-    tankID match {
-      case -1 =>
-      //        ret :+= ("Fluid: " + (if (tileSingleTank.tank.getFluid == null) "None" else tileSingleTank.tank.getFluid.getFluid.getLocalizedName(tileSingleTank.tank.getFluid) + ", " + tileSingleTank.tank.getFluidAmount + "mB"))
-      //        ret :+= ("Capacity: " + tileSingleTank.tank.getCapacity + "mB")
-      case _ =>
-        ret :+= ("Fluid: " + (if (tileMultiTank.tanks(tankID).getFluid == null) "None" else tileMultiTank.tanks(tankID).getFluid.getFluid.getLocalizedName(tileMultiTank.tanks(tankID).getFluid) + ", " + tileMultiTank.tanks(tankID).getFluidAmount + "mB"))
-        ret :+= ("Capacity: " + tileMultiTank.tanks(tankID).getCapacity + "mB")
-    }
-    if ((manualAccess & 1) == 1) {
-      if (filterFluid != null) ret :+= ("Accepts: " + filterFluid.getLocalizedName(new FluidStack(filterFluid, 0)))
-      ret :+= (TextFormatting.ITALIC + TextFormatting.AQUA.toString + "Left click with fluid" + TextFormatting.RESET)
-      ret :+= (TextFormatting.ITALIC + TextFormatting.AQUA.toString + " container to fill tank" + TextFormatting.RESET)
-    }
-    if ((manualAccess & 2) == 2) {
-      ret :+= (TextFormatting.ITALIC + TextFormatting.LIGHT_PURPLE.toString + "Right click with fluid" + TextFormatting.RESET)
-      ret :+= (TextFormatting.ITALIC + TextFormatting.LIGHT_PURPLE.toString + " container to drain tank" + TextFormatting.RESET)
-    }
+    ret :+= s"Fluid: ${if (getInfo.getContentsIStack.isEmpty) "None" else {s"${getInfo.getContentsIStack.fluid.getLocalizedName(getInfo.getContents)}, ${getInfo.getContentsIStack.amount}mB"}}"
+    ret :+= s"Capacity: ${getInfo.getCapacity}mB"
     ret
-  }
-
-  override def onMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean = {
-    if (manualAccess != 0 && isMousedOver) {
-      tankID match {
-        case -1 =>
-          ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileSingleTank.getLoc, -1, button, manualAccess, if (filterFluid == null) null else FluidRegistry.getFluidName(filterFluid)))
-        case _ =>
-          ItszuLibPacketHandler.INSTANCE.sendToServer(new MessageFluidSlotClick(tileMultiTank.getLoc, tankID, button, manualAccess, if (filterFluid == null) null else FluidRegistry.getFluidName(filterFluid)))
-      }
-    }
-    super.onMouseClick(mouseX, mouseY, button)
   }
 
   override def render(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
@@ -146,18 +89,11 @@ class GuiFluidTank(override var anchorX: Int,
   def drawFluid(screenX: Int, screenY: Int): Unit = {
     var height: Int                = 0
     var icon  : TextureAtlasSprite = null
-    tankID match {
-      case -1 =>
-      //        if (tileSingleTank.tank.getFluid == null) return
-      //        if (tileSingleTank.tank.getFluid.amount == 0) return
-      //        icon = RenderUtils.getDefaultTextureForBlock(tileSingleTank.tank.getFluid.getFluid.getBlock)
-      //        height = math.floor((tileSingleTank.tank.getFluid.amount / tileSingleTank.tank.getCapacity.toDouble) * 64).toInt
-      case _ =>
-        if (tileMultiTank.tanks(tankID).getFluid == null) return
-        if (tileMultiTank.tanks(tankID).getFluid.amount == 0) return
-        icon = RenderUtils.getDefaultTextureForBlock(tileMultiTank.tanks(tankID).getFluid.getFluid.getBlock)
-        height = math.floor((tileMultiTank.tanks(tankID).getFluid.amount / tileMultiTank.tanks(tankID).getCapacity.toDouble) * 64).toInt
-    }
+    if (getInfo.getContentsIStack.isEmpty) return
+    if (getInfo.getContents.getFluid == null) return
+    if (getInfo.getContentsIStack.amount == 0) return
+    icon = RenderUtils.getDefaultTextureForBlock(getInfo.getContentsIStack.fluid.getBlock)
+    height = math.floor((getInfo.getContentsIStack.amount / getInfo.getCapacity.toDouble) * 64).toInt
     val topPx = screenY + 65 - height
 
     Gui.drawRect(screenX + 1, topPx, screenX + 17, screenY + 65, colorFluidBack)
@@ -165,5 +101,8 @@ class GuiFluidTank(override var anchorX: Int,
     RenderUtils.renderLiquidInGUI(gui, 0, icon, screenX + 1, topPx, 16, height)
   }
 
+  def getInfo: IFluidStorageProperties = storage.getStorageProperties.apply(tankID)
+
 }
+
 

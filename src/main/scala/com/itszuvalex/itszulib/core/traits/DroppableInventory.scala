@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib.core.traits.block
+package com.itszuvalex.itszulib.core.traits
 
 import java.util.Random
 

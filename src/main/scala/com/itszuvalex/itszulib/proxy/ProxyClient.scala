@@ -21,10 +21,10 @@
 package com.itszuvalex.itszulib.proxy
 
 import com.itszuvalex.itszulib.api.wrappers.{IWorld, WrapperWorld}
-import com.itszuvalex.itszulib.{ItszuBlocks, ItszuLib}
 import com.itszuvalex.itszulib.gui.GuiStack
 import com.itszuvalex.itszulib.render.{PreviewableRenderHandler, PreviewableRendererRegistry, ShaderUtils}
 import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
+import com.itszuvalex.itszulib.{ItszuBlocks, ItszuLib}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
@@ -47,11 +47,8 @@ class ProxyClient extends ProxyCommon {
     PreviewableIDs.testID = PreviewableRendererRegistry.bindRenderer(new TestPreviewableRenderer)
 
     ClientRegistry.bindTileEntitySpecialRenderer[PortalTileTest](classOf[PortalTileTest], new RenderPortalTest)
-    ClientRegistry.bindTileEntitySpecialRenderer[TileTankTest](classOf[TileTankTest], new RenderSidedCubeTest)
 
-    ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ItszuBlocks.blockTankTest), 0, classOf[TileTankTest])
     ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ItszuBlocks.blockPortalTest), 0, classOf[PortalTileTest])
-    Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(ItszuBlocks.blockTankTest), 0, new ModelResourceLocation(ItszuLib.ID.toLowerCase() + ":" + "BlockTankTest", "inventory"))
     Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(ItszuBlocks.blockPortalTest), 0, new ModelResourceLocation(ItszuLib.ID.toLowerCase() + ":" + "BlockPortalTest", "inventory"))
 
     GuiStack.init()
@@ -59,8 +56,6 @@ class ProxyClient extends ProxyCommon {
 
   override def getClientGuiElement(ID: Int, data: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     (ID, world.getTileEntity(new BlockPos(x, y, z))) match {
-      case (0, te: TileTankTest) => new GuiTankTest(player, player.inventory, te, data)
-      case (1, te: TileInventoryTest) => new GuiInventoryTest(player, player.inventory, te)
       case (_, _) => null
     }
   }

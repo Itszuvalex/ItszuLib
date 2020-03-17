@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.core
 
 import com.itszuvalex.itszulib.api.wrappers.{IItemStack, IWorld}
-import com.itszuvalex.itszulib.core.traits.tile.BlockFacing.FACING
+import com.itszuvalex.itszulib.core.BlockBehaviorHorizontalFacing.FACING
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
 import net.minecraft.block.{Block, BlockHorizontal}
 import net.minecraft.entity.EntityLivingBase

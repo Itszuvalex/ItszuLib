@@ -21,7 +21,8 @@ abstract class TileEntityCore extends TileEntity with ITileEntity {
 
   def addTileEntityModule[T](module: ITileEntityModule[T]): Unit = {
     modules += module
-    moduleCapabilityMap.addModule(module.module, module.faceToModuleMapper)
+    if (module.module != null)
+      moduleCapabilityMap.addModule(module.module, module.faceToModuleMapper)
   }
 
   override def toMinecraft: TileEntity = this
