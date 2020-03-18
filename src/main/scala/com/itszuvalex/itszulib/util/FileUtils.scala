@@ -51,13 +51,13 @@ object FileUtils {
     f
   }
 
-  def customConfigPath(modID: String): String = configPath(modID) + "custom/"
+  def customConfigPath(modID: String): String = configPath(modID) + "custom" + File.separator
 
   def configPath(modID: String): String = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
-    FMLCommonHandler.instance.getMinecraftServerInstance.getFile(FMLCommonHandler.instance().getMinecraftServerInstance.getFolderName + "/config/" + modID + "/").getPath + "/"
-  } else {Minecraft.getMinecraft.mcDataDir + "/config/" + modID + "/"}
+    FMLCommonHandler.instance.getMinecraftServerInstance.getFile(FMLCommonHandler.instance().getMinecraftServerInstance.getFolderName + File.separator + "config" + File.separator + modID + File.separator).getPath + File.separator
+  } else {Minecraft.getMinecraft.mcDataDir + File.separator + "config" + File.separator + modID + File.separator}
 
-  def autogenConfigPath(modID: String): String = configPath(modID) + "autogen/"
+  def autogenConfigPath(modID: String): String = configPath(modID) + "autogen" + File.separator
 }
 
 

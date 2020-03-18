@@ -1,21 +1,19 @@
 package com.itszuvalex.itszulib.util
 
+import com.itszuvalex.itszulib.api.ItszuLibModules
 import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.api.storage.{IFluidStorage, IItemStorage, WrapperFluidStorageHandler}
 import com.itszuvalex.itszulib.api.utility.FacingUtil
 import com.itszuvalex.itszulib.api.wrappers.{Converter, ITileEntity}
-import com.itszuvalex.itszulib.api.{ItszuLibCapabilities, ItszuLibModules}
 import com.itszuvalex.itszulib.core.{EnumAutomaticIO, SidedFluidStorageConfiguration, SidedItemStorageConfiguration}
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.items.CapabilityItemHandler
 
 object TileEntityUtils {
-  def getIItemStorageFromTileEntity(te: TileEntity, facing: EnumFacing): Option[IItemStorage] = {
+  def getIItemStorageFromTileEntity(te: ITileEntity, facing: EnumFacing): Option[IItemStorage] = {
     te match {
-      case _ if te.hasCapability(ItszuLibCapabilities.ITEM_STORAGE, facing) => Some(te.getCapability(ItszuLibCapabilities.ITEM_STORAGE, facing))
-      case _ if te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing) => Some(Converter.IItemStorageFromIItemHandler(te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing)))
+      case _ if te.hasModule(ItszuLibModules.ITEM_STORAGE, facing) => te.moduleOption(ItszuLibModules.ITEM_STORAGE, facing)
+      case _ if te.hasModule(ItszuLibModules.ITEM_MINECRAFT_INVENTORY, facing) => Some(Converter.IItemStorageFromIItemHandler(te.getModule(ItszuLibModules.ITEM_MINECRAFT_INVENTORY, facing)))
       case _ => None
     }
   }
@@ -120,12 +118,14 @@ object TileEntityUtils {
       isize <= 0
     }
 
-    // Generic drain
-    TileEntityUtils.getFluidStoragesForIO(te, config, EnumAutomaticIO.OUTPUT).exists { pair =>
-      val amtFilled = pair._1.fill(pair._2.drain(isize, false), true)
-      pair._2.drain(amtFilled, true)
-      isize -= amtFilled
-      isize <= 0
+    if (isize > 0) {
+      // Generic drain
+      TileEntityUtils.getFluidStoragesForIO(te, config, EnumAutomaticIO.OUTPUT).exists { pair =>
+        val amtFilled = pair._1.fill(pair._2.drain(isize, false), true)
+        pair._2.drain(amtFilled, true)
+        isize -= amtFilled
+        isize <= 0
+      }
     }
   }
 }
