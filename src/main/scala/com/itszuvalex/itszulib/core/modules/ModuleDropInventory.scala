@@ -16,7 +16,7 @@ class ModuleDropInventory extends TileEntityModule {
 
   override def module: IModule[Nothing] = null
 
-  override def faceToModuleMapper: EnumFacing => Option[Nothing] = null
+  override def faceToModuleMapper(tile: ITileEntity): EnumFacing => Option[Nothing] = null
 
   override def onBlockBreak(core: ITileEntity, state: IBlockState): Unit = {
     def dropAllInInv(i: IItemStorage): Unit = {
@@ -26,12 +26,8 @@ class ModuleDropInventory extends TileEntityModule {
     }
 
     if (shouldDrop) {
-      core.getIWorld.getITileEntity(core.getPos) match {
-        case null =>
-        case ite: ITileEntity =>
-          ite.moduleOption(ItszuLibModules.ITEM_STORAGE, null).foreach(dropAllInInv)
-        case _ =>
-      }
+      Option(core.getIWorld.getITileEntity(core.getPos)).
+      foreach(ite => ite.moduleOption(ItszuLibModules.ITEM_STORAGE, null).foreach(dropAllInInv))
     }
   }
 }

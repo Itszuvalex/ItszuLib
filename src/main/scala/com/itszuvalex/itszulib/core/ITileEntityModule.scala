@@ -14,7 +14,7 @@ trait ITileEntityModule[T] {
 
   def module: IModule[T]
 
-  def faceToModuleMapper: EnumFacing => Option[T]
+  def faceToModuleMapper(tile: ITileEntity): EnumFacing => Option[T]
 
   def hasItemNBT: Boolean
 
