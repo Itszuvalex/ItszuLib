@@ -2,12 +2,11 @@ package com.itszuvalex.itszulib.util
 
 import com.itszuvalex.itszulib.api.ItszuLibModules
 import com.itszuvalex.itszulib.api.core.Loc4
-import com.itszuvalex.itszulib.api.storage.{IFluidStorage, IItemStorage, WrapperFluidStorageHandler}
+import com.itszuvalex.itszulib.api.storage.{IFluidStorage, IItemStorage}
 import com.itszuvalex.itszulib.api.utility.FacingUtil
 import com.itszuvalex.itszulib.api.wrappers.{Converter, ITileEntity}
 import com.itszuvalex.itszulib.core.{EnumAutomaticIO, SidedFluidStorageConfiguration, SidedItemStorageConfiguration}
 import net.minecraft.util.EnumFacing
-import net.minecraftforge.fluids.FluidStack
 
 object TileEntityUtils {
   def getIItemStorageFromTileEntity(te: ITileEntity, facing: EnumFacing): Option[IItemStorage] = {
@@ -63,6 +62,7 @@ object TileEntityUtils {
 
     var isize = inputSize
 
+    /*
     //Match first
     TileEntityUtils.getFluidStoragesForIO(te, config, EnumAutomaticIO.INPUT).exists { pair =>
       pair._1.getTankProperties.filterNot(_.getContents == null).exists { prop =>
@@ -77,11 +77,12 @@ object TileEntityUtils {
       }
       isize <= 0
     }
+     */
 
     // Generic drain
     TileEntityUtils.getFluidStoragesForIO(te, config, EnumAutomaticIO.INPUT).exists { pair =>
-      val amtFilled = pair._2.fill(pair._1.drain(isize, false), true)
-      pair._1.drain(amtFilled, true)
+      val amtFilled = pair._2.fill(pair._1.drainIStack(isize, false), true)
+      pair._1.drainIStack(amtFilled, true)
       isize -= amtFilled
       isize <= 0
     }
@@ -92,7 +93,7 @@ object TileEntityUtils {
     val tiles   = facings.map(pair => (pair._1.getITileEntity(force = false).orNull, pair._2)).filterNot(_._1 == null)
     tiles.map { pair =>
       val inputStorage = if (pair._1.hasModule(ItszuLibModules.FLUID_STORAGE, pair._2.getOpposite)) pair._1.getModule(ItszuLibModules.FLUID_STORAGE, pair._2.getOpposite)
-      else if (pair._1.hasModule(ItszuLibModules.FLUID_MINECRAFT_HANDLER, pair._2.getOpposite)) new WrapperFluidStorageHandler(pair._1.getModule(ItszuLibModules.FLUID_MINECRAFT_HANDLER, pair._2.getOpposite))
+      else if (pair._1.hasModule(ItszuLibModules.FLUID_MINECRAFT_HANDLER, pair._2.getOpposite)) Converter.IFluidStorageFromIFluidHandler(pair._1.getModule(ItszuLibModules.FLUID_MINECRAFT_HANDLER, pair._2.getOpposite))
       else null
       (inputStorage, sidedStorageConfig.getStorageForGlobalFacing(pair._2))
     }.filterNot(_._1 == null).filterNot(_._2 == null)
@@ -103,6 +104,7 @@ object TileEntityUtils {
 
     var isize = inputSize
 
+    /*
     //Match first
     TileEntityUtils.getFluidStoragesForIO(te, config, EnumAutomaticIO.OUTPUT).exists { pair =>
       pair._2.getTankProperties.filterNot(_.getContents == null).exists { prop =>
@@ -117,12 +119,13 @@ object TileEntityUtils {
       }
       isize <= 0
     }
+     */
 
     if (isize > 0) {
       // Generic drain
       TileEntityUtils.getFluidStoragesForIO(te, config, EnumAutomaticIO.OUTPUT).exists { pair =>
-        val amtFilled = pair._1.fill(pair._2.drain(isize, false), true)
-        pair._2.drain(amtFilled, true)
+        val amtFilled = pair._1.fill(pair._2.drainIStack(isize, false), true)
+        pair._2.drainIStack(amtFilled, true)
         isize -= amtFilled
         isize <= 0
       }

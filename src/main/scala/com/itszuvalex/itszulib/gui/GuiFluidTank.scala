@@ -1,6 +1,7 @@
 package com.itszuvalex.femtocraft.logistics.gui
 
-import com.itszuvalex.itszulib.api.storage.{IFluidStorage, IFluidStorageProperties}
+import com.itszuvalex.itszulib.api.storage.IFluidStorage
+import com.itszuvalex.itszulib.api.wrappers.Converter
 import com.itszuvalex.itszulib.gui.{GuiBase, GuiPanel}
 import com.itszuvalex.itszulib.render.RenderUtils
 import com.itszuvalex.itszulib.util.Color
@@ -25,7 +26,6 @@ class GuiFluidTank(
                     override var anchorY: Int,
                     var gui: GuiBase,
                     var storage: IFluidStorage,
-                    var tankID: Int,
                     var drawTank: Boolean) extends GuiPanel {
 
   override var _panelWidth : Int = 18
@@ -43,8 +43,8 @@ class GuiFluidTank(
 
   def getTooltip: List[String] = {
     var ret = List.empty[String]
-    ret :+= s"Fluid: ${if (getInfo.getContentsIStack.isEmpty) "None" else {s"${getInfo.getContentsIStack.fluid.getLocalizedName(getInfo.getContents)}, ${getInfo.getContentsIStack.amount}mB"}}"
-    ret :+= s"Capacity: ${getInfo.getCapacity}mB"
+    ret :+= s"Fluid: ${if (storage.isEmpty) "None" else {s"${storage.contents.fluid.getLocalizedName(Converter.FluidStackFromIFluidStack(storage.contents))}, ${storage.contents.amount}mB"}}"
+    ret :+= s"Capacity: ${storage.contents}mB"
     ret
   }
 
@@ -89,20 +89,17 @@ class GuiFluidTank(
   def drawFluid(screenX: Int, screenY: Int): Unit = {
     var height: Int                = 0
     var icon  : TextureAtlasSprite = null
-    if (getInfo.getContentsIStack.isEmpty) return
-    if (getInfo.getContents.getFluid == null) return
-    if (getInfo.getContentsIStack.amount == 0) return
-    icon = RenderUtils.getDefaultTextureForBlock(getInfo.getContentsIStack.fluid.getBlock)
-    height = math.floor((getInfo.getContentsIStack.amount / getInfo.getCapacity.toDouble) * 64).toInt
+    if (storage.contents.isEmpty) return
+    if (storage.contents.fluid == null) return
+    if (storage.contents.amount == 0) return
+    icon = RenderUtils.getDefaultTextureForBlock(storage.contents.fluid.getBlock)
+    height = math.floor((storage.contents.amount / storage.capacity.toDouble) * 64).toInt
     val topPx = screenY + 65 - height
 
     Gui.drawRect(screenX + 1, topPx, screenX + 17, screenY + 65, colorFluidBack)
 
     RenderUtils.renderLiquidInGUI(gui, 0, icon, screenX + 1, topPx, 16, height)
   }
-
-  def getInfo: IFluidStorageProperties = storage.getStorageProperties.apply(tankID)
-
 }
 
 

@@ -1,5 +1,6 @@
-package com.itszuvalex.itszulib.api.storage
+package com.itszuvalex.itszulib.api.wrappers
 
+import com.itszuvalex.itszulib.api.storage.IFluidStorageProperties
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.IFluidTankProperties
 

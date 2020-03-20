@@ -1,19 +1,30 @@
 package com.itszuvalex.itszulib.api.storage
 
+import com.itszuvalex.itszulib.api.wrappers.IFluidStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.fluids.capability.IFluidTankProperties
 
 class DynamicIFluidStorage(val getter: () => IFluidStorage) extends IFluidStorage {
   override def deserializeNBT(nbt: NBTTagCompound): Unit = getter().deserializeNBT(nbt)
 
+  override def fill(resource: IFluidStack, doFill: Boolean): Int = getter().fill(resource, doFill)
+
+  override def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack = getter().drain(resource, doDrain)
+
+  override def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack = getter().drainIStack(maxDrain, doDrain)
+
+  override def contents: IFluidStack = getter().contents
+
+  override def capacity: Int = getter().capacity
+
   override def serializeNBT(): NBTTagCompound = getter().serializeNBT()
 
-  override def fill(resource: FluidStack, doFill: Boolean): Int = getter().fill(resource, doFill)
+  override def canFillFluidType(resource: IFluidStack): Boolean = getter().canFillFluidType(resource)
 
-  override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = getter().drain(resource, doDrain)
+  override def canDrainFluidType(resource: IFluidStack): Boolean = getter().canDrainFluidType(resource)
 
-  override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = getter().drain(maxDrain, doDrain)
+  override def canDrain: Boolean = getter().canDrain
 
-  override def getTankProperties: Array[IFluidTankProperties] = getter().getTankProperties
+  override def canFill: Boolean = getter().canFill
+
+  override def markDirty(): Unit = getter().markDirty()
 }
