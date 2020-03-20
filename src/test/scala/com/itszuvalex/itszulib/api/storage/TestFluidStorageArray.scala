@@ -185,6 +185,15 @@ class TestFluidStorageArray extends TestBase {
           storage(5).amount shouldBe 1
           storage(6).amount shouldBe 3
         }
+        "drain from the first fluidstack only that which is requested" in new withStorage {
+          val extraFluid = new TestableFluidStack(3, 10)
+          val toRemove   = 3
+          storage(0) = extraFluid
+          val removed = storage.drainIStack(toRemove, true)
+          removed.amount shouldBe toRemove
+          removed.asInstanceOf[TestableFluidStack].fluidId shouldBe 3
+          storage(0).amount shouldBe 7
+        }
       }
     }
   }
