@@ -38,14 +38,27 @@ trait IFluidStorage extends scala.collection.immutable.Seq[IFluidStack] with INB
 
   def canFill(index: Int): Boolean = true
 
+  /**
+    *
+    * @param resource
+    * @param doFill
+    * @return Amount of resource filled
+    */
   def fill(resource: IFluidStack, doFill: Boolean): Int
 
+  /**
+    *
+    * @param resource
+    * @param doDrain
+    * @return Amount of resource drained
+    */
   def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack
-
 
   def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack
 
-  def capacity(index: Int): Int = Int.MaxValue
+  def capacity(index: Int): Int = apply(index).amountMax
 
   override def iterator: Iterator[IFluidStack] = new FluidStorageIterator(this)
+
+
 }

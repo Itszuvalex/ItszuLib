@@ -15,7 +15,7 @@ object IFluidStack {
 
     override def amount_=(amount: Int): Unit = {}
 
-    override def amountMax: Int = 0
+    override def amountMax: Int = Int.MaxValue
 
     override def copy(): IFluidStack = IFluidStack.Empty
 

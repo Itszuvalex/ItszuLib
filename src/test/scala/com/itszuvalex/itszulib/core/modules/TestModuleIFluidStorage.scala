@@ -1,28 +1,28 @@
 package com.itszuvalex.itszulib.core.modules
 
-import com.itszuvalex.itszulib.{TestBase, TestableFluidStack}
 import com.itszuvalex.itszulib.api.ItszuLibModules
-import com.itszuvalex.itszulib.api.storage.{FluidStorageTank, IFluidStorage}
+import com.itszuvalex.itszulib.api.storage.{FluidStorageArray, FluidStorageModifiableSlice, IFluidStorage}
 import com.itszuvalex.itszulib.api.wrappers.{IFluidStack, ITileEntity}
 import com.itszuvalex.itszulib.core.SidedFluidStorageConfiguration
+import com.itszuvalex.itszulib.{TestBase, TestableFluidStack}
 import net.minecraft.util.EnumFacing
 
 class TestModuleIFluidStorage extends TestBase {
 
   trait WithModule {
-    val storageArray       = new Array[IFluidStack](2)
+    val storageArray        = new Array[IFluidStack](2)
     val fluid0: IFluidStack = new TestableFluidStack(1, 1)
     val fluid1: IFluidStack = new TestableFluidStack(1, 5)
     storageArray(0) = fluid0
     storageArray(1) = fluid1
-    val storage                      = new FluidStorageTank()
+    val storage                      = new FluidStorageArray(storageArray)
     val module                       = new ModuleIFluidStorage(storage)
     val fakeITileEntity: ITileEntity = mock[ITileEntity]
   }
 
   trait WithSidedConfig extends WithModule {
-    val storageSlice0  : IFluidStorage        = new FluidStorageSlice(storage, Array(0))
-    val storageSlice1  : IFluidStorage        = new FluidStorageSlice(storage, Array(1))
+    val storageSlice0  : IFluidStorage        = new FluidStorageModifiableSlice(storage, Array(0))
+    val storageSlice1  : IFluidStorage        = new FluidStorageModifiableSlice(storage, Array(1))
     val evenStorageName: String               = "Even"
     val oddStorageName : String               = "Odd"
     val defaults       : EnumFacing => String = facing => if (facing.getIndex % 2 == 0) evenStorageName else oddStorageName
