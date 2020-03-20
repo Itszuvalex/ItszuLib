@@ -5,7 +5,7 @@ import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties}
 
 class WrapperFluidStorageIFluidHandler(val storage: IFluidStorage) extends IFluidHandler {
-  override def getTankProperties: Array[IFluidTankProperties] = Array(Converter.IFluidTankPropertiesFromIFluidStorage(storage))
+  override def getTankProperties: Array[IFluidTankProperties] = Converter.IFluidTankPropertiesFromIFluidStorage(storage)
 
   override def fill(resource: FluidStack, doFill: Boolean): Int = storage.fill(Converter.IFluidStackFromFluidStack(resource), doFill)
 

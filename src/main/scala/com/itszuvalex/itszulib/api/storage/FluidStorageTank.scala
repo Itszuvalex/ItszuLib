@@ -1,11 +1,13 @@
 package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.wrappers.{Converter, IFluidStack}
+import com.itszuvalex.itszulib.util.Debug
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties}
 import net.minecraftforge.fluids.{FluidStack, FluidTank}
 
-class FluidStorageTank(private val tank: FluidTank) extends IFluidStorage with IFluidHandler {
+class FluidStorageTank(private val tank: FluidTank) extends IFluidStorageModifiable with IFluidHandler {
+  Debug.assert(tank.getTankProperties.length == 1, "FluidTank shouldn't return more than one TankProperties")
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = tank.readFromNBT(nbt)
 
@@ -29,15 +31,9 @@ class FluidStorageTank(private val tank: FluidTank) extends IFluidStorage with I
 
   override def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack = Converter.IFluidStackFromFluidStack(tank.drain(maxDrain, doDrain))
 
-  override def contents: IFluidStack = Converter.IFluidStackFromFluidStack(tank.getFluid)
+  override def length: Int = tank.getTankProperties.length
 
-  override def capacity: Int = tank.getCapacity
+  override def apply(idx: Int): IFluidStack = Converter.IFluidStackFromFluidStack(tank.getFluid)
 
-  override def canDrainFluidType(resource: IFluidStack): Boolean = tank.canDrainFluidType(Converter.FluidStackFromIFluidStack(resource))
-
-  override def canFillFluidType(resource: IFluidStack): Boolean = tank.canFillFluidType(Converter.FluidStackFromIFluidStack(resource))
-
-  override def canDrain: Boolean = tank.canDrain
-
-  override def canFill: Boolean = tank.canFill
+  override def update(i: Int, s: IFluidStack): Unit = tank.setFluid(Converter.FluidStackFromIFluidStack(s))
 }

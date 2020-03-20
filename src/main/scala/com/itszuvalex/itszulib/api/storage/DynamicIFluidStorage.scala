@@ -12,19 +12,9 @@ class DynamicIFluidStorage(val getter: () => IFluidStorage) extends IFluidStorag
 
   override def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack = getter().drainIStack(maxDrain, doDrain)
 
-  override def contents: IFluidStack = getter().contents
+  override def length: Int = getter().length
 
-  override def capacity: Int = getter().capacity
+  override def apply(idx: Int): IFluidStack = getter().apply(idx)
 
   override def serializeNBT(): NBTTagCompound = getter().serializeNBT()
-
-  override def canFillFluidType(resource: IFluidStack): Boolean = getter().canFillFluidType(resource)
-
-  override def canDrainFluidType(resource: IFluidStack): Boolean = getter().canDrainFluidType(resource)
-
-  override def canDrain: Boolean = getter().canDrain
-
-  override def canFill: Boolean = getter().canFill
-
-  override def markDirty(): Unit = getter().markDirty()
 }

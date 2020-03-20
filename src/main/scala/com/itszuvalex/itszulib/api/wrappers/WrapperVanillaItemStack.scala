@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
-import com.itszuvalex.itszulib.api.core.ItemIdentifier
+import com.itszuvalex.itszulib.api.core.{IModule, ItemIdentifier}
 import com.itszuvalex.itszulib.implicits.IDImplicits._
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
@@ -84,4 +84,10 @@ class WrapperVanillaItemStack(private var stack: ItemStack) extends IItemStack {
   }
 
   override def identifier: ItemIdentifier = ItemIdentifier(item)
+
+  //TODO: Check once we have Item wrapper/interface, check for it and look for modules from it first before falling back to Capabilities
+
+  override def hasModule(mod: IModule[_], facing: EnumFacing): Boolean = if (mod.hasCapability) hasCapability(mod.capability, facing) else false
+
+  override def getModule[T](mod: IModule[T], facing: EnumFacing): T = if (mod.hasCapability) getCapability(mod.capability, facing) else null.asInstanceOf[T]
 }

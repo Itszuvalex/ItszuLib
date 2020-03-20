@@ -17,38 +17,35 @@ object IFluidStorage {
 
     override def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack = IFluidStack.Empty
 
-    override def contents: IFluidStack = IFluidStack.Empty
-
     override def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack = IFluidStack.Empty
 
-    override def canFillFluidType(resource: IFluidStack): Boolean = false
+    override def canFillFluidType(index: Int, resource: IFluidStack): Boolean = false
 
-    override def canDrainFluidType(resource: IFluidStack): Boolean = false
+    override def canDrainFluidType(index: Int, resource: IFluidStack): Boolean = false
 
-    override def capacity: Int = 0
+    override def length: Int = 0
+
+    override def apply(idx: Int): IFluidStack = IFluidStack.Empty
   }
 }
 
-trait IFluidStorage extends INBTSerializable[NBTTagCompound] {
-  def canFillFluidType(resource: IFluidStack): Boolean = resource != null && resource != IFluidStack.Empty && canFill
+trait IFluidStorage extends scala.collection.immutable.Seq[IFluidStack] with INBTSerializable[NBTTagCompound] {
+  def canFillFluidType(index: Int, resource: IFluidStack): Boolean = resource != null && resource != IFluidStack.Empty && canFill(index)
 
-  def canDrainFluidType(resource: IFluidStack): Boolean = resource != null && resource != IFluidStack.Empty && canDrain
+  def canDrainFluidType(index: Int, resource: IFluidStack): Boolean = resource != null && resource != IFluidStack.Empty && canDrain(index)
 
-  def canDrain: Boolean = true
+  def canDrain(index: Int): Boolean = true
 
-  def canFill: Boolean = true
+  def canFill(index: Int): Boolean = true
 
   def fill(resource: IFluidStack, doFill: Boolean): Int
 
   def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack
 
+
   def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack
 
-  def markDirty(): Unit = {}
+  def capacity(index: Int): Int = Int.MaxValue
 
-  def contents: IFluidStack
-
-  def capacity: Int
-
-  def isEmpty: Boolean = contents == null || contents == IFluidStack.Empty || contents.amount <= 0
+  override def iterator: Iterator[IFluidStack] = new FluidStorageIterator(this)
 }

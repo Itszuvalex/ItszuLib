@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
-import com.itszuvalex.itszulib.api.core.{INBTObjectSerializer, ItemIdentifier}
+import com.itszuvalex.itszulib.api.core.{IModule, INBTObjectSerializer, ItemIdentifier}
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -49,6 +49,10 @@ object IItemStack {
     override def serializeNBT(): NBTTagCompound = new NBTTagCompound
 
     override def deserializeNBT(nbt: NBTTagCompound): Unit = {}
+
+    override def hasModule(mod: IModule[_], facing: EnumFacing): Boolean = false
+
+    override def getModule[T](mod: IModule[T], facing: EnumFacing): T = null.asInstanceOf[T]
   }
 
   def Serializer: INBTObjectSerializer[IItemStack, NBTTagCompound] = OverrideSerializer.getOrElse(VanillaSerializer)
@@ -111,5 +115,12 @@ trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
   def getCapability[T](capability: Capability[T], facing: EnumFacing): T
 
   def capabilityOption[T](capability: Capability[T], facing: EnumFacing): Option[T] =
-    if (!isEmpty && hasCapability(capability, facing)) Some(getCapability(capability, facing)) else None
+    if (!isEmpty && hasCapability(capability, facing)) Option(getCapability(capability, facing)) else None
+
+  def hasModule(mod: IModule[_], facing: EnumFacing): Boolean
+
+  def getModule[T](mod: IModule[T], facing: EnumFacing): T
+
+  def moduleOption[T](mod: IModule[T], facing: EnumFacing): Option[T] =
+    if (!isEmpty && hasModule(mod, facing)) Option(getModule(mod, facing)) else None
 }

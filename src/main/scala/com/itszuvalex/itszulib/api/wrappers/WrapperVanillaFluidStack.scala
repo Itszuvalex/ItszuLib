@@ -79,7 +79,7 @@ class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFlui
 
   override def writeToNBT(nbt: NBTTagCompound): Unit = WrapperVanillaFluidStack.nbtWriter.apply(this, nbt)
 
-  override def isEmpty: Boolean = fluidStack == null
+  override def isEmpty: Boolean = fluidStack == null || (fluidStack.getFluid == null && fluidStack.amount <= 0)
 
   override def identifier: FluidIdentifier = FluidIdentifier(fluid)
 }

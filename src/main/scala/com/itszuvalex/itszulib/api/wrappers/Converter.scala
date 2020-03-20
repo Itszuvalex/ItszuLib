@@ -53,10 +53,7 @@ object Converter {
     case _ => new WrapperFluidStorageIFluidHandler(storage)
   }
 
-  def IFluidTankPropertiesFromIFluidStorage(storage: IFluidStorage): IFluidTankProperties = storage match {
-    case t: IFluidTankProperties => t
-    case _ => new WrapperFluidTankProperties(storage)
-  }
+  def IFluidTankPropertiesFromIFluidStorage(storage: IFluidStorage): Array[IFluidTankProperties] = storage.indices.map(new WrapperFluidTankProperties(storage, _)).toArray
 
   def ITileEntityFromTileEntity(te: TileEntity): ITileEntity = te match {
     case null => null

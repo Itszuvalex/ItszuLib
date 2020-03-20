@@ -26,6 +26,7 @@ class GuiFluidTank(
                     override var anchorY: Int,
                     var gui: GuiBase,
                     var storage: IFluidStorage,
+                    var index: Int,
                     var drawTank: Boolean) extends GuiPanel {
 
   override var _panelWidth : Int = 18
@@ -43,8 +44,8 @@ class GuiFluidTank(
 
   def getTooltip: List[String] = {
     var ret = List.empty[String]
-    ret :+= s"Fluid: ${if (storage.isEmpty) "None" else {s"${storage.contents.fluid.getLocalizedName(Converter.FluidStackFromIFluidStack(storage.contents))}, ${storage.contents.amount}mB"}}"
-    ret :+= s"Capacity: ${storage.contents}mB"
+    ret :+= s"Fluid: ${if (storage.isEmpty) "None" else {s"${storage(index).fluid.getLocalizedName(Converter.FluidStackFromIFluidStack(storage(index)))}, ${storage(index).amount}mB"}}"
+    ret :+= s"Capacity: ${storage.capacity(index)}mB"
     ret
   }
 
@@ -89,11 +90,11 @@ class GuiFluidTank(
   def drawFluid(screenX: Int, screenY: Int): Unit = {
     var height: Int                = 0
     var icon  : TextureAtlasSprite = null
-    if (storage.contents.isEmpty) return
-    if (storage.contents.fluid == null) return
-    if (storage.contents.amount == 0) return
-    icon = RenderUtils.getDefaultTextureForBlock(storage.contents.fluid.getBlock)
-    height = math.floor((storage.contents.amount / storage.capacity.toDouble) * 64).toInt
+    if (storage(index).isEmpty) return
+    if (storage(index).fluid == null) return
+    if (storage(index).amount == 0) return
+    icon = RenderUtils.getDefaultTextureForBlock(storage(index).fluid.getBlock)
+    height = math.floor((storage(index).amount / storage.capacity(index).toDouble) * 64).toInt
     val topPx = screenY + 65 - height
 
     Gui.drawRect(screenX + 1, topPx, screenX + 17, screenY + 65, colorFluidBack)
