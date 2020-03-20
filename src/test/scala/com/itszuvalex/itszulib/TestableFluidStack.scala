@@ -49,6 +49,12 @@ class TestableFluidStack(var fluidId: Int, var fluidAmount: Int) extends IFluidS
     nbt
   }
 
+  override def isFluidEqual(o: IFluidStack): Boolean = o match {
+    case i: TestableFluidStack =>
+      fluidId == i.fluidId
+    case _ => false
+  }
+
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
     fluidId = nbt.getInteger("id")
     fluidAmount = nbt.getInteger("amount")

@@ -75,7 +75,7 @@ trait IFluidStorageModifiable extends IFluidStorage {
   }
 
   private def fillable(resource: IFluidStack): SeqView[Int, immutable.IndexedSeq[Int]] =
-    indices.view.filter(i => canFillFluidType(i, resource))
+    indices.view.filter(i => canFillFluidType(i, resource)).filter(i => apply(i).isEmpty || resource.isFluidEqual(apply(i)))
 
   /**
     *
@@ -91,7 +91,7 @@ trait IFluidStorageModifiable extends IFluidStorage {
     // Match to tanks already containing the fluid
     drainable(resource).filter(i => resource.isFluidEqual(apply(i))).exists { i =>
       val stack                = apply(i)
-      val amtToDrainInThisSlot = Math.min(amtToDrain, stack.amount)
+      val amtToDrainInThisSlot = Math.min(amtToDrain - amtDrained, stack.amount)
       if (doDrain) {
         val copy = apply(i).copy()
         copy.amount -= amtToDrainInThisSlot
@@ -113,14 +113,13 @@ trait IFluidStorageModifiable extends IFluidStorage {
     var amtDrained       = 0
     var ret: IFluidStack = IFluidStack.Empty
 
-    var tankIndex = 0
+    var firstIndex: Int = 0
 
     // Get first non empty tank
     indices.view.filter(i => canDrain(i) && !apply(i).isEmpty).exists { i =>
       val stack      = apply(i)
-      val amtToDrain = Math.min(maxDrain, stack.amount)
+      val amtToDrain = Math.min(maxDrain - amtDrained, stack.amount)
       ret = stack.copy()
-      ret.amount = amtToDrain
       if (doDrain) {
         val copy = stack.copy()
         copy.amount -= amtToDrain
@@ -129,14 +128,16 @@ trait IFluidStorageModifiable extends IFluidStorage {
         else
           update(i, copy)
       }
+      ret.amount = amtToDrain
+      firstIndex = i
       amtDrained += amtToDrain
-      tankIndex = i // Track here to ignore in the next step
       true // True here so that we only hit the first non-empty tank
     }
 
     // We drained something but not all of it, so now drain the rest now we know what liquid we're draining
     if (amtDrained > 0 && (maxDrain - amtDrained) > 0) {
-      drainable(ret).filter(i => ret.isFluidEqual(apply(i))).filter(_ != tankIndex).exists { i =>
+      // We need the index check for the !doDrain scenario, where we might revisit the first tank we simulated draining from
+      drainable(ret).filter(i => ret.isFluidEqual(apply(i))).filter(_ != firstIndex).exists { i =>
         val stack                = apply(i)
         val amtToDrainInThisSlot = Math.min(maxDrain - amtDrained, stack.amount)
         if (doDrain) {
@@ -152,12 +153,13 @@ trait IFluidStorageModifiable extends IFluidStorage {
       }
     }
 
-    ret.amount = amtDrained
+    if (!ret.isEmpty)
+      ret.amount = amtDrained
     ret
   }
 
   private def drainable(resource: IFluidStack): SeqView[Int, immutable.IndexedSeq[Int]] =
-    indices.view.filter(i => canDrainFluidType(i, resource))
+    indices.view.filter(i => canDrainFluidType(i, resource)).filterNot(i => apply(i).isEmpty)
 
   override def deserializeNBT(t: NBTTagCompound): Unit = {
     indices.
