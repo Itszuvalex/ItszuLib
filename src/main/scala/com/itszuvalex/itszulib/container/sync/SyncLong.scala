@@ -9,6 +9,7 @@ class SyncLong(gui: Int, sync: () => Long, write: (Long) => Unit) extends SyncBa
   override def writeNBT(): NBTBase = new NBTTagLong(value)
 
   override def handleNBT(nbt: NBTBase): Unit = nbt match {
+    case null => value = 0
     case nbti: NBTTagLong => value = nbti.getLong
     case _ => value = 0
   }

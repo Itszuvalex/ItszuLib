@@ -9,6 +9,7 @@ class SyncFloat(gui: Int, sync: () => Float, write: (Float) => Unit) extends Syn
   override def writeNBT(): NBTBase = new NBTTagFloat(value)
 
   override def handleNBT(nbt: NBTBase): Unit = nbt match {
+    case null => value = 0
     case nbti: NBTTagFloat => value = nbti.getFloat
     case _ => value = 0
   }

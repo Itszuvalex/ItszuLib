@@ -21,36 +21,36 @@
 package com.itszuvalex.itszulib.container
 
 import com.itszuvalex.itszulib.api.storage.ItemStoragePlayerInventory
-import com.itszuvalex.itszulib.core.TileEntityBase
+import com.itszuvalex.itszulib.api.wrappers.ITileEntity
+import com.itszuvalex.itszulib.util.TileEntityUtils
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 7/27/14.
   */
-abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T, input: Int, output: Int, gui: Int, registerSyncs: Boolean) extends ContainerBase(gui, registerSyncs) {
+abstract class ContainerInv[T <: ITileEntity](parPlayer: EntityPlayer, inv: T, input: Int, output: Int, gui: Int, registerSyncs: Boolean) extends ContainerBase(gui, registerSyncs) {
   protected final val inventory   : T            = inv
   protected final val player      : EntityPlayer = parPlayer
   protected final val INPUT_SLOT  : Int          = input
   protected final val OUTPUT_SLOT : Int          = output
-  protected final val INV_SIZE    : Int          = inventory match {
-    case inventory1: IInventory => inventory1.getSizeInventory - 1
-    case _ => OUTPUT_SLOT
+  protected final val INV_SIZE    : Int          = TileEntityUtils.getIItemStorageFromTileEntity(inventory, null) match {
+    case Some(inventory1) => inventory1.length - 1
+    case None => OUTPUT_SLOT
   }
   protected final val INV_START   : Int          = INV_SIZE + 1
   protected final val INV_END     : Int          = INV_START + 26
   protected final val HOTBAR_START: Int          = INV_END + 1
   protected final val HOTBAR_END  : Int          = HOTBAR_START + 8
 
-  def canInteractWith(entityplayer: EntityPlayer): Boolean = inventory.canPlayerUse(entityplayer)
+  def canInteractWith(entityplayer: EntityPlayer): Boolean = true
 
   /**
     * Called when a player shift-clicks on a slot. You must override this or you will crash when someone does that.
     */
   override def transferStackInSlot(par1EntityPlayer: EntityPlayer, par2: Int): ItemStack = {
     var itemstack: ItemStack = null
-    val slot = this.inventorySlots.get(par2)
+    val slot                 = this.inventorySlots.get(par2)
     if (slot != null && slot.getHasStack) {
       val itemstack1 = slot.getStack
       itemstack = itemstack1.copy
@@ -100,13 +100,13 @@ abstract class ContainerInv[T <: TileEntityBase](parPlayer: EntityPlayer, inv: T
   protected def addPlayerInventorySlots(inventoryPlayer: InventoryPlayer, inventoryXStart: Int, inventoryYStart: Int) {
     new IItemStorageSyncBundle(GuiID, this, new ItemStoragePlayerInventory(inventoryPlayer), true)
 
-//    for (i <- 0 until 3) {
-//      for (j <- 0 until 9) {
-//        this.addSlotToContainer(new Slot(inventoryPlayer, j + i * 9 + 9, inventoryXStart + j * 18, inventoryYStart + i * 18))
-//      }
-//    }
-//    for (i <- 0 until 9) {
-//      this.addSlotToContainer(new Slot(inventoryPlayer, i, inventoryXStart + i * 18, inventoryYStart + 58))
-//    }
+    //    for (i <- 0 until 3) {
+    //      for (j <- 0 until 9) {
+    //        this.addSlotToContainer(new Slot(inventoryPlayer, j + i * 9 + 9, inventoryXStart + j * 18, inventoryYStart + i * 18))
+    //      }
+    //    }
+    //    for (i <- 0 until 9) {
+    //      this.addSlotToContainer(new Slot(inventoryPlayer, i, inventoryXStart + i * 18, inventoryYStart + 58))
+    //    }
   }
 }

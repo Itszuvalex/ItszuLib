@@ -1,6 +1,5 @@
 package com.itszuvalex.itszulib.api.core
 
-import com.sun.javaws.exceptions.InvalidArgumentException
 import net.minecraftforge.common.capabilities.Capability
 
 import scala.collection.mutable
@@ -10,7 +9,7 @@ object Module {
 
   def registerModule[T](name: String, capabilityGetter: () => Capability[T]): IModule[T] = {
     if (modules.contains(name))
-      throw new InvalidArgumentException(Array(s"Module with name: $name already registered."))
+      throw new IllegalArgumentException(s"Module with name: $name already registered.")
     val m = new Module(name, capabilityGetter)
     modules(name) = m
     m

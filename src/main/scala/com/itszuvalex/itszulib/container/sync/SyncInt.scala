@@ -9,6 +9,7 @@ class SyncInt(gui: Int, sync: () => Int, write: (Int) => Unit) extends SyncBase[
   override def writeNBT(): NBTBase = new NBTTagInt(value)
 
   override def handleNBT(nbt: NBTBase): Unit = nbt match {
+    case null => value = 0
     case nbti: NBTTagInt => value = nbti.getInt
     case _ => value = 0
   }

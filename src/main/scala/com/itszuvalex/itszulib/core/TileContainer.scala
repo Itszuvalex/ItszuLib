@@ -7,8 +7,9 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.{EnumFacing, EnumHand}
 import net.minecraft.world.World
-;
 
+
+@Deprecated
 abstract class TileContainer(material: Material) extends BlockContainer(material) {
   setHardness(3f)
   setResistance(3f)
