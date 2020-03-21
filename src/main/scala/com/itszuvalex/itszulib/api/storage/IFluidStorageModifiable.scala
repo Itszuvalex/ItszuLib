@@ -181,7 +181,7 @@ trait IFluidStorageModifiable extends IFluidStorage {
     ret
   }
 
-  def writeFluidToNBT(nbt: NBTTagCompound, item: IFluidStack, slot: Int): Unit = nbt.setTag(slot.toString, item.serializeNBT())
+  def writeFluidToNBT(nbt: NBTTagCompound, fluid: IFluidStack, slot: Int): Unit = nbt.setTag(slot.toString, fluid.serializeNBT())
 
   def readFluidFromSlot(NBTTagCompound: NBTTagCompound, slot: Int): IFluidStack = IFluidStack.createFromNBT(NBTTagCompound.getCompoundTag(slot.toString))
 

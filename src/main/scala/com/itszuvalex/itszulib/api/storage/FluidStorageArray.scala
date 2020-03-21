@@ -2,13 +2,15 @@ package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.wrappers.IFluidStack
 
-class FluidStorageArray(val storage: Array[IFluidStack]) extends IFluidStorageModifiable {
+class FluidStorageArray(val storage: Array[IFluidStack], val cap: Int) extends IFluidStorageModifiable {
   // Memory already allocated, might as well just prefill to default value
   storage.indices.withFilter(storage(_) == null).foreach(storage(_) = IFluidStack.Empty)
 
-  def this(size: Int) = this(new Array[IFluidStack](size))
+  def this(size: Int, capacity: Int) = this(new Array[IFluidStack](size), capacity)
 
-  def this() = this(0)
+  def this(s: Array[IFluidStack]) = this(s, Int.MaxValue)
+
+  def this() = this(0, Int.MaxValue)
 
   /**
     *
@@ -25,4 +27,6 @@ class FluidStorageArray(val storage: Array[IFluidStack]) extends IFluidStorageMo
   override def update(i: Int, s: IFluidStack): Unit = storage(i) = s
 
   override def length: Int = storage.length
+
+  override def capacity(index: Int): Int = cap
 }

@@ -1,6 +1,5 @@
-package com.itszuvalex.itszulib.core
+package com.itszuvalex.itszulib.api.wrappers
 
-import com.itszuvalex.itszulib.api.wrappers.{IItemStack, IWorld}
 import net.minecraft.block.Block
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
 import net.minecraft.entity.EntityLivingBase

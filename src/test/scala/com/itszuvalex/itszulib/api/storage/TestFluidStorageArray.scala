@@ -1,7 +1,9 @@
 package com.itszuvalex.itszulib.api.storage
 
+import com.itszuvalex.itszulib.api.core.INBTObjectSerializer
 import com.itszuvalex.itszulib.api.wrappers.IFluidStack
 import com.itszuvalex.itszulib.{TestBase, TestableFluidStack}
+import net.minecraft.nbt.NBTTagCompound
 
 class TestFluidStorageArray extends TestBase {
 
@@ -23,6 +25,18 @@ class TestFluidStorageArray extends TestBase {
     val storage       : FluidStorageArray = new FluidStorageArray(array) {
       override def capacity(index: Int): Int = capacityMapper(index)
     }
+  }
+
+  trait withOverriddenFluidSerializer {
+    IFluidStack.OverrideSerializer = Some(new INBTObjectSerializer[IFluidStack, NBTTagCompound] {
+      override def serialize(obj: IFluidStack, nbt: NBTTagCompound): Unit = obj.writeToNBT(nbt)
+
+      override def deserialize(nbt: NBTTagCompound): IFluidStack = {
+        val ret = new TestableFluidStack()
+        ret.deserializeNBT(nbt)
+        ret
+      }
+    })
   }
 
   "an item storage array" should {
@@ -193,6 +207,19 @@ class TestFluidStorageArray extends TestBase {
           removed.amount shouldBe toRemove
           removed.asInstanceOf[TestableFluidStack].fluidId shouldBe 3
           storage(0).amount shouldBe 7
+        }
+      }
+    }
+    "serialize and deserialize to nbt" in new withStorage with withOverriddenFluidSerializer {
+      val storage2 = new FluidStorageArray(invSize, Int.MaxValue)
+      storage2.foreach(_ shouldBe 'Empty)
+      val nbt = storage.serializeNBT()
+      storage2.deserializeNBT(nbt)
+      storage.indices.foreach { i =>
+        storage(i).isEmpty shouldBe storage2(i).isEmpty
+        if (!storage(i).isEmpty) {
+          storage(i).asInstanceOf[TestableFluidStack].fluidId shouldBe storage2(i).asInstanceOf[TestableFluidStack].fluidId
+          storage(i).amount shouldBe storage2(i).amount
         }
       }
     }

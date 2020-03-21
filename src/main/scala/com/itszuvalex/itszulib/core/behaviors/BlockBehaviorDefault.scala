@@ -1,7 +1,6 @@
 package com.itszuvalex.itszulib.core.behaviors
 
-import com.itszuvalex.itszulib.api.wrappers.{IItemStack, IWorld}
-import com.itszuvalex.itszulib.core.IBlockBehavior
+import com.itszuvalex.itszulib.api.wrappers.{IBlockBehavior, IItemStack, IWorld}
 import net.minecraft.block.Block
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
 import net.minecraft.entity.EntityLivingBase

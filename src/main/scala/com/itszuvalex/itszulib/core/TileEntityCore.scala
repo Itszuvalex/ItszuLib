@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.core
 
 import com.itszuvalex.itszulib.api.core.{BlockIdentifier, IModule, Loc4}
-import com.itszuvalex.itszulib.api.wrappers.{IItemStack, ITileEntity, IWorld, WrapperWorld}
+import com.itszuvalex.itszulib.api.wrappers._
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -15,7 +15,7 @@ import net.minecraftforge.common.capabilities.Capability
 
 import scala.collection.mutable
 
-abstract class TileEntityCore extends TileEntity with ITileEntity {
+abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCallbacks {
   val moduleCapabilityMap = new ModuleCapabilityMap
   val modules             = new mutable.ArrayBuffer[ITileEntityModule[_]]()
 
@@ -95,7 +95,7 @@ abstract class TileEntityCore extends TileEntity with ITileEntity {
     }
   }
 
-  def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {
+  override def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {
     if (hasGUI) {
       par5EntityPlayer.openGui(getMod, getGuiID, getWorld, getPos.getX, getPos.getY, getPos.getZ)
       return true
@@ -122,11 +122,11 @@ abstract class TileEntityCore extends TileEntity with ITileEntity {
 
   def notifyNeighborsOfChange(): Unit = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, true)
 
-  def onBlockBreak(state: IBlockState): Unit = {
+  override def onBlockBreak(state: IBlockState): Unit = {
     modules.view.foreach(_.onBlockBreak(this, state))
   }
 
-  def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit = {
+  override def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit = {
     modules.view.foreach(_.onBlockPlacedBy(iworld, pos, state, placer, istack))
   }
 

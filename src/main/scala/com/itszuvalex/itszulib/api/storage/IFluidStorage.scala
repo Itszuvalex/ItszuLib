@@ -30,9 +30,9 @@ object IFluidStorage {
 }
 
 trait IFluidStorage extends scala.collection.immutable.Seq[IFluidStack] with INBTSerializable[NBTTagCompound] {
-  def canFillFluidType(index: Int, resource: IFluidStack): Boolean = resource != null && resource != IFluidStack.Empty && canFill(index)
+  def canFillFluidType(index: Int, resource: IFluidStack): Boolean = resource != null && !resource.isEmpty && canFill(index)
 
-  def canDrainFluidType(index: Int, resource: IFluidStack): Boolean = resource != null && resource != IFluidStack.Empty && canDrain(index)
+  def canDrainFluidType(index: Int, resource: IFluidStack): Boolean = resource != null && !resource.isEmpty && canDrain(index)
 
   def canDrain(index: Int): Boolean = true
 

@@ -25,13 +25,13 @@ class FluidStorageTank(private val tank: FluidTank) extends IFluidStorageModifia
 
   override def getTankProperties: Array[IFluidTankProperties] = tank.getTankProperties
 
-  override def fill(resource: IFluidStack, doFill: Boolean): Int = fill(Converter.FluidStackFromIFluidStack(resource), doFill)
+  override def fill(resource: IFluidStack, doFill: Boolean): Int = tank.fill(Converter.FluidStackFromIFluidStack(resource), doFill)
 
-  override def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack = Converter.IFluidStackFromFluidStack(drain(Converter.FluidStackFromIFluidStack(resource), doDrain))
+  override def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack = Converter.IFluidStackFromFluidStack(tank.drain(Converter.FluidStackFromIFluidStack(resource), doDrain))
 
   override def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack = Converter.IFluidStackFromFluidStack(tank.drain(maxDrain, doDrain))
 
-  override def length: Int = tank.getTankProperties.length
+  override def length: Int = 1
 
   override def apply(idx: Int): IFluidStack = Converter.IFluidStackFromFluidStack(tank.getFluid)
 

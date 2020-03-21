@@ -1,9 +1,9 @@
 package com.itszuvalex.itszulib.core
 
-import com.itszuvalex.itszulib.api.wrappers.{Converter, IItemStack, IWorld, WrapperWorld}
-import net.minecraft.block.BlockContainer
+import com.itszuvalex.itszulib.api.wrappers.{Converter, IBlockBehavior, IBlockCallbacks, IBlockTileContainer, IItemStack, IWorld}
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
+import net.minecraft.block.{Block, BlockContainer}
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
@@ -11,35 +11,46 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.{Mirror, Rotation}
 import net.minecraft.world.World
 
-abstract class TileBlockContainerCore(material: Material, behavior: IBlockBehavior) extends BlockContainer(material) {
-  override def createNewTileEntity(worldIn: World, meta: Int): TileEntity = createTileEntity(new WrapperWorld(worldIn), meta)
+abstract class TileBlockContainerCore(material: Material, behavior: IBlockBehavior) extends BlockContainer(material) with IBlockTileContainer {
 
-  def createTileEntity(world: IWorld, meta: Int): TileEntityCore
+  override def toMinecraft: Block = this
+
+  override def createNewTileEntity(worldIn: World, meta: Int): TileEntity = Converter.TileEntityFromITileEntity(createTileEntity(Converter.IWorldFromWorld(worldIn), meta))
 
   override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit = {
-    world.getTileEntity(pos) match {
-      case null =>
-      case tile: TileEntityCore => tile.onBlockBreak(state)
-      case _ =>
-    }
+    breakBlock(Converter.IWorldFromWorld(world), pos, state);
     super.breakBlock(world, pos, state)
   }
 
+  override def breakBlock(world: IWorld, pos: BlockPos, state: IBlockState): Unit = {
+    world.getTileEntity(pos) match {
+      case null =>
+      case tile: IBlockCallbacks => tile.onBlockBreak(state)
+      case _ =>
+    }
+  }
+
   override def onBlockAdded(worldIn: World, pos: BlockPos, state: IBlockState): Unit = {
-    behavior.onBlockAdded(new WrapperWorld(worldIn), pos, state)
+    onBlockAdded(Converter.IWorldFromWorld(worldIn), pos, state)
     super.onBlockAdded(worldIn, pos, state)
   }
 
+  override def onBlockAdded(world: IWorld, pos: BlockPos, state: IBlockState): Unit = {
+    behavior.onBlockAdded(world, pos, state)
+  }
+
   override def onBlockPlacedBy(worldIn: World, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, stack: ItemStack): Unit = {
-    val iworld: IWorld     = new WrapperWorld(worldIn)
-    val istack: IItemStack = Converter.IItemStackFromItemStack(stack)
-    behavior.onBlockPlacedBy(iworld, pos, state, placer, istack)
-    iworld.getTileEntity(pos) match {
+    onBlockPlacedBy(Converter.IWorldFromWorld(worldIn), pos, state, placer, Converter.IItemStackFromItemStack(stack))
+    super.onBlockPlacedBy(worldIn, pos, state, placer, stack)
+  }
+
+  override def onBlockPlacedBy(world: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, stack: IItemStack): Unit = {
+    behavior.onBlockPlacedBy(world, pos, state, placer, stack)
+    world.getTileEntity(pos) match {
       case null =>
-      case tile: TileEntityCore => tile.onBlockPlacedBy(iworld, pos, state, placer, istack)
+      case tile: IBlockCallbacks => tile.onBlockPlacedBy(world, pos, state, placer, stack)
       case _ =>
     }
-    super.onBlockPlacedBy(worldIn, pos, state, placer, stack)
   }
 
   override def getStateFromMeta(meta: Int): IBlockState = {

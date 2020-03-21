@@ -8,6 +8,8 @@ import net.minecraftforge.fluids.{Fluid, FluidStack}
 class TestableFluidStack(var fluidId: Int, var fluidAmount: Int) extends IFluidStack {
   def this(id: Int) = this(id, 0)
 
+  def this() = this(0, 0)
+
   var fluidMax                 = Int.MaxValue
   var fluidNBT: NBTTagCompound = null
 
