@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib
 
 import com.itszuvalex.itszulib.api.core.ChunkCoord
-import com.itszuvalex.itszulib.api.wrappers.{IChunk, ITileEntity, IWorld}
+import com.itszuvalex.itszulib.api.wrappers.{IBlock, IChunk, ITileEntity, IWorld}
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
 import net.minecraft.tileentity.TileEntity
@@ -58,4 +58,8 @@ class TestableWorld(private val dim: Int) extends IWorld {
   override def getITileEntity(pos: BlockPos): ITileEntity = tileMap.get(pos).orNull
 
   override def setITileEntity(pos: BlockPos, tile: ITileEntity): Unit = tileMap(pos) = tile
+
+  override def notifyBlockUpdate(getPos: BlockPos, state: IBlockState, state1: IBlockState, i: Int): Unit = {}
+
+  override def notifyNeighborsOfStateChange(getPos: BlockPos, getBlock: IBlock, bool: Boolean): Unit = {}
 }

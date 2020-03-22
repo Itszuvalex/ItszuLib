@@ -114,13 +114,6 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
 
   def canPlayerUse(player: EntityPlayer): Boolean = hasGUI
 
-  def setRenderUpdate(): Unit = if (getWorld != null) getWorld.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
-
-  def setUpdate(): Unit = if (getWorld != null) {
-    getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
-  }
-
-  def notifyNeighborsOfChange(): Unit = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, true)
 
   override def onBlockBreak(state: IBlockState): Unit = {
     modules.view.foreach(_.onBlockBreak(this, state))

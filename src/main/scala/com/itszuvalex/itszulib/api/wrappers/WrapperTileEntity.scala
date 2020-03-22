@@ -31,4 +31,6 @@ class WrapperTileEntity(private val entity: TileEntity) extends ITileEntity {
   override def getModule[T](mod: IModule[T], facing: EnumFacing): T = if (mod.hasCapability) {
     getCapability(mod.capability, facing)
   } else null.asInstanceOf[T]
+
+  override def getBlock: IBlock = Converter.IBlockFromBlock(entity.getBlockType)
 }

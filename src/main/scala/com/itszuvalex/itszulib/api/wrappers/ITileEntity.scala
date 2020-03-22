@@ -14,6 +14,8 @@ trait ITileEntity {
 
   def getIWorld: IWorld
 
+  def getBlock: IBlock
+
   def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean
 
   def getCapability[T](capability: Capability[T], facing: EnumFacing): T
@@ -31,4 +33,12 @@ trait ITileEntity {
   def markDirtyForSave(): Unit
 
   def hasIWorld: Boolean
+
+  def setRenderUpdate(): Unit = if (getIWorld != null) getIWorld.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
+
+  def setUpdate(): Unit = if (getIWorld != null) {
+    getIWorld.notifyBlockUpdate(getPos, getIWorld.getBlockState(getPos), getIWorld.getBlockState(getPos), 3)
+  }
+
+  def notifyNeighborsOfChange(): Unit = if (getIWorld != null) getIWorld.notifyNeighborsOfStateChange(getPos, getBlock, true)
 }

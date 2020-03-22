@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.networking
 
 import com.itszuvalex.itszulib.api.core._
-import com.itszuvalex.itszulib.api.wrappers.{ITileEntity, IWorld}
+import com.itszuvalex.itszulib.api.wrappers.{IBlock, ITileEntity, IWorld}
 import com.itszuvalex.itszulib.logistics.{ManagerNetwork, TileNetwork, TileNetworkNode}
 import com.itszuvalex.itszulib.{TestBase, TestableWorld}
 import net.minecraft.tileentity.TileEntity
@@ -551,6 +551,10 @@ class TestNetworking extends TestBase {
 
     override def getModule[T](mod: IModule[T], facing: EnumFacing): T =
       if (mod == module) testNode.asInstanceOf[T] else null.asInstanceOf[T]
+
+    override def setUpdate(): Unit = {}
+
+    override def getBlock: IBlock = null
   }
 
 }

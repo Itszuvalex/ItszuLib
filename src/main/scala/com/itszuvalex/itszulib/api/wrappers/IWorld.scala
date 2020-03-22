@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 trait IWorld {
+
   def isRemote: Boolean
 
   def getChunkFromChunkCoord(cc: ChunkCoord): IChunk
@@ -51,4 +52,9 @@ trait IWorld {
   def setTileEntity(pos: BlockPos, tile: TileEntity): Unit
 
   def setITileEntity(pos: BlockPos, tile: ITileEntity): Unit
+
+  def notifyBlockUpdate(getPos: BlockPos, state: IBlockState, state1: IBlockState, i: Int): Unit
+
+  def notifyNeighborsOfStateChange(getPos: BlockPos, getBlock: IBlock, bool: Boolean): Unit
+
 }
