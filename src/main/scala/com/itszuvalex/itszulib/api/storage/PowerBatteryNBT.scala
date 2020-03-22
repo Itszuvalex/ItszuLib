@@ -1,18 +1,18 @@
-package com.itszuvalex.itszulib.api.wrappers
+package com.itszuvalex.itszulib.api.storage
 
-import com.itszuvalex.itszulib.api.wrappers.WrapperNBTBattery.{POWER_MAX_TAG, POWER_TAG}
+import com.itszuvalex.itszulib.api.storage.PowerBatteryNBT._
 import net.minecraft.nbt.NBTTagCompound
 
 /**
   * Created by Chris on 12/11/2016.
   */
 
-object WrapperNBTBattery {
+object PowerBatteryNBT {
   val POWER_TAG     = "POWER"
   val POWER_MAX_TAG = "POWER_MAX"
 }
 
-class WrapperNBTBattery(private var nbt: NBTTagCompound) extends IBattery {
+class PowerBatteryNBT(private var nbt: NBTTagCompound) extends IBattery {
   override def storage: Double = nbt.getDouble(POWER_TAG)
 
   override def storage_=(amt: Double): Unit = nbt.setDouble(POWER_TAG, Math.min(maxStorage, amt))
@@ -21,7 +21,7 @@ class WrapperNBTBattery(private var nbt: NBTTagCompound) extends IBattery {
 
   override def maxStorage_=(max: Double): Unit = nbt.setDouble(POWER_MAX_TAG, max)
 
-  override def copy(): IBattery = new PowerBattery(storage, maxStorage)
+  override def copy(): IBattery = PowerBattery(storage, maxStorage)
 
   override def clear(): Unit = {
     storage = 0

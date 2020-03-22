@@ -11,11 +11,11 @@ class WrapperWorld(private val world: World) extends IWorld {
 
   override def isRemote: Boolean = world.isRemote
 
-  override def getChunkFromChunkCoord(cc: ChunkCoord): IChunk = new WrapperChunk(world.getChunkFromChunkCoords(cc.x, cc.z))
+  override def getChunkFromChunkCoord(cc: ChunkCoord): IChunk = Converter.IChunkFromChunk(world.getChunkFromChunkCoords(cc.x, cc.z))
 
-  override def getChunkFromChunkCoords(x: Int, z: Int): IChunk = new WrapperChunk(world.getChunkFromChunkCoords(x, z))
+  override def getChunkFromChunkCoords(x: Int, z: Int): IChunk = Converter.IChunkFromChunk(world.getChunkFromChunkCoords(x, z))
 
-  override def getChunkFromBlockCoords(pos: BlockPos): IChunk = new WrapperChunk(world.getChunkFromBlockCoords(pos))
+  override def getChunkFromBlockCoords(pos: BlockPos): IChunk = Converter.IChunkFromChunk(world.getChunkFromBlockCoords(pos))
 
   override def getTileEntity(pos: BlockPos): TileEntity = world.getTileEntity(pos)
 

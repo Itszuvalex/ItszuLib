@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib.api.wrappers
+package com.itszuvalex.itszulib.api.storage
 
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.INBTSerializable
@@ -23,8 +23,6 @@ object IBattery {
     override def writeToNBT(nbt: NBTTagCompound): Unit = {}
 
     override def deserializeNBT(nbt: NBTTagCompound): Unit = {}
-
-    override def serializeNBT(): NBTTagCompound = new NBTTagCompound
   }
 
   def createFromNBT(nbt: NBTTagCompound): IBattery = {
@@ -44,9 +42,37 @@ trait IBattery extends INBTSerializable[NBTTagCompound] {
 
   def maxStorage_=(max: Double): Unit
 
+  /**
+    *
+    * @param amt Amount to fill
+    * @return Amount filled
+    */
+  def fill(amt: Double): Double = {
+    val toFill = Math.min(amt, maxStorage - storage)
+    storage = storage + toFill
+    toFill
+  }
+
+  /**
+    *
+    * @param amt Amount to drain
+    * @return Amount drained
+    */
+  def drain(amt: Double): Double = {
+    val toDrain = Math.min(amt, storage)
+    storage = storage - toDrain
+    toDrain
+  }
+
   def copy(): IBattery
 
   def clear(): Unit
+
+  override def serializeNBT(): NBTTagCompound = {
+    val nbt = new NBTTagCompound
+    writeToNBT(nbt)
+    nbt
+  }
 
   def writeToNBT(nbt: NBTTagCompound): Unit
 }

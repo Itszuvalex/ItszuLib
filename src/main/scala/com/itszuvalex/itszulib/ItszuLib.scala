@@ -32,8 +32,6 @@ object ItszuLib extends ModInit {
   initializationManager.addInitStage(InitializationStage.Pre, () => ManagerCapabilities.register())
   initializationManager.addInitStage(InitializationStage.Pre, () => ManagerNetwork.init())
   initializationManager.addInitStage(InitializationStage.Main, () => proxy.init())
-  initializationManager.addInitializable(ItszuItems)
-  initializationManager.addInitializable(ItszuBlocks)
 
   @EventHandler def imcCallback(event: FMLInterModComms.IMCEvent) {
     InterModComms.imcCallback(event)

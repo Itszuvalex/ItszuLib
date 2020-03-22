@@ -1,10 +1,12 @@
 package com.itszuvalex.itszulib.initialization
 
+import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.util.Debug
 import net.minecraft.block.Block
 import net.minecraft.item.{Item, ItemBlock}
 import net.minecraftforge.event.RegistryEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.oredict.OreDictionary
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -17,6 +19,12 @@ class InitializationManager {
       )
   val registryBlock        = new ArrayBuffer[RegistryEvent.Register[Block] => Unit]()
   val registryItem         = new ArrayBuffer[RegistryEvent.Register[Item] => Unit]()
+
+  val modelRegistriesBlock = new ArrayBuffer[BlockBuilder[_ <: Block]]()
+  val modelRegistriesItem  = new ArrayBuffer[ItemBuilder[_ <: Item]]()
+
+  val oreRegistriesBlock = new ArrayBuffer[BlockBuilder[_ <: Block]]()
+  val oreRegistriesItem  = new ArrayBuffer[ItemBuilder[_ <: Item]]()
 
   var currentStage = InitializationStage.Pre
 
@@ -56,6 +64,8 @@ class InitializationManager {
     if (builder.hasItemBlock) {
       addItemBuilder[ItemBlock](builder.getItemBlockBuilder[ItemBlock], _ => {})
     }
+    if (builder.ores.nonEmpty)
+      addBlockOre(builder)
   }
 
   def addItemBuilder[I <: Item](builder: ItemBuilder[I], setter: I => Unit): Unit = {
@@ -64,6 +74,44 @@ class InitializationManager {
       r.getRegistry.register(i)
       setter(i)
     })
+    if (builder.ores.nonEmpty)
+      addItemOre(builder)
+  }
+
+  def addBlockModel[T <: Block](builder: BlockBuilder[T]): Unit = {
+    if (modelRegistriesBlock.isEmpty)
+      addInitStage(InitializationStage.Main, () => {
+        modelRegistriesBlock.foreach(b => ItszuLib.proxy.registerBlockModel(b))
+        modelRegistriesBlock.clear()
+      })
+    modelRegistriesBlock += builder
+  }
+
+  def addItemModel[I <: Item](builder: ItemBuilder[I]): Unit = {
+    if (modelRegistriesItem.isEmpty)
+      addInitStage(InitializationStage.Main, () => {
+        modelRegistriesItem.foreach(b => ItszuLib.proxy.registerItemModel(b))
+        modelRegistriesItem.clear()
+      })
+    modelRegistriesItem += builder
+  }
+
+  def addBlockOre[T <: Block](builder: BlockBuilder[T]): Unit = {
+    if (oreRegistriesBlock.isEmpty)
+      addInitStage(InitializationStage.Main, () => {
+        oreRegistriesBlock.foreach(b => b.ores.foreach(n => OreDictionary.registerOre(n, b.build())))
+        oreRegistriesBlock.clear()
+      })
+    oreRegistriesBlock += builder
+  }
+
+  def addItemOre[T <: Item](builder: ItemBuilder[T]): Unit = {
+    if (oreRegistriesItem.isEmpty)
+      addInitStage(InitializationStage.Main, () => {
+        oreRegistriesItem.foreach(b => b.ores.foreach(n => OreDictionary.registerOre(n, b.build())))
+        oreRegistriesItem.clear()
+      })
+    oreRegistriesItem += builder
   }
 
   @SubscribeEvent

@@ -1,6 +1,5 @@
 package com.itszuvalex.itszulib.api.storage
 
-import com.itszuvalex.itszulib.api.wrappers.IBattery
 import net.minecraft.nbt.NBTTagCompound
 
 class DynamicIBattery(val getter: () => IBattery) extends IBattery {

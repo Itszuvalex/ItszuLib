@@ -8,6 +8,7 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.World
+import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties}
@@ -24,6 +25,18 @@ object Converter {
     case null => null
     case w: World => w
     case _ => world.toMinecraft
+  }
+
+  def IChunkFromChunk(chunk: Chunk): IChunk = chunk match {
+    case null => null
+    case ic: IChunk => ic
+    case _ => new WrapperChunk(chunk)
+  }
+
+  def ChunkFromIChunk(chunk: IChunk): Chunk = chunk match {
+    case null => null
+    case c: Chunk => c
+    case _ => chunk.toMinecraft
   }
 
   def IBlockFromBlock(block: Block): IBlock = block match {

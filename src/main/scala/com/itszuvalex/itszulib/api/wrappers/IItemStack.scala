@@ -115,12 +115,12 @@ trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
   def getCapability[T](capability: Capability[T], facing: EnumFacing): T
 
   def capabilityOption[T](capability: Capability[T], facing: EnumFacing): Option[T] =
-    if (!isEmpty && hasCapability(capability, facing)) Option(getCapability(capability, facing)) else None
+    if (hasCapability(capability, facing)) Option(getCapability(capability, facing)) else None
 
   def hasModule(mod: IModule[_], facing: EnumFacing): Boolean
 
   def getModule[T](mod: IModule[T], facing: EnumFacing): T
 
   def moduleOption[T](mod: IModule[T], facing: EnumFacing): Option[T] =
-    if (!isEmpty && hasModule(mod, facing)) Option(getModule(mod, facing)) else None
+    if (hasModule(mod, facing)) Option(getModule(mod, facing)) else None
 }

@@ -1,4 +1,4 @@
-package com.itszuvalex.itszulib.api.wrappers
+package com.itszuvalex.itszulib.api.storage
 
 import net.minecraft.nbt.NBTTagCompound
 
@@ -22,19 +22,13 @@ case class PowerBattery(private var power: Double, private var powerMax: Double)
   override def copy(): IBattery = PowerBattery(power, powerMax)
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
-    val wrap = new WrapperNBTBattery(nbt)
+    val wrap = new PowerBatteryNBT(nbt)
     powerMax = wrap.maxStorage
     power = wrap.storage
   }
 
-  override def serializeNBT(): NBTTagCompound = {
-    val nbt = new NBTTagCompound
-    writeToNBT(nbt)
-    nbt
-  }
-
   override def writeToNBT(nbt: NBTTagCompound): Unit = {
-    val wrap = new WrapperNBTBattery(nbt)
+    val wrap = new PowerBatteryNBT(nbt)
     wrap.maxStorage = maxStorage
     wrap.storage = storage
     wrap.writeToNBT(nbt)

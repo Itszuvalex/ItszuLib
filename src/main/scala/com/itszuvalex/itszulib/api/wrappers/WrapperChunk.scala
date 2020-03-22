@@ -7,7 +7,7 @@ class WrapperChunk(private val chunk: Chunk) extends IChunk {
 
   override def z: Int = chunk.z
 
-  override def world: IWorld = new WrapperWorld(chunk.getWorld)
+  override def world: IWorld = Converter.IWorldFromWorld(chunk.getWorld)
 
   override def toMinecraft: Chunk = chunk
 }
