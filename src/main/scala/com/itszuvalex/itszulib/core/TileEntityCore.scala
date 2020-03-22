@@ -9,8 +9,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.SPacketUpdateTileEntity
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.{EnumFacing, EnumHand}
 import net.minecraftforge.common.capabilities.Capability
 
 import scala.collection.mutable
@@ -176,5 +176,9 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
   override def onLoad(): Unit = {
     modules.view.foreach(_.onLoad(this))
     super.onLoad()
+  }
+
+  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    modules.view.exists(_.onBlockActivated(world, pos, state, playerIn, hand, facing, hitX, hitY, hitZ))
   }
 }

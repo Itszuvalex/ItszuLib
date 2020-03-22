@@ -18,7 +18,6 @@ abstract class BlockTileContainer(private val block: Block) extends IBlockTileCo
       case _ =>
     }
 
-
   override def onBlockAdded(world: IWorld, pos: BlockPos, state: IBlockState): Unit = {}
 
   override def onBlockPlacedBy(world: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, stack: IItemStack): Unit =
