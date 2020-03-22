@@ -5,7 +5,5 @@ import net.minecraft.item.Item
 /**
   * Created by Chris on 1/22/2017.
   */
-class ItemBase extends Item {
 
-
-}
+@Deprecated class ItemBase extends Item

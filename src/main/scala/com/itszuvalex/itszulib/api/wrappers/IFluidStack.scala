@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
+import com.itszuvalex.itszulib.api.core.{FluidIdentifier, INBTObjectSerializer}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.INBTSerializable
 import net.minecraftforge.fluids.{Fluid, FluidStack}
@@ -14,7 +15,7 @@ object IFluidStack {
 
     override def amount_=(amount: Int): Unit = {}
 
-    override def amountMax: Int = 0
+    override def amountMax: Int = Int.MaxValue
 
     override def copy(): IFluidStack = IFluidStack.Empty
 
@@ -29,13 +30,17 @@ object IFluidStack {
     override def toMinecraft: FluidStack = null
   }
 
-  val nbtLoader = new Overridable((nbt: NBTTagCompound) => {
-    val fluidStack = WrapperVanillaFluidStack(null)
-    fluidStack.deserializeNBT(nbt)
-    fluidStack.asInstanceOf[IFluidStack]
-  })
+  def Serializer: INBTObjectSerializer[IFluidStack, NBTTagCompound] = OverrideSerializer.getOrElse(VanillaSerializer)
 
-  def createFromNBT(nbt: NBTTagCompound): IFluidStack = nbtLoader.apply(nbt)
+  val VanillaSerializer: INBTObjectSerializer[IFluidStack, NBTTagCompound] = new INBTObjectSerializer[IFluidStack, NBTTagCompound] {
+    override def serialize(obj: IFluidStack, nbt: NBTTagCompound): Unit = obj.writeToNBT(nbt)
+
+    override def deserialize(nbt: NBTTagCompound): IFluidStack = WrapperVanillaFluidStack.nbtDeserializer.apply(nbt)
+  }
+
+  var OverrideSerializer: Option[INBTObjectSerializer[IFluidStack, NBTTagCompound]] = None
+
+  def createFromNBT(nbt: NBTTagCompound): IFluidStack = Serializer.deserialize(nbt)
 
   val fluidEquality = new Overridable((a: IFluidStack, b: IFluidStack) => {
     if (a == null)
@@ -70,5 +75,7 @@ trait IFluidStack extends INBTSerializable[NBTTagCompound] {
   def isFluidEqual(o: IFluidStack): Boolean = IFluidStack.fluidEquality.apply(this, o)
 
   def writeToNBT(nbt: NBTTagCompound): Unit
+
+  def identifier: FluidIdentifier
 
 }

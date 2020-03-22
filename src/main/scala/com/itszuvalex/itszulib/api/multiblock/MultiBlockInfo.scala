@@ -11,7 +11,7 @@ class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCo
   private var controller          = false
   private var controllerLoc: Loc4 = new Loc4(0, 0, 0, 0)
 
-  override def isValidMultiBlock = isMultiBlock
+  override def isValidMultiBlock: Boolean = isMultiBlock
 
   override def formMultiBlock(loc: Loc4, cloc: Loc4): Boolean = {
     if (isMultiBlock) {
@@ -25,7 +25,7 @@ class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCo
     true
   }
 
-  def cLoc = controllerLoc
+  def cLoc: Loc4 = controllerLoc
 
   override def breakMultiBlock(loc: Loc4): Boolean = {
     if (isMultiBlock) {
@@ -38,14 +38,14 @@ class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCo
     true
   }
 
-  override def getInfo = this
+  override def getInfo: MultiBlockInfo = this
 
   override def serializeNBT(): NBTTagCompound = {
     NBTCompound(
       "isFormed" -> isMultiBlock,
       "c_loc" -> controllerLoc,
       "controller" -> controller
-    )
+      )
   }
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
@@ -63,7 +63,6 @@ class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCo
   /**
     *
     * @param loc
-    *
     * @return true if loc == controller location
     */
   override def isController(loc: Loc4): Boolean = loc == controllerLoc

@@ -9,6 +9,7 @@ class SyncDouble(gui: Int, sync: () => Double, write: (Double) => Unit) extends 
   override def writeNBT(): NBTBase = new NBTTagDouble(value)
 
   override def handleNBT(nbt: NBTBase): Unit = nbt match {
+    case null => value = 0
     case nbti: NBTTagDouble => value = nbti.getDouble
     case _ => value = 0
   }

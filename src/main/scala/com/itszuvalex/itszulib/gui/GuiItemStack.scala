@@ -14,25 +14,25 @@ import scala.collection.mutable.ListBuffer
   * Created by Christopher Harris (Itszuvalex) on 9/4/15.
   */
 object GuiItemStack {
-  val DEFAULT_RAISED_COLOR     = Color(255.toByte, 64, 64, 64).toInt
-  val DEFAULT_LOWERED_COLOR    = Color(255.toByte, 15, 15, 15).toInt
-  val DEFAULT_BACKGROUND_COLOR = Color(255.toByte, 40, 40, 40).toInt
-  val DEFAULT_FONT_COLOR       = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
+  val DEFAULT_RAISED_COLOR    : Int = Color(255.toByte, 64, 64, 64).toInt
+  val DEFAULT_LOWERED_COLOR   : Int = Color(255.toByte, 15, 15, 15).toInt
+  val DEFAULT_BACKGROUND_COLOR: Int = Color(255.toByte, 40, 40, 40).toInt
+  val DEFAULT_FONT_COLOR      : Int = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
 }
 
 abstract class GuiItemStack(override var anchorX: Int,
-  override var anchorY: Int,
-  var drawSlot: () => Boolean = () => true,
-  var str: String = null) extends GuiPanel {
+                            override var anchorY: Int,
+                            var drawSlot: () => Boolean = () => true,
+                            var str: String = null) extends GuiPanel {
 
   val itemRenderer: RenderItem   = Minecraft.getMinecraft.getRenderItem
   val fontRenderer: FontRenderer = Minecraft.getMinecraft.fontRenderer
   override var _panelHeight: Int = 18
   override var _panelWidth : Int = 18
-  var colorRaised     = GuiItemStack.DEFAULT_RAISED_COLOR
-  var colorLowered    = GuiItemStack.DEFAULT_LOWERED_COLOR
-  var colorBackground = GuiItemStack.DEFAULT_BACKGROUND_COLOR
-  var colorFont       = GuiItemStack.DEFAULT_FONT_COLOR
+  var colorRaised    : Int = GuiItemStack.DEFAULT_RAISED_COLOR
+  var colorLowered   : Int = GuiItemStack.DEFAULT_LOWERED_COLOR
+  var colorBackground: Int = GuiItemStack.DEFAULT_BACKGROUND_COLOR
+  var colorFont      : Int = GuiItemStack.DEFAULT_FONT_COLOR
 
   def itemStack: IItemStack
 
@@ -41,7 +41,7 @@ abstract class GuiItemStack(override var anchorX: Int,
     itemStack match {
       case null =>
       case a if a.isEmpty =>
-      case i => tooltip ++= i.toMinecraft.getTooltip(Minecraft.getMinecraft.player, if(Minecraft.getMinecraft.gameSettings.advancedItemTooltips) TooltipFlags.ADVANCED else TooltipFlags.NORMAL)
+      case i => tooltip ++= i.toMinecraft.getTooltip(Minecraft.getMinecraft.player, if (Minecraft.getMinecraft.gameSettings.advancedItemTooltips) TooltipFlags.ADVANCED else TooltipFlags.NORMAL)
     }
   }
 

@@ -34,7 +34,7 @@ import org.lwjgl.opengl.GL11
 
 object RenderUtils {
 
-  def drawBlock(format: VertexFormat = DefaultVertexFormats.POSITION_TEX)(func: => Unit) = {
+  def drawBlock(format: VertexFormat = DefaultVertexFormats.POSITION_TEX)(func: => Unit): Unit = {
     startDrawing(format)
     try {
       func
@@ -42,7 +42,7 @@ object RenderUtils {
     finally finishDrawing()
   }
 
-  def glMatrixBlock(func: => Unit) = {
+  def glMatrixBlock(func: => Unit): Unit = {
     GL11.glPushMatrix()
     try {
       func
@@ -50,7 +50,7 @@ object RenderUtils {
     finally GL11.glPopMatrix()
   }
 
-  def translationBlock(x: Double, y: Double, z: Double)(func: => Unit) = {
+  def translationBlock(x: Double, y: Double, z: Double)(func: => Unit): Unit = {
     GL11.glTranslated(x, y, z)
     try {
       func

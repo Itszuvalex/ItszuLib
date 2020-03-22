@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
+import com.itszuvalex.itszulib.api.core.FluidIdentifier
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fluids.{Fluid, FluidStack}
 
@@ -8,13 +9,13 @@ import net.minecraftforge.fluids.{Fluid, FluidStack}
   * Created by Chris on 7/6/2016.
   */
 object WrapperVanillaFluidStack {
-  def apply(fluid: FluidStack) = {
+  def apply(fluid: FluidStack): IFluidStack = {
     if (fluid == null)
       IFluidStack.Empty
     else new WrapperVanillaFluidStack(fluid)
   }
 
-  def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
+  def loadFromNBT(n: NBTTagCompound): WrapperVanillaFluidStack = nbtDeserializer.apply(n)
 
   val nbtWriter = new Overridable((c: WrapperVanillaFluidStack, nbt: NBTTagCompound) =>
                                     Option(c.toMinecraft).foreach(_.writeToNBT(nbt)))
@@ -32,7 +33,7 @@ object WrapperVanillaFluidStack {
   val nbtDeserializer = new Overridable((n: NBTTagCompound) => {
     new WrapperVanillaFluidStack(FluidStack.loadFluidStackFromNBT(n))
   }
-                                       )
+                                        )
 
   val nbtSelfModifyingDeserializer = new Overridable((c: WrapperVanillaFluidStack, n: NBTTagCompound) => {
     c.fluidStack = FluidStack.loadFluidStackFromNBT(n)
@@ -43,7 +44,7 @@ class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFlui
 
   def this() = this(null)
 
-  override def toMinecraft = fluidStack
+  override def toMinecraft: FluidStack = fluidStack
 
   override def fluid: Fluid = toMinecraft.getFluid
 
@@ -51,7 +52,7 @@ class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFlui
 
   override def amount: Int = toMinecraft.amount
 
-  override def amountMax = Int.MaxValue
+  override def amountMax: Int = Int.MaxValue
 
   override def copy(): IFluidStack = WrapperVanillaFluidStack(Option(toMinecraft).map(_.copy()).orNull)
 
@@ -78,5 +79,7 @@ class WrapperVanillaFluidStack(private var fluidStack: FluidStack) extends IFlui
 
   override def writeToNBT(nbt: NBTTagCompound): Unit = WrapperVanillaFluidStack.nbtWriter.apply(this, nbt)
 
-  override def isEmpty: Boolean = fluidStack == null
+  override def isEmpty: Boolean = fluidStack == null || (fluidStack.getFluid == null && fluidStack.amount <= 0)
+
+  override def identifier: FluidIdentifier = FluidIdentifier(fluid)
 }

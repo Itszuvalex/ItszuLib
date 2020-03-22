@@ -1,7 +1,9 @@
 package com.itszuvalex.itszulib.api
 
+import com.itszuvalex.itszulib.api.client.IPreviewable
 import com.itszuvalex.itszulib.api.multiblock.MultiBlockInfo
 import com.itszuvalex.itszulib.api.storage.{IFluidStorage, IItemStorage, ItemStorageArray}
+import com.itszuvalex.itszulib.core.{SidedFluidStorageConfiguration, SidedItemStorageConfiguration}
 import com.itszuvalex.itszulib.util.Color
 import net.minecraft.nbt.{NBTBase, NBTTagCompound, NBTTagInt}
 import net.minecraft.util.EnumFacing
@@ -19,6 +21,9 @@ object ManagerCapabilities {
     CapabilityManager.INSTANCE.register(classOf[IFluidStorage], new FluidStorageStorage, classOf[IFluidStorage])
     CapabilityManager.INSTANCE.register(classOf[Color], new ColorStorage, classOf[Color])
     CapabilityManager.INSTANCE.register(classOf[MultiBlockInfo], new MultiBlockInfoStorage, classOf[MultiBlockInfo])
+    CapabilityManager.INSTANCE.register(classOf[SidedItemStorageConfiguration], new SidedItemStorageConfigurationStorageDummy, classOf[SidedItemStorageConfiguration])
+    CapabilityManager.INSTANCE.register(classOf[SidedFluidStorageConfiguration], new SidedFluidStorageConfigurationStorageDummy, classOf[SidedFluidStorageConfiguration])
+
 
     MinecraftForge.EVENT_BUS.register(this)
   }
@@ -34,6 +39,27 @@ object ManagerCapabilities {
       instance.alpha = copy.alpha
     }
   }
+
+  class SidedItemStorageConfigurationStorageDummy extends Capability.IStorage[SidedItemStorageConfiguration] {
+    override def readNBT(capability: Capability[SidedItemStorageConfiguration], instance: SidedItemStorageConfiguration, side: EnumFacing, nbt: NBTBase): Unit = {
+      instance.deserializeNBT(nbt.asInstanceOf[NBTTagCompound])
+    }
+
+    override def writeNBT(capability: Capability[SidedItemStorageConfiguration], instance: SidedItemStorageConfiguration, side: EnumFacing): NBTBase = {
+      instance.serializeNBT()
+    }
+  }
+
+  class SidedFluidStorageConfigurationStorageDummy extends Capability.IStorage[SidedFluidStorageConfiguration] {
+    override def readNBT(capability: Capability[SidedFluidStorageConfiguration], instance: SidedFluidStorageConfiguration, side: EnumFacing, nbt: NBTBase): Unit = {
+      instance.deserializeNBT(nbt.asInstanceOf[NBTTagCompound])
+    }
+
+    override def writeNBT(capability: Capability[SidedFluidStorageConfiguration], instance: SidedFluidStorageConfiguration, side: EnumFacing): NBTBase = {
+      instance.serializeNBT()
+    }
+  }
+
 
   class MultiBlockInfoStorage extends Capability.IStorage[MultiBlockInfo] {
     override def readNBT(capability: Capability[MultiBlockInfo], instance: MultiBlockInfo, side: EnumFacing, nbt: NBTBase): Unit =

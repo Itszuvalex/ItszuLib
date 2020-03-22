@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Level
 
 object SyncIFluidStack {
   def refreshComparison(a: IFluidStack, b: IFluidStack): Boolean = {
-    a.isFluidEqual(b) && a.amount == b.amount
+    IFluidStack.fluidEquality.apply(a, b) && a.amount == b.amount && a.amountMax == b.amountMax
   }
 }
 

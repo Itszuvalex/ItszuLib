@@ -16,12 +16,12 @@ buildscript {
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
         //Check for the latest version here: http://plugins.gradle.org/plugin/com.jfrog.artifactory
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.4.12"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.9.5"
     }
 }
 
 plugins {
-    id "com.github.maiflai.scalatest" version "0.11"
+    id "com.github.maiflai.scalatest" version "0.12"
 }
 
 allprojects {

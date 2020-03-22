@@ -29,6 +29,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{EnumFacing, ITickable}
 import net.minecraftforge.common.capabilities.Capability
 
+@Deprecated
 abstract class TileEntityBase extends TileEntity with ITickable {
   def update(): Unit = {
     if (!getWorld.isRemote) serverUpdate()

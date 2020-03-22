@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
+import com.itszuvalex.itszulib.api.core.{IModule, ItemIdentifier}
 import com.itszuvalex.itszulib.implicits.IDImplicits._
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
@@ -19,10 +20,10 @@ object WrapperVanillaItemStack {
       new WrapperVanillaItemStack(stack)
   }
 
-  def loadFromNBT(n: NBTTagCompound) = nbtDeserializer.apply(n)
+  def loadFromNBT(n: NBTTagCompound): IItemStack = nbtDeserializer.apply(n)
 
   val nbtWriter = new Overridable((c: WrapperVanillaItemStack, nbt: NBTTagCompound) =>
-    Option(c.toMinecraft).foreach(_.writeToNBT(nbt)))
+                                    Option(c.toMinecraft).foreach(_.writeToNBT(nbt)))
 
   val nbtSerializer = new Overridable((c: WrapperVanillaItemStack) => {
     Option(c.toMinecraft).map(_.serializeNBT()).orNull
@@ -81,4 +82,12 @@ class WrapperVanillaItemStack(private var stack: ItemStack) extends IItemStack {
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
     stack = new ItemStack(nbt)
   }
+
+  override def identifier: ItemIdentifier = ItemIdentifier(item)
+
+  //TODO: Check once we have Item wrapper/interface, check for it and look for modules from it first before falling back to Capabilities
+
+  override def hasModule(mod: IModule[_], facing: EnumFacing): Boolean = if (mod.hasCapability) hasCapability(mod.capability, facing) else false
+
+  override def getModule[T](mod: IModule[T], facing: EnumFacing): T = if (mod.hasCapability) getCapability(mod.capability, facing) else null.asInstanceOf[T]
 }

@@ -9,15 +9,15 @@ import scala.collection.mutable
   */
 
 abstract class SimplePathfinder[B <: mutable.AbstractSeq[Loc4]](_openSet: B) extends IRealTimePathfinder {
-  protected val path           = mutable.ArrayBuffer[Loc4]()
-  protected val closedSet      = mutable.HashSet[Loc4]()
-  protected val originMap      = mutable.HashMap[Loc4, Loc4]()
-  protected val openSet: B = _openSet
-  protected var completed      = false
-  protected var maxPathLength  = Int.MaxValue
-  protected var startLoc: Loc4 = null
+  protected val path                = mutable.ArrayBuffer[Loc4]()
+  protected val closedSet           = mutable.HashSet[Loc4]()
+  protected val originMap           = mutable.HashMap[Loc4, Loc4]()
+  protected val openSet      : B    = _openSet
+  protected var completed           = false
+  protected var maxPathLength: Int  = Int.MaxValue
+  protected var startLoc     : Loc4 = null
 
-  override def setMaxPathLength(length: Int) = maxPathLength = length
+  override def setMaxPathLength(length: Int): Unit = maxPathLength = length
 
   def openSetClear()
 
@@ -51,7 +51,7 @@ abstract class SimplePathfinder[B <: mutable.AbstractSeq[Loc4]](_openSet: B) ext
           getNeighbors(expand).view.filterNot(openSet.contains).filterNot(closedSet.contains).foreach { n =>
             originMap(n) = expand
             openSetPush(n)
-                                                                                                      }
+          }
           closedSet.add(expand)
       }
 
@@ -63,7 +63,7 @@ abstract class SimplePathfinder[B <: mutable.AbstractSeq[Loc4]](_openSet: B) ext
     completed = true
   }
 
-  override def isCompleted = completed
+  override def isCompleted: Boolean = completed
 
   /**
     * Due to depth first search, we track the location that was expanded from.  Thus, we reconstruct backwards from destination to source.

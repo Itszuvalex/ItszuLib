@@ -1,10 +1,8 @@
 package com.itszuvalex.itszulib.api.storage
 
-import com.itszuvalex.itszulib.api.wrappers.{IFluidStack, WrapperVanillaFluidStack}
+import com.itszuvalex.itszulib.api.wrappers.IFluidStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.INBTSerializable
-import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.fluids.capability.{IFluidHandler, IFluidTankProperties}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 7/14/16.
@@ -15,22 +13,52 @@ object IFluidStorage {
 
     override def serializeNBT(): NBTTagCompound = new NBTTagCompound
 
-    override def fill(resource: FluidStack, doFill: Boolean): Int = 0
+    override def fill(resource: IFluidStack, doFill: Boolean): Int = 0
 
-    override def drain(resource: FluidStack, doDrain: Boolean): FluidStack = null
+    override def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack = IFluidStack.Empty
 
-    override def drain(maxDrain: Int, doDrain: Boolean): FluidStack = null
+    override def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack = IFluidStack.Empty
 
-    override def getTankProperties: Array[IFluidTankProperties] = Array()
+    override def canFillFluidType(index: Int, resource: IFluidStack): Boolean = false
+
+    override def canDrainFluidType(index: Int, resource: IFluidStack): Boolean = false
+
+    override def length: Int = 0
+
+    override def apply(idx: Int): IFluidStack = IFluidStack.Empty
   }
 }
 
-trait IFluidStorage extends IFluidHandler with INBTSerializable[NBTTagCompound] {
-  def fill(resource: IFluidStack, doFill: Boolean): Int = fill(resource.toMinecraft, doFill)
+trait IFluidStorage extends scala.collection.immutable.Seq[IFluidStack] with INBTSerializable[NBTTagCompound] {
+  def canFillFluidType(index: Int, resource: IFluidStack): Boolean = resource != null && !resource.isEmpty && canFill(index)
 
-  def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack = WrapperVanillaFluidStack(drain(resource.toMinecraft, doDrain))
+  def canDrainFluidType(index: Int, resource: IFluidStack): Boolean = resource != null && !resource.isEmpty && canDrain(index)
 
-  def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack = WrapperVanillaFluidStack(drain(maxDrain, doDrain))
+  def canDrain(index: Int): Boolean = true
 
-  def getStorageProperties: Array[IFluidStorageProperties] = getTankProperties.map(WrapperFluidStorageProperties)
+  def canFill(index: Int): Boolean = true
+
+  /**
+    *
+    * @param resource
+    * @param doFill
+    * @return Amount of resource filled
+    */
+  def fill(resource: IFluidStack, doFill: Boolean): Int
+
+  /**
+    *
+    * @param resource
+    * @param doDrain
+    * @return Amount of resource drained
+    */
+  def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack
+
+  def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack
+
+  def capacity(index: Int): Int = apply(index).amountMax
+
+  override def iterator: Iterator[IFluidStack] = new FluidStorageIterator(this)
+
+
 }

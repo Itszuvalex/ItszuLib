@@ -32,7 +32,7 @@ abstract class TileEntityRenderCube[T <: TileEntity](modName: String, val sides:
     }
   }
 
-  def renderCube() = {
+  def renderCube(): Unit = {
     preRender()
     sides.indices.foreach { i =>
       val facing = EnumFacing.values()(i)
@@ -62,7 +62,7 @@ abstract class TileEntityRenderCube[T <: TileEntity](modName: String, val sides:
 
   }
 
-  protected def AngleFromFacing = {
+  protected def AngleFromFacing: Int = {
     facing match {
       case EnumFacing.NORTH => 0
       case EnumFacing.SOUTH => 180

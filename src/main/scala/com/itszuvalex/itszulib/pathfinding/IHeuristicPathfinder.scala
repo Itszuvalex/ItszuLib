@@ -7,6 +7,6 @@ import com.itszuvalex.itszulib.api.core.Loc4
   */
 trait IHeuristicPathfinder extends IPathfinder {
 
-  var getHeuristic: (Loc4) => Float = (_) => 0f
+  var getHeuristic: Loc4 => Float = (_ => 0f)
 
 }

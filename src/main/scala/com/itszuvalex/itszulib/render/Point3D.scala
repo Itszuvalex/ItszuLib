@@ -20,10 +20,10 @@
 */
 package com.itszuvalex.itszulib.render
 
-class Point3D(var x: Float, var y: Float, var z: Float) {
+case class Point3D(var x: Float, var y: Float, var z: Float) {
   def this() = this(0, 0, 0)
 
-  def rotatedOnXAxis(rot: Double, yrotoffset: Float, zrotoffset: Float) = copy.rotateOnXAxis(rot, yrotoffset, zrotoffset)
+  def rotatedOnXAxis(rot: Double, yrotoffset: Float, zrotoffset: Float): Point3D = copy.rotateOnXAxis(rot, yrotoffset, zrotoffset)
 
   def rotateOnXAxis(rot: Double, yrotoffset: Float, zrotoffset: Float): Point3D = {
     if (rot == 0) {
@@ -36,7 +36,7 @@ class Point3D(var x: Float, var y: Float, var z: Float) {
     this
   }
 
-  def rotatedOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float) = copy.rotateOnYAxis(rot, xrotoffset, zrotoffset)
+  def copy: Point3D = Point3D(x, y, z)
 
   def rotateOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float): Point3D = {
     if (rot == 0) {
@@ -49,9 +49,9 @@ class Point3D(var x: Float, var y: Float, var z: Float) {
     this
   }
 
-  def rotatedOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float) = copy.rotateOnZAxis(rot, xrotoffset, yrotoffset)
+  def rotatedOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float): Point3D = copy.rotateOnYAxis(rot, xrotoffset, zrotoffset)
 
-  def copy = new Point3D(x, y, z)
+  def rotatedOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float): Point3D = copy.rotateOnZAxis(rot, xrotoffset, yrotoffset)
 
   def rotateOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float): Point3D = {
     if (rot == 0) {

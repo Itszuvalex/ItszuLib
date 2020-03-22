@@ -1,11 +1,12 @@
 package com.itszuvalex.itszulib.api.utility
 
 import com.itszuvalex.itszulib.api.events.EventTileEntityRelocation
+import com.itszuvalex.itszulib.api.wrappers.IWorld
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.{World, WorldServer}
+import net.minecraft.world.WorldServer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.BlockSnapshot
 import net.minecraftforge.event.world.BlockEvent.{BreakEvent, PlaceEvent}
@@ -16,25 +17,25 @@ import net.minecraftforge.event.world.BlockEvent.{BreakEvent, PlaceEvent}
 object TileEntityRelocation {
   val shiftElseRemake = false
 
-  def shiftBlock(world: World, pos: BlockPos, direction: EnumFacing, player: EntityPlayer): Unit = {
+  def shiftBlock(world: IWorld, pos: BlockPos, direction: EnumFacing, player: EntityPlayer): Unit = {
     val newX = pos.getX + direction.getFrontOffsetX
     val newY = pos.getY + direction.getFrontOffsetY
     val newZ = pos.getZ + direction.getFrontOffsetZ
     moveBlock(world, pos, world, new BlockPos(newX, newY, newZ), false, player)
   }
 
-  def moveBlock(world: World, pos: BlockPos, destWorld: World, destPos: BlockPos,
+  def moveBlock(world: IWorld, pos: BlockPos, destWorld: IWorld, destPos: BlockPos,
     replace: Boolean = false, player: EntityPlayer): Unit = {
     if (!replace && !destWorld.isAirBlock(destPos)) return
     applySnapshot(extractBlock(world, pos, player), destWorld, destPos, player)
   }
 
-  def extractBlock(world: World, pos: BlockPos, player: EntityPlayer): TileSave = {
-    world match {
+  def extractBlock(world: IWorld, pos: BlockPos, player: EntityPlayer): TileSave = {
+    world.toMinecraft match {
       case world1: WorldServer =>
         if (MinecraftForge
           .EVENT_BUS
-          .post(new BreakEvent(world,
+          .post(new BreakEvent(world1,
             pos,
             world.getBlockState(pos),
             player))) {
@@ -52,17 +53,17 @@ object TileEntityRelocation {
     snapshot
   }
 
-  def applySnapshot(s: TileSave, player: EntityPlayer): Unit = applySnapshot(s, s.world, s.pos, player): Boolean
+  def applySnapshot(s: TileSave, player: EntityPlayer): Boolean = applySnapshot(s, s.world, s.pos, player)
 
-  def applySnapshot(s: TileSave, destWorld: World, destPos: BlockPos, player: EntityPlayer): Boolean = {
+  def applySnapshot(s: TileSave, destWorld: IWorld, destPos: BlockPos, player: EntityPlayer): Boolean = {
     if (s == null) return false
     if (s.block == null) return false
-    if (!s.block.canPlaceBlockAt(destWorld, destPos)) return false
-    destWorld match {
+    if (!s.block.canPlaceBlockAt(destWorld.toMinecraft, destPos)) return false
+    destWorld.toMinecraft match {
       case world1: WorldServer =>
         if (MinecraftForge
           .EVENT_BUS
-          .post(new PlaceEvent(new BlockSnapshot(destWorld,
+          .post(new PlaceEvent(new BlockSnapshot(world1,
             destPos,
             destWorld.getBlockState(destPos)),
             destWorld.getBlockState(destPos),
@@ -80,15 +81,15 @@ object TileEntityRelocation {
       if (s.pos.getY != destPos.getY) s.te.setInteger("y", destPos.getY)
       if (s.pos.getZ != destPos.getZ) s.te.setInteger("z", destPos.getZ)
       val newTile = if (s.world == destWorld) {
-        TileEntity.create(s.world, s.te)
+        TileEntity.create(s.world.toMinecraft, s.te)
       } else {
-        val tile = s.block.createTileEntity(destWorld, s.block.getStateFromMeta(s.meta))
+        val tile = s.block.createTileEntity(destWorld.toMinecraft, s.block.getStateFromMeta(s.meta))
         tile.readFromNBT(s.te)
         tile
       }
       destWorld.setTileEntity(destPos, newTile)
     }
-    s.block.onBlockAdded(destWorld, destPos, s.block.getStateFromMeta(s.meta))
+    s.block.onBlockAdded(destWorld.toMinecraft, destPos, s.block.getStateFromMeta(s.meta))
     true
   }
 }

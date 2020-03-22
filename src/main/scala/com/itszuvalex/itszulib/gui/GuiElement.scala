@@ -27,23 +27,23 @@ trait GuiElement {
     true
   }
 
-  def getParent = parent
+  def getParent: GuiElement = parent
 
   def shouldRender: Boolean = doRender && (if (getParent != null) getParent.shouldRender else true)
 
-  def setShouldRender(r: Boolean) = doRender = r
+  def setShouldRender(r: Boolean): Unit = doRender = r
 
   def spaceHorizontal: Int = 0
 
   def spaceVertical: Int = 0
 
-  def isMousedOver = moused
+  def isMousedOver: Boolean = moused
 
   def isLocationInside(mouseX: Int, mouseY: Int): Boolean
 
-  def onMouseEnter() = moused = true
+  def onMouseEnter(): Unit = moused = true
 
-  def onMouseLeave() = moused = false
+  def onMouseLeave(): Unit = moused = false
 
   /**
     *
@@ -81,9 +81,9 @@ trait GuiElement {
     */
   def onKeyTyped(char: Char, button: Int) = false
 
-  def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]) = {}
+  def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {}
 
-  def render(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float) = {
+  def render(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
   }
 
   def renderUpdate(screenX: Int, screenY: Int, mouseX: Int, mouseY: Int, partialTicks: Float): Unit = {
@@ -95,7 +95,7 @@ trait GuiElement {
     if (shouldRender) render(screenX, screenY, mouseX, mouseY, partialTicks)
   }
 
-  def update() = {}
+  def update(): Unit = {}
 
 
 }

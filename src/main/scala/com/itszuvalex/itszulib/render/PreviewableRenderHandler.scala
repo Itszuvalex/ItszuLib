@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.render
 
 import com.itszuvalex.itszulib.api.ItszuLibCapabilities
 import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.api.wrappers.Converter
 import com.itszuvalex.itszulib.util.PlayerUtils
 import net.minecraft.client.Minecraft
 import net.minecraft.util.math.BlockPos
@@ -25,15 +26,15 @@ class PreviewableRenderHandler {
         val prev = stack.getCapability(ItszuLibCapabilities.ITEM_PREVIEWABLE, null)
         PreviewableRendererRegistry.getRenderer(prev.renderID) match {
           case Some(renderer) =>
-            val px = player.prevPosX + (player.posX - player.prevPosX) * event.getPartialTicks
-            val py = player.prevPosY + (player.posY - player.prevPosY) * event.getPartialTicks
-            val pz = player.prevPosZ + (player.posZ - player.prevPosZ) * event.getPartialTicks
-            val hitVec = PlayerUtils.positionLookedAt(Minecraft.getMinecraft.playerController.getBlockReachDistance, event.getPartialTicks)
+            val px       = player.prevPosX + (player.posX - player.prevPosX) * event.getPartialTicks
+            val py       = player.prevPosY + (player.posY - player.prevPosY) * event.getPartialTicks
+            val pz       = player.prevPosZ + (player.posZ - player.prevPosZ) * event.getPartialTicks
+            val hitVec   = PlayerUtils.positionLookedAt(Minecraft.getMinecraft.playerController.getBlockReachDistance, event.getPartialTicks)
             val blockPos = new BlockPos(hitVec)
             if (prev.snapToBlockGrid)
-              renderer.renderAtLocation(stack, Minecraft.getMinecraft.player, new Loc4(player.getEntityWorld, blockPos), blockPos.getX - px, blockPos.getY - py, blockPos.getZ - pz)
+              renderer.renderAtLocation(Converter.IItemStackFromItemStack(stack), Minecraft.getMinecraft.player, new Loc4(player.getEntityWorld, blockPos), blockPos.getX - px, blockPos.getY - py, blockPos.getZ - pz)
             else
-              renderer.renderAtLocation(stack, Minecraft.getMinecraft.player, new Loc4(player.getEntityWorld, blockPos), hitVec.x - px, hitVec.y - py, hitVec.z - pz)
+              renderer.renderAtLocation(Converter.IItemStackFromItemStack(stack), Minecraft.getMinecraft.player, new Loc4(player.getEntityWorld, blockPos), hitVec.x - px, hitVec.y - py, hitVec.z - pz)
           case None =>
         }
       case _ =>

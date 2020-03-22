@@ -14,12 +14,12 @@ import scala.collection.mutable
 object GuiStack {
   val guiStack = new mutable.Stack[GuiBase]()
 
-  def popStack() = {
+  def popStack(): Unit = {
     val gui = if (guiStack.isEmpty) null else guiStack.pop()
     Minecraft.getMinecraft.displayGuiScreen(gui)
   }
 
-  def pushStack(gui: GuiBase) = guiStack.push(gui)
+  def pushStack(gui: GuiBase): Unit = guiStack.push(gui)
 
   def init(): Unit = {
     MinecraftForge.EVENT_BUS.register(this)
@@ -32,6 +32,6 @@ object GuiStack {
     GuiTextBox.activeTextBox = null // Don't carry over focus between GUIs
   }
 
-  def clearStack() = guiStack.clear()
+  def clearStack(): Unit = guiStack.clear()
 
 }

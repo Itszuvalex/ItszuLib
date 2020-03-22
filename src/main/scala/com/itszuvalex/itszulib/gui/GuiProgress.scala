@@ -11,11 +11,11 @@ import scala.collection.mutable.ListBuffer
   * Created by Chris on 1/15/2017.
   */
 object GuiProgress {
-  val DEFAULT_RAISED_COLOR     = Color(255.toByte, 64, 64, 64).toInt
-  val DEFAULT_LOWERED_COLOR    = Color(255.toByte, 15, 15, 15).toInt
-  val DEFAULT_BACKGROUND_COLOR = Color(255.toByte, 40, 40, 40).toInt
-  val DEFAULT_FONT_COLOR       = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
-  val DEFAULT_PROGRESS_COLOR   = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
+  val DEFAULT_RAISED_COLOR    : Int = Color(255.toByte, 64, 64, 64).toInt
+  val DEFAULT_LOWERED_COLOR   : Int = Color(255.toByte, 15, 15, 15).toInt
+  val DEFAULT_BACKGROUND_COLOR: Int = Color(255.toByte, 40, 40, 40).toInt
+  val DEFAULT_FONT_COLOR      : Int = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
+  val DEFAULT_PROGRESS_COLOR  : Int = Color(255.toByte, 255.toByte, 255.toByte, 255.toByte).toInt
 
 
   trait RenderDirection
@@ -31,19 +31,19 @@ object GuiProgress {
 }
 
 class GuiProgress(override var anchorX: Int,
-  override var anchorY: Int,
-  override var _panelWidth: Int,
-  override var _panelHeight: Int,
-  var progress: () => Float,
-  drawOutline: => Boolean = true,
-  drawBackground: => Boolean = true,
-  var direction: RenderDirection = LeftRight) extends GuiPanel {
+                  override var anchorY: Int,
+                  override var _panelWidth: Int,
+                  override var _panelHeight: Int,
+                  var progress: () => Float,
+                  drawOutline: => Boolean = true,
+                  drawBackground: => Boolean = true,
+                  var direction: RenderDirection = LeftRight) extends GuiPanel {
 
-  var colorRaised     = GuiProgress.DEFAULT_RAISED_COLOR
-  var colorLowered    = GuiProgress.DEFAULT_LOWERED_COLOR
-  var colorBackground = GuiProgress.DEFAULT_BACKGROUND_COLOR
-  var colorFont       = GuiProgress.DEFAULT_FONT_COLOR
-  var colorProgress   = GuiProgress.DEFAULT_PROGRESS_COLOR
+  var colorRaised    : Int = GuiProgress.DEFAULT_RAISED_COLOR
+  var colorLowered   : Int = GuiProgress.DEFAULT_LOWERED_COLOR
+  var colorBackground: Int = GuiProgress.DEFAULT_BACKGROUND_COLOR
+  var colorFont      : Int = GuiProgress.DEFAULT_FONT_COLOR
+  var colorProgress  : Int = GuiProgress.DEFAULT_PROGRESS_COLOR
 
   override def addTooltip(mouseX: Int, mouseY: Int, tooltip: ListBuffer[String]): Unit = {
     super.addTooltip(mouseX, mouseY, tooltip)

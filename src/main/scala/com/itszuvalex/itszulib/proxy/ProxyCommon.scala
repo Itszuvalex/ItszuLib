@@ -20,16 +20,18 @@
  */
 package com.itszuvalex.itszulib.proxy
 
+import com.itszuvalex.itszulib.api.wrappers.IWorld
 import com.itszuvalex.itszulib.gui.ItszuGuiHandler
-import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
+import com.itszuvalex.itszulib.initialization.{BlockBuilder, ItemBuilder}
+import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.Item
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.fml.relauncher.Side
 
 abstract class ProxyCommon extends ItszuGuiHandler {
-  def preInit() = {}
+  def preInit(): Unit = {}
 
   def init(): Unit = {
     registerRendering()
@@ -41,10 +43,6 @@ abstract class ProxyCommon extends ItszuGuiHandler {
   }
 
   def registerTileEntities(): Unit = {
-    GameRegistry.registerTileEntity(classOf[PortalTileTest], "PortalTileTest")
-    GameRegistry.registerTileEntity(classOf[TileLocTrackerTest], "TileLocTrackerTest")
-    GameRegistry.registerTileEntity(classOf[TileTankTest], "TileTankTest")
-    GameRegistry.registerTileEntity(classOf[TileInventoryTest], "TileInventoryTest")
   }
 
   def registerTickHandlers() {
@@ -52,8 +50,6 @@ abstract class ProxyCommon extends ItszuGuiHandler {
 
   override def getServerGuiElement(ID: Int, data: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
     (ID, world.getTileEntity(new BlockPos(x, y, z))) match {
-      case (0, te: TileTankTest) => new ContainerTankTest(player, player.inventory, te, true)
-      case (1, te: TileInventoryTest) => new ContainerInventoryTest(player, player.inventory, te, true)
       case (_, _) => null
     }
   }
@@ -65,4 +61,14 @@ abstract class ProxyCommon extends ItszuGuiHandler {
   def addScheduledTask(f: () => Unit)
 
   def getWorld(id: Int): World
+
+  def getIWorld(id: Int): IWorld
+
+  def registerItemModel[T <: Item](item: ItemBuilder[T]): Unit = {
+  }
+
+  def registerBlockModel[B <: Block](block: BlockBuilder[B]): Unit = {
+
+  }
+
 }

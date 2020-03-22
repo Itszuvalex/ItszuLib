@@ -1,8 +1,8 @@
 package com.itszuvalex.itszulib.api.events
 
+import com.itszuvalex.itszulib.api.wrappers.IWorld
 import net.minecraft.block.state.IBlockState
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
 import net.minecraftforge.fml.common.eventhandler.{Cancelable, Event}
 
 import scala.beans.BeanProperty
@@ -19,7 +19,7 @@ object EventTileEntityRelocation {
     * @param pos
     */
   @Cancelable
-  class Pickup(world: World, pos: BlockPos) extends EventTileEntityRelocation(world, pos: BlockPos)
+  class Pickup(world: IWorld, pos: BlockPos) extends EventTileEntityRelocation(world, pos: BlockPos)
 
   /**
     * Posted when a block or item using the SpatialRelocation format will place the given block at the given world coordinates.
@@ -29,7 +29,7 @@ object EventTileEntityRelocation {
     * @param state
     */
   @Cancelable
-  class Placement(world: World, pos: BlockPos, @BeanProperty val state: IBlockState)
+  class Placement(world: IWorld, pos: BlockPos, @BeanProperty val state: IBlockState)
     extends EventTileEntityRelocation(world, pos)
 
 }
@@ -40,4 +40,4 @@ object EventTileEntityRelocation {
   * @param world
   * @param pos
   */
-@Cancelable abstract class EventTileEntityRelocation(@BeanProperty val world: World, @BeanProperty val pos: BlockPos) extends Event
+@Cancelable abstract class EventTileEntityRelocation(@BeanProperty val world: IWorld, @BeanProperty val pos: BlockPos) extends Event

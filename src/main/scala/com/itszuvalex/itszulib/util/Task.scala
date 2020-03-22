@@ -19,15 +19,7 @@ abstract class Task(var baseGoal: Double, var minTicks: Int) extends INBTSeriali
 
   def powerPerTick(speed: Double, efficiency: Double): Double = adjustedMax(efficiency) / adjustedTicks(speed)
 
-  def adjustedMax(efficiency: Double) = {
-    efficiency match {
-      case 0 => baseGoal
-      case e if e > 0 => baseGoal / (1d + e)
-      case e if e < 0 => baseGoal * (1d - e)
-    }
-  }
-
-  def adjustedTicks(speed: Double) = {
+  def adjustedTicks(speed: Double): Int = {
     speed match {
       case 0 => minTicks
       case e if e > 0 => Math.ceil(minTicks / (1d + e)).toInt
@@ -38,21 +30,28 @@ abstract class Task(var baseGoal: Double, var minTicks: Int) extends INBTSeriali
   /**
     *
     * @param power Power to contribute
-    *
     * @return Power used out of power
     */
   def contribute(power: Double, speed: Double, efficiency: Double): Double = {
     val take = Math.min(progressRemaining(efficiency), powerPerTick(speed, efficiency))
-    val ret = Math.min(power, take)
+    val ret  = Math.min(power, take)
     progress += ret
     ret
   }
 
-  def progressRemaining(efficiency: Double) = Math.max(adjustedMax(efficiency) - progress, 0)
+  def progressRemaining(efficiency: Double): Double = Math.max(adjustedMax(efficiency) - progress, 0)
 
-  def completed(efficiency: Double) = progressRemaining(efficiency) <= 0
+  def adjustedMax(efficiency: Double): Double = {
+    efficiency match {
+      case 0 => baseGoal
+      case e if e > 0 => baseGoal / (1d + e)
+      case e if e < 0 => baseGoal * (1d - e)
+    }
+  }
 
-  def reset() = progress = 0
+  def completed(efficiency: Double): Boolean = progressRemaining(efficiency) <= 0
+
+  def reset(): Unit = progress = 0
 
   override def deserializeNBT(t: NBTTagCompound): Unit = {
     progress = t.getDouble(Task.PROGRESS_KEY)

@@ -19,7 +19,6 @@ object IItemStorage {
     /**
       *
       * @param i Index
-      *
       * @return Get IItemStack contained at this location.  This should never return null, as IItemStacks track their own emptiness.
       */
     override def apply(i: Int): IItemStack = IItemStack.Empty
@@ -36,7 +35,6 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     *
     * @param i     Index
     * @param stack Stack to insert
-    *
     * @return True if this stack can be inserted.
     */
   def canInsert(i: Int, stack: IItemStack): Boolean = true
@@ -44,7 +42,6 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
   /**
     *
     * @param i Index
-    *
     * @return Get IItemStack contained at this location.  This should never return null, as IItemStacks track their own emptiness.
     */
   def apply(i: Int): IItemStack
@@ -59,12 +56,11 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     *
     * @param i Index to split
     * @param a Amount to attempt to pull out of this location.
-    *
     * @return IItemStack containing the split stack.  This should never return null.
     */
   def split(i: Int, a: Int): IItemStack = {
     val slot = apply(i)
-    val ret = slot.copy()
+    val ret  = slot.copy()
     if (a >= slot.stackSize)
       setSlot(i, IItemStack.Empty)
     else {
@@ -79,7 +75,6 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     *
     * @param i Index to insert into
     * @param s ItemStack to attempt to insert.
-    *
     * @return IItemStack containing the leftovers from s.  This should never return null.
     */
   def insert(i: Int, s: IItemStack): IItemStack = {
@@ -103,7 +98,7 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
       }
     }
     else if (slot.isItemEqual(s)) {
-      val max = Math.min(s.stackSizeMax, maxStackSize(i))
+      val max  = Math.min(s.stackSizeMax, maxStackSize(i))
       val room = max - slot.stackSize
       if (s.stackSize <= room) {
         slot.stackSize += s.stackSize
@@ -140,10 +135,10 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
 
   def transferSlotIntoStorageSlot(slot: Int, storage: IItemStorage, targetSlot: Int, amt: Int): Int = {
     var transferRemaining = amt
-    val is = apply(slot).copy()
-    val up = is.copy()
+    val is                = apply(slot).copy()
+    val up                = is.copy()
     is.stackSize = Math.min(is.stackSize, transferRemaining)
-    val ins = storage.insert(targetSlot, is)
+    val ins        = storage.insert(targetSlot, is)
     val transfered = is.stackSize - ins.stackSize
     transferRemaining -= transfered
     up.stackSize = up.stackSize - transfered
@@ -173,7 +168,6 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     *
     * @param storage Storage to transfer into
     * @param amt     # of items to transfer
-    *
     * @return items remaining out of amt
     */
   def transferIntoStorage(storage: IItemStorage, amt: Int): Int = {
@@ -191,24 +185,25 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
 
   override def deserializeNBT(t: NBTTagCompound): Unit = {
     indices.
-      filter(i =>
-        t.hasKey(i.toString)).
-      view.
-      foreach(i =>
-        this (i) = readItemFromSlot(t, i))
+    filter(i =>
+             t.hasKey(i.toString)).
+    view.
+    foreach(i =>
+              update(i, readItemFromSlot(t, i)))
   }
 
   override def serializeNBT(): NBTTagCompound = {
     val ret = new NBTTagCompound
     zipWithIndex.
-      filterNot { case (it: IItemStack, i: Int) =>
-        it.isEmpty
-      }
-      .view
-      .foreach { case (it: IItemStack, i: Int) => writeItemToNBT(ret, it, i) }
+    filterNot { case (it: IItemStack, i: Int) =>
+      it.isEmpty
+    }
+    .view
+    .foreach { case (it: IItemStack, i: Int) => writeItemToNBT(ret, it, i) }
     ret
   }
 
   def writeItemToNBT(nbt: NBTTagCompound, item: IItemStack, slot: Int): Unit = nbt.setTag(slot.toString, item.serializeNBT())
+
   def readItemFromSlot(NBTTagCompound: NBTTagCompound, slot: Int): IItemStack = IItemStack.createFromNBT(NBTTagCompound.getCompoundTag(slot.toString))
 }

@@ -6,37 +6,36 @@ import com.itszuvalex.itszulib.ItszuLib
 import net.minecraft.block.Block
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.fml.common.registry.GameRegistry
 import org.apache.logging.log4j.Level
 
 /**
   * Created by Chris on 9/15/2014.
   */
 object StringUtils {
-  val itemModIDGroup     = "modID"
-  val itemNameGroup      = "itemName"
-  val itemIDGroup        = "itemID"
-  val itemDamageGroup    = "itemDamage"
-  val itemStackSizeGroup = "itemStackSize"
-  val itemIDRegex        = "(?<" + itemIDGroup + ">\\d+)"
-  val modIDRegex         = "(?<" + itemModIDGroup + ">[^:-]+)"
-  val itemNameRegex      = "(?<" + itemNameGroup + ">[^:-]+)"
-  val itemStackRegex     = "(?:-(?<" + itemStackSizeGroup + ">\\d+?))?"
-  val itemDamageRegex    = "(?::(?<" + itemDamageGroup + ">\\d+?))?"
-  val itemStackPattern   = Pattern
-                           .compile("(?:" + itemIDRegex + "|(?:" + modIDRegex + ":" + itemNameRegex + "))" + itemDamageRegex + itemStackRegex)
+  val itemModIDGroup            = "modID"
+  val itemNameGroup             = "itemName"
+  val itemIDGroup               = "itemID"
+  val itemDamageGroup           = "itemDamage"
+  val itemStackSizeGroup        = "itemStackSize"
+  val itemIDRegex     : String  = "(?<" + itemIDGroup + ">\\d+)"
+  val modIDRegex      : String  = "(?<" + itemModIDGroup + ">[^:-]+)"
+  val itemNameRegex   : String  = "(?<" + itemNameGroup + ">[^:-]+)"
+  val itemStackRegex  : String  = "(?:-(?<" + itemStackSizeGroup + ">\\d+?))?"
+  val itemDamageRegex : String  = "(?::(?<" + itemDamageGroup + ">\\d+?))?"
+  val itemStackPattern: Pattern = Pattern
+    .compile("(?:" + itemIDRegex + "|(?:" + modIDRegex + ":" + itemNameRegex + "))" + itemDamageRegex + itemStackRegex)
 
   def itemStackFromString(s: String): ItemStack = {
     if (s == null || s.isEmpty) return null
     val itemMatcher: Matcher = itemStackPattern.matcher(s)
     if (itemMatcher.matches) {
       try {
-        val itemID = itemMatcher.group(itemIDGroup)
-        val modID = itemMatcher.group(itemModIDGroup)
-        val name = itemMatcher.group(itemNameGroup)
-        val sdam = itemMatcher.group(itemDamageGroup)
-        val ssize = itemMatcher.group(itemStackSizeGroup)
-        val damage = if (sdam == null) 0 else sdam.toInt
+        val itemID    = itemMatcher.group(itemIDGroup)
+        val modID     = itemMatcher.group(itemModIDGroup)
+        val name      = itemMatcher.group(itemNameGroup)
+        val sdam      = itemMatcher.group(itemDamageGroup)
+        val ssize     = itemMatcher.group(itemStackSizeGroup)
+        val damage    = if (sdam == null) 0 else sdam.toInt
         val stackSize = if (ssize == null) 1 else ssize.toInt
         if (itemID != null) {
           val id = itemID.toInt
@@ -54,7 +53,7 @@ object StringUtils {
       catch {
         case e: Exception =>
           ItszuLib.logger
-          .log(Level.ERROR, "Error parsing ItemStack string \"" + s + "\"")
+                  .log(Level.ERROR, "Error parsing ItemStack string \"" + s + "\"")
           e.printStackTrace()
           return null
       }
@@ -90,6 +89,6 @@ object StringUtils {
     * @param input
     * @return input with first letter capitalized.
     */
-  def capitalize(input: String) = input.substring(0, 1).toUpperCase + input.substring(1)
+  def capitalize(input: String): String = input.substring(0, 1).toUpperCase + input.substring(1)
 }
 

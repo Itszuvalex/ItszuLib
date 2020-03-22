@@ -5,7 +5,7 @@ import com.itszuvalex.itszulib.container.ContainerBase
 import com.itszuvalex.itszulib.container.sync.ISync
 import com.itszuvalex.itszulib.util.Debug
 import net.minecraft.client.Minecraft
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.{NBTBase, NBTTagCompound}
 import net.minecraftforge.fml.common.network.simpleimpl.{IMessage, MessageContext}
 import org.apache.logging.log4j.Level
 
@@ -28,11 +28,11 @@ class MessageSync(sync: ISync[_]) extends MessageUpdateNBT[MessageSync, IMessage
 
   def this() = this(null)
 
-  def GuiId = nbt.getInteger(MessageSync.GUI_KEY)
+  def GuiId: Int = nbt.getInteger(MessageSync.GUI_KEY)
 
-  def SyncIndex = nbt.getInteger(MessageSync.INDEX_KEY)
+  def SyncIndex: Int = nbt.getInteger(MessageSync.INDEX_KEY)
 
-  def NBT = nbt.getTag(MessageSync.NBT_KEY)
+  def NBT: NBTBase = nbt.getTag(MessageSync.NBT_KEY)
 
   override def onMessage(message: MessageSync, ctx: MessageContext): IMessage = {
     ItszuLib.proxy.addScheduledTask(() => {

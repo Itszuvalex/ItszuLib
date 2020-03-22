@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api.wrappers
 
+import com.itszuvalex.itszulib.api.core.FluidIdentifier
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fluids.{Fluid, FluidStack, IFluidTank}
 
@@ -27,4 +28,6 @@ class WrapperForgeFluidTank(private val tank: IFluidTank) extends IFluidStack {
   override def serializeNBT(): NBTTagCompound = new NBTTagCompound
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {}
+
+  override def identifier: FluidIdentifier = Option(tank.getFluid).map(f => FluidIdentifier(f.getFluid)).orNull
 }
