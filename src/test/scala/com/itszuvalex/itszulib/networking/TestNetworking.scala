@@ -555,6 +555,8 @@ class TestNetworking extends TestBase {
     override def setUpdate(): Unit = {}
 
     override def getBlock: IBlock = null
+
+    override def isInvalid: Boolean = false
   }
 
 }

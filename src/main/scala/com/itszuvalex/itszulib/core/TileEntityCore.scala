@@ -61,7 +61,7 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
     }
   }
 
-  def hasDescription: Boolean
+  def hasDescription: Boolean = modules.exists(_.hasDescriptionNBT)
 
   override def onDataPacket(net: NetworkManager, pkt: SPacketUpdateTileEntity) {
     super.onDataPacket(net, pkt)
@@ -124,7 +124,7 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
   }
 
 
-  override def getIWorld: IWorld = new WrapperWorld(getWorld)
+  override def getIWorld: IWorld = Converter.IWorldFromWorld(getWorld)
 
   override def hasIWorld: Boolean = hasWorld
 

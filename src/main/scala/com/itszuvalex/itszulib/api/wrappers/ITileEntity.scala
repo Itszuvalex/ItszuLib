@@ -41,4 +41,6 @@ trait ITileEntity {
   }
 
   def notifyNeighborsOfChange(): Unit = if (getIWorld != null) getIWorld.notifyNeighborsOfStateChange(getPos, getBlock, true)
+
+  def isInvalid: Boolean
 }

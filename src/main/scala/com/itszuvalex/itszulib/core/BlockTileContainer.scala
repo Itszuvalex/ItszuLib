@@ -8,8 +8,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.{EnumFacing, EnumHand}
 
-abstract class BlockTileContainer(private val block: Block) extends IBlockTileContainer {
-  override def toMinecraft: Block = block
+abstract class BlockTileContainer(private val block: () => Block) extends IBlockTileContainer {
+  override def toMinecraft: Block = block()
 
   override def breakBlock(world: IWorld, pos: BlockPos, state: IBlockState): Unit =
     world.getITileEntity(pos) match {

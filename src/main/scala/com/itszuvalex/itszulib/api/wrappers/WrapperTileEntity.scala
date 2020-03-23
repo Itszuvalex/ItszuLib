@@ -33,4 +33,6 @@ class WrapperTileEntity(private val entity: TileEntity) extends ITileEntity {
   } else null.asInstanceOf[T]
 
   override def getBlock: IBlock = Converter.IBlockFromBlock(entity.getBlockType)
+
+  override def isInvalid: Boolean = entity.isInvalid
 }
