@@ -9,8 +9,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.SPacketUpdateTileEntity
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.{EnumFacing, EnumHand}
 import net.minecraftforge.common.capabilities.Capability
 
 import scala.collection.mutable
@@ -61,7 +61,7 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
     }
   }
 
-  def hasDescription: Boolean
+  def hasDescription: Boolean = modules.exists(_.hasDescriptionNBT)
 
   override def onDataPacket(net: NetworkManager, pkt: SPacketUpdateTileEntity) {
     super.onDataPacket(net, pkt)
@@ -114,13 +114,6 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
 
   def canPlayerUse(player: EntityPlayer): Boolean = hasGUI
 
-  def setRenderUpdate(): Unit = if (getWorld != null) getWorld.markBlockRangeForRenderUpdate(getPos.getX, getPos.getY, getPos.getZ, getPos.getX, getPos.getY, getPos.getZ)
-
-  def setUpdate(): Unit = if (getWorld != null) {
-    getWorld.notifyBlockUpdate(getPos, getWorld.getBlockState(getPos), getWorld.getBlockState(getPos), 3)
-  }
-
-  def notifyNeighborsOfChange(): Unit = if (getWorld != null) getWorld.notifyNeighborsOfStateChange(getPos, getBlockType, true)
 
   override def onBlockBreak(state: IBlockState): Unit = {
     modules.view.foreach(_.onBlockBreak(this, state))
@@ -131,7 +124,7 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
   }
 
 
-  override def getIWorld: IWorld = new WrapperWorld(getWorld)
+  override def getIWorld: IWorld = Converter.IWorldFromWorld(getWorld)
 
   override def hasIWorld: Boolean = hasWorld
 
@@ -176,5 +169,9 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
   override def onLoad(): Unit = {
     modules.view.foreach(_.onLoad(this))
     super.onLoad()
+  }
+
+  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    modules.view.exists(_.onBlockActivated(world, pos, state, playerIn, hand, facing, hitX, hitY, hitZ))
   }
 }

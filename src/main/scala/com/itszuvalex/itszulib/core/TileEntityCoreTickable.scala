@@ -13,7 +13,7 @@ abstract class TileEntityCoreTickable extends TileEntityCore with ITickable {
   }
 
   override def update(): Unit = {
-    if (!getWorld.isRemote) serverUpdate()
+    if (!getIWorld.isRemote) serverUpdate()
     else clientUpdate()
   }
 

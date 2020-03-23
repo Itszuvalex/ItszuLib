@@ -53,4 +53,10 @@ class WrapperWorld(private val world: World) extends IWorld {
   override def getITileEntity(pos: BlockPos): ITileEntity = Converter.ITileEntityFromTileEntity(world.getTileEntity(pos))
 
   override def setITileEntity(pos: BlockPos, tile: ITileEntity): Unit = world.setTileEntity(pos, Converter.TileEntityFromITileEntity(tile))
+
+  override def notifyBlockUpdate(getPos: BlockPos, state: IBlockState, state1: IBlockState, i: Int): Unit =
+    world.notifyBlockUpdate(getPos, state, state1, i)
+
+  override def notifyNeighborsOfStateChange(getPos: BlockPos, getBlock: IBlock, updateObservers: Boolean): Unit =
+    world.notifyNeighborsOfStateChange(getPos, Converter.BlockFromIBlock(getBlock), updateObservers)
 }
