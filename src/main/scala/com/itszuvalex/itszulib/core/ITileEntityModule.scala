@@ -4,9 +4,10 @@ import com.itszuvalex.itszulib.api.core.IModule
 import com.itszuvalex.itszulib.api.wrappers.{IItemStack, ITileEntity, IWorld}
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.{EnumFacing, EnumHand}
 
 trait ITileEntityModule[T] {
 
@@ -45,5 +46,7 @@ trait ITileEntityModule[T] {
   def onBlockBreak(core: ITileEntity, state: IBlockState): Unit
 
   def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit
+
+  def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = ???
 
 }
