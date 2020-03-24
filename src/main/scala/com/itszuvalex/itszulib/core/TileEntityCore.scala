@@ -25,6 +25,8 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
       moduleCapabilityMap.addModule(module.module, module.faceToModuleMapper(this))
   }
 
+  override def getBlock: IBlock = Converter.IBlockFromBlock(getBlockType)
+
   override def toMinecraft: TileEntity = this
 
   override def hasModule(mod: IModule[_], facing: EnumFacing): Boolean = moduleCapabilityMap.hasModule(mod, facing)
@@ -113,7 +115,6 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
   def getMod: AnyRef
 
   def canPlayerUse(player: EntityPlayer): Boolean = hasGUI
-
 
   override def onBlockBreak(state: IBlockState): Unit = {
     modules.view.foreach(_.onBlockBreak(this, state))
