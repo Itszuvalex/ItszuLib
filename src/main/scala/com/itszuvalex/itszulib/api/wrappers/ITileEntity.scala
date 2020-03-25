@@ -4,7 +4,6 @@ import com.itszuvalex.itszulib.api.core.{BlockIdentifier, IModule}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
-import net.minecraftforge.common.capabilities.Capability
 
 trait ITileEntity {
 
@@ -15,12 +14,6 @@ trait ITileEntity {
   def getIWorld: IWorld
 
   def getBlock: IBlock
-
-  def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean
-
-  def getCapability[T](capability: Capability[T], facing: EnumFacing): T
-
-  def capabilityOption[T](capability: Capability[T], facing: EnumFacing): Option[T] = if (hasCapability(capability, facing)) Option(getCapability(capability, facing)) else None
 
   def hasModule(mod: IModule[_], facing: EnumFacing): Boolean
 

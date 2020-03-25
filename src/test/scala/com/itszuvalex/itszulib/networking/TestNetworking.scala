@@ -7,7 +7,6 @@ import com.itszuvalex.itszulib.{TestBase, TestableWorld}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
-import net.minecraftforge.common.capabilities.Capability
 
 import scala.collection.JavaConversions._
 
@@ -542,10 +541,6 @@ class TestNetworking extends TestBase {
     override def markDirtyForSave(): Unit = {}
 
     override def hasIWorld: Boolean = true
-
-    override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = false
-
-    override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = null.asInstanceOf[T]
 
     override def hasModule(mod: IModule[_], facing: EnumFacing): Boolean = mod == module
 
