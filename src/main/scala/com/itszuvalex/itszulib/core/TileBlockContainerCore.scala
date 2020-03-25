@@ -65,8 +65,7 @@ abstract class TileBlockContainerCore(material: Material, val ibtcDelegate: IBlo
   }
 
   override def getMetaFromState(state: IBlockState): Int = {
-    val meta = super.getMetaFromState(state)
-    behavior.getMetaFromState(meta, state)
+    behavior.getMetaFromState(0, state)
   }
 
   override def withRotation(state: IBlockState, rot: Rotation): IBlockState = {
