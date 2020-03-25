@@ -47,6 +47,7 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
   }
 
   override def sync(player: EntityPlayer): Unit = player match {
+    case null =>
     case p: EntityPlayerMP =>
       Debug.log(Level.TRACE, "Sending Sync:" + this)
       ItszuLibPacketHandler.INSTANCE.sendTo(new MessageSync(this), p)
