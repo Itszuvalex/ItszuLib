@@ -44,7 +44,7 @@ class GuiFluidTank(
 
   def getTooltip: List[String] = {
     var ret = List.empty[String]
-    ret :+= s"Fluid: ${if (storage.isEmpty) "None" else {s"${storage(index).fluid.getLocalizedName(Converter.FluidStackFromIFluidStack(storage(index)))}, ${storage(index).amount}mB"}}"
+    ret :+= s"Fluid: ${if (storage.isEmpty || storage(index) == null || storage(index).isEmpty) "None" else {s"${storage(index).fluid.getLocalizedName(Converter.FluidStackFromIFluidStack(storage(index)))}, ${storage(index).amount}mB"}}"
     ret :+= s"Capacity: ${storage.capacity(index)}mB"
     ret
   }
@@ -90,6 +90,7 @@ class GuiFluidTank(
   def drawFluid(screenX: Int, screenY: Int): Unit = {
     var height: Int                = 0
     var icon  : TextureAtlasSprite = null
+    if (storage(index) == null) return
     if (storage(index).isEmpty) return
     if (storage(index).fluid == null) return
     if (storage(index).amount == 0) return

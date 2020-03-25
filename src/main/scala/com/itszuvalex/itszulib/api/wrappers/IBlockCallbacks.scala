@@ -7,8 +7,6 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.{EnumFacing, EnumHand}
 
 trait IBlockCallbacks {
-  def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean
-
   def onBlockBreak(state: IBlockState): Unit
 
   def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit

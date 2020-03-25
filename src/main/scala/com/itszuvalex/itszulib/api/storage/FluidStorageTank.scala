@@ -36,4 +36,6 @@ class FluidStorageTank(private val tank: FluidTank) extends IFluidStorageModifia
   override def apply(idx: Int): IFluidStack = Converter.IFluidStackFromFluidStack(tank.getFluid)
 
   override def update(i: Int, s: IFluidStack): Unit = tank.setFluid(Converter.FluidStackFromIFluidStack(s))
+
+  override def capacity(index: Int): Int = tank.getCapacity
 }
