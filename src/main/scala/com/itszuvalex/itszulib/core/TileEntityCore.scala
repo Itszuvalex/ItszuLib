@@ -97,24 +97,8 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
     }
   }
 
-  override def onSideActivate(par5EntityPlayer: EntityPlayer, side: EnumFacing): Boolean = {
-    if (hasGUI) {
-      par5EntityPlayer.openGui(getMod, getGuiID, getWorld, getPos.getX, getPos.getY, getPos.getZ)
-      return true
-    }
-    false
-  }
-
-  def hasGUI = false
-
-  /**
-    * @return GuiID, if GUI handler uses ids and not checking instanceof
-    */
-  def getGuiID: Int = -1
-
-  def getMod: AnyRef
-
-  def canPlayerUse(player: EntityPlayer): Boolean = hasGUI
+  // TODO?
+  def canPlayerUse(player: EntityPlayer): Boolean = true
 
   override def onBlockBreak(state: IBlockState): Unit = {
     modules.view.foreach(_.onBlockBreak(this, state))
