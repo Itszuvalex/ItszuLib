@@ -6,14 +6,14 @@ import com.itszuvalex.itszulib.implicits.NBTHelpers.NBTLiterals._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.INBTSerializable
 
-class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCompound] {
+class MultiBlockInfo extends INBTSerializable[NBTTagCompound] {
   private var isMultiBlock        = false
-  private var controller          = false
+  private var isControl           = false
   private var controllerLoc: Loc4 = new Loc4(0, 0, 0, 0)
 
-  override def isValidMultiBlock: Boolean = isMultiBlock
+  def isValidMultiBlock: Boolean = isMultiBlock
 
-  override def formMultiBlock(loc: Loc4, cloc: Loc4): Boolean = {
+  def formMultiBlock(loc: Loc4, cloc: Loc4): Boolean = {
     if (isMultiBlock) {
       if (loc != controllerLoc) {
         return false
@@ -21,49 +21,41 @@ class MultiBlockInfo extends IMultiBlockComponent with INBTSerializable[NBTTagCo
     }
     isMultiBlock = true
     controllerLoc = cloc
-    controller = loc == cloc
+    isControl = loc == cloc
     true
   }
 
-  def cLoc: Loc4 = controllerLoc
-
-  override def breakMultiBlock(loc: Loc4): Boolean = {
+  def breakMultiBlock(loc: Loc4): Boolean = {
     if (isMultiBlock) {
       if (loc != controllerLoc) {
         return false
       }
     }
     isMultiBlock = false
-    controller = false
+    isControl = false
     true
   }
-
-  override def getInfo: MultiBlockInfo = this
 
   override def serializeNBT(): NBTTagCompound = {
     NBTCompound(
       "isFormed" -> isMultiBlock,
       "c_loc" -> controllerLoc,
-      "controller" -> controller
+      "controller" -> isControl
       )
   }
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
     isMultiBlock = nbt.Bool("isFormed")
     controllerLoc = nbt.NBTCompound("c_loc")(Loc4(_))
-    controller = nbt.Bool("controller")
+    isControl = nbt.Bool("controller")
   }
 
   /**
     *
     * @return
     */
-  override def isController: Boolean = controller
+  def isController: Boolean = isControl
 
-  /**
-    *
-    * @param loc
-    * @return true if loc == controller location
-    */
-  override def isController(loc: Loc4): Boolean = loc == controllerLoc
+  def controller: Option[Loc4] = if (isMultiBlock) Option(controllerLoc) else None
+
 }

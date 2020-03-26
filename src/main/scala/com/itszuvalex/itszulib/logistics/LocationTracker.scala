@@ -105,12 +105,12 @@ class LocationTracker {
   private def getChunkCoordsInRadius(loc: ChunkCoord, radius: Int) = for {
     i <- -radius to radius
     j <- -radius to radius
-  } yield ChunkCoord(loc.x + i, loc.z + j)
+  } yield ChunkCoord(loc.chunkX + i, loc.chunkZ + j)
 
   private def getChunkCoordsInRadiusInDim(loc: ChunkCoord, radius: Int, dim: Int) = {
     trackerMap.getOrElse(dim, mutable.HashMap.empty).keys.filter { floc =>
-      (floc.x >= (loc.x - radius) && floc.x <= (loc.x + radius)) &&
-      (floc.z >= (loc.z - radius) && floc.z <= (loc.z + radius))
+      (floc.chunkX >= (loc.chunkX - radius) && floc.chunkX <= (loc.chunkX + radius)) &&
+      (floc.chunkZ >= (loc.chunkZ - radius) && floc.chunkZ <= (loc.chunkZ + radius))
     }
   }
 

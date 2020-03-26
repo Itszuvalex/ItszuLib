@@ -50,7 +50,13 @@ abstract class SyncBase[A](val gui: Int, valFunc: () => A, setValFunc: (A) => Un
     case null =>
     case p: EntityPlayerMP =>
       Debug.log(Level.TRACE, "Sending Sync:" + this)
-      ItszuLibPacketHandler.INSTANCE.sendTo(new MessageSync(this), p)
+      try {
+        ItszuLibPacketHandler.INSTANCE.sendTo(new MessageSync(this), p)
+      } catch {
+        case e: Throwable =>
+          Debug.log(Level.ERROR, "Caught exception sending Sync:" + e)
+        case _ =>
+      }
     case _ =>
   }
 
