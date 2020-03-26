@@ -13,6 +13,9 @@ object BlockBehaviorHorizontalFacing {
 }
 
 private class BlockBehaviorHorizontalFacing extends IBlockBehavior {
+
+  override def breakBlock(world: IWorld, pos: BlockPos, state: IBlockState): Unit = {}
+
   override def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit = {
     iworld.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing.getOpposite), 2)
   }

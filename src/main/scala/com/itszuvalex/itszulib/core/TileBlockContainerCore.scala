@@ -21,11 +21,14 @@ abstract class TileBlockContainerCore(material: Material, val ibtcDelegate: IBlo
   override def createTileEntity(world: IWorld, meta: Int): ITileEntity = ibtcDelegate.createTileEntity(world, meta)
 
   override def breakBlock(world: World, pos: BlockPos, state: IBlockState): Unit = {
-    breakBlock(Converter.IWorldFromWorld(world), pos, state);
+    breakBlock(Converter.IWorldFromWorld(world), pos, state)
     super.breakBlock(world, pos, state)
   }
 
-  override def breakBlock(world: IWorld, pos: BlockPos, state: IBlockState): Unit = ibtcDelegate.onBlockAdded(world, pos, state)
+  override def breakBlock(world: IWorld, pos: BlockPos, state: IBlockState): Unit = {
+    behavior.breakBlock(world, pos, state)
+    ibtcDelegate.breakBlock(world, pos, state)
+  }
 
   override def onBlockAdded(worldIn: World, pos: BlockPos, state: IBlockState): Unit = {
     onBlockAdded(Converter.IWorldFromWorld(worldIn), pos, state)

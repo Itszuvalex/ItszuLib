@@ -8,6 +8,8 @@ import net.minecraft.util.{Mirror, Rotation}
 
 trait IBlockBehavior {
 
+  def breakBlock(world: IWorld, pos: BlockPos, state: IBlockState): Unit
+
   def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit
 
   def onBlockAdded(world: IWorld, pos: BlockPos, state: IBlockState): Unit
