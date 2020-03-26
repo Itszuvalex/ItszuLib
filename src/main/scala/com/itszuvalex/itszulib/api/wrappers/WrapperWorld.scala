@@ -11,7 +11,7 @@ class WrapperWorld(private val world: World) extends IWorld {
 
   override def isRemote: Boolean = world.isRemote
 
-  override def getChunkFromChunkCoord(cc: ChunkCoord): IChunk = Converter.IChunkFromChunk(world.getChunkFromChunkCoords(cc.x, cc.z))
+  override def getChunkFromChunkCoord(cc: ChunkCoord): IChunk = Converter.IChunkFromChunk(world.getChunkFromChunkCoords(cc.chunkX, cc.chunkZ))
 
   override def getChunkFromChunkCoords(x: Int, z: Int): IChunk = Converter.IChunkFromChunk(world.getChunkFromChunkCoords(x, z))
 
