@@ -26,7 +26,7 @@ abstract class ContainerBase(val gui: Int, val registerSyncs: Boolean) extends C
 
   override def detectAndSendChanges(): Unit = {
     super.detectAndSendChanges()
-    syncs.filter(_.update()).foreach { sync =>
+    syncs.view.filter(_.update()).foreach { sync =>
       listeners.foreach {
         case p: EntityPlayerMP => sync.sync(p)
         case _ =>
@@ -38,6 +38,7 @@ abstract class ContainerBase(val gui: Int, val registerSyncs: Boolean) extends C
   override def addListener(listener: IContainerListener): Unit = {
     super.addListener(listener)
     listener match {
+      case null =>
       case p: EntityPlayerMP => syncs.foreach(_.sync(p))
       case _ =>
     }
@@ -45,6 +46,7 @@ abstract class ContainerBase(val gui: Int, val registerSyncs: Boolean) extends C
 
   protected def sendUpdateToListener(container: Container, crafter: IContainerListener, index: Int, value: Int) {
     crafter match {
+      case null =>
       case p: EntityPlayerMP =>
         ItszuLibPacketHandler.INSTANCE.sendTo(new MessageContainerUpdate(index, value), p)
       case _ =>

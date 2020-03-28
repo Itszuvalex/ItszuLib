@@ -38,6 +38,18 @@ class MultiblockStateHolder[S <: INBTSerializable[NBTTagCompound], T <: ITileEnt
 
   def hasState: Boolean = state.isDefined
 
+  def tryDoOnState(func: S => Unit): Boolean = {
+    get.exists { s => func(s); true }
+  }
+
+  def doIfController(func: S => Unit): Boolean = {
+    if (info().isController) {
+      func(getOrElseUpdateState)
+      true
+    }
+    else false
+  }
+
   override def serializeNBT(): NBTTagCompound = {
     val ret = new NBTTagCompound
     if (info().isController) {
