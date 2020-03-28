@@ -20,4 +20,18 @@ class DynamicIBattery(val getter: () => IBattery) extends IBattery {
   override def deserializeNBT(nbt: NBTTagCompound): Unit = getter().deserializeNBT(nbt)
 
   override def serializeNBT(): NBTTagCompound = getter().serializeNBT()
+
+  /**
+    *
+    * @param amt Amount to fill
+    * @return Amount filled
+    */
+  override def fill(amt: Double): Double = getter().fill(amt)
+
+  /**
+    *
+    * @param amt Amount to drain
+    * @return Amount drained
+    */
+  override def drain(amt: Double): Double = getter().drain(amt)
 }
