@@ -8,7 +8,7 @@ import com.itszuvalex.itszulib.api.core.Loc4
   * Created by Christopher on 4/5/2015.
   */
 
-trait INetwork[C <: INetworkNode[N], N <: INetwork[C, N]] {
+trait INetwork[C <: INetworkNode[C, N], N <: INetwork[C, N]] {
 
   /**
     *
@@ -28,13 +28,13 @@ trait INetwork[C <: INetworkNode[N], N <: INetwork[C, N]] {
     * @param edges Edges to include in the network.
     * @return Create a new network of this type from the given collection of nodes.
     */
-  def create(nodes: util.Collection[INetworkNode[N]], edges: util.Set[(Loc4, Loc4)]): N
+  def create(nodes: util.Collection[C], edges: util.Set[(Loc4, Loc4)]): N
 
   /**
     *
     * @return All nodes in this network.
     */
-  def getNodes: util.Collection[INetworkNode[N]]
+  def getNodes: util.Collection[C]
 
   /**
     * Helper function for getting connections in an easy to parse manner.
@@ -51,9 +51,15 @@ trait INetwork[C <: INetworkNode[N], N <: INetwork[C, N]] {
     */
   def getEdges: util.Set[(Loc4, Loc4)]
 
+  def canConnectNodes(a: C, b: C): Boolean
+
   def canConnect(a: Loc4, b: Loc4): Boolean
 
+  def addConnectionNodes(a: C, b: C): Unit
+
   def addConnection(a: Loc4, b: Loc4): Unit
+
+  def removeConnectionNodes(a: C, b: C): Unit
 
   def removeConnection(a: Loc4, b: Loc4): Unit
 
@@ -63,21 +69,21 @@ trait INetwork[C <: INetworkNode[N], N <: INetwork[C, N]] {
     *
     * @param node Node to add.
     */
-  def addNode(node: INetworkNode[N]): Unit
+  def addNode(node: C): Unit
 
   /**
     *
     * @param node Node to be added.
     * @return true if this node can be added to the network.
     */
-  def canAddNode(node: INetworkNode[N]): Boolean
+  def canAddNode(node: C): Boolean
 
   /**
     * Removes a node from the network.  Informs the node of its being removed.  Informs all other nodes that this node is being removed.
     *
     * @param node
     */
-  def removeNode(node: INetworkNode[N]): Unit
+  def removeNode(node: C): Unit
 
   /**
     * Removes all nodes in nodes from the network.
@@ -85,7 +91,7 @@ trait INetwork[C <: INetworkNode[N], N <: INetwork[C, N]] {
     *
     * @param nodes
     */
-  def removeNodes(nodes: util.Collection[INetworkNode[N]]): Unit
+  def removeNodes(nodes: util.Collection[C]): Unit
 
   /**
     * Simply remove all nodes from the network.  Does not inform them.
@@ -137,20 +143,20 @@ trait INetwork[C <: INetworkNode[N], N <: INetwork[C, N]] {
     *
     * @param iNetwork Network that this network is taking over.
     */
-  def takeover(iNetwork: INetwork[C, N]): Unit
+  def takeover(iNetwork: N): Unit
 
   /**
     * Called on networks by another network, when that network is incorporating this network.
     *
     * @param iNetwork Network that is taking over this network.
     */
-  def onTakeover(iNetwork: INetwork[C, N]): Unit
+  def onTakeover(iNetwork: N): Unit
 
   /**
     * Called on sub networks by a main network, when that network is splitting apart.
     *
     * @param iNetwork Network that will split into this sub network.
     */
-  def onSplit(iNetwork: INetwork[C, N]): Unit
+  def onSplit(iNetwork: N): Unit
 
 }

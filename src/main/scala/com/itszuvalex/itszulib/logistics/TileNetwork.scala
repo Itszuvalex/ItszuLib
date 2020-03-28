@@ -3,8 +3,10 @@ package com.itszuvalex.itszulib.logistics
 import java.util
 import java.util.concurrent.ConcurrentHashMap
 
-import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.api.core.{IModule, Loc4}
+import com.itszuvalex.itszulib.api.wrappers.ITileEntity
 import com.itszuvalex.itszulib.logistics.TileNetwork.NetworkExplorer
+import com.itszuvalex.itszulib.util.Debug
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -17,37 +19,34 @@ import scala.collection.immutable.HashSet
 object TileNetwork {
 
   object NetworkExplorer {
-    def explore[C <: INetworkNode[N], N <: TileNetwork[C, N]](start: Loc4, network: TileNetwork[C, N]): HashSet[Loc4] = {
+    def explore[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](start: Loc4, network: TileNetwork[C, N]): HashSet[Loc4] = {
       immutable.HashSet[Loc4]() ++ expandLoc(start, network, mutable.HashSet[Loc4]())
     }
 
-    private def expandLoc[C <: INetworkNode[N], N <: TileNetwork[C, N]](node: Loc4, network: TileNetwork[C, N], explored: mutable.HashSet[Loc4]): mutable.HashSet[Loc4] = {
-      node.getTileEntity() match {
-        case Some(c) =>
-          c match {
-            case a: INetworkNode[N] if !explored.contains(a.getLoc) =>
-              explored += node
-              network.getConnections(a.getLoc).getOrElse(Set()).foreach(expandLoc(_, network, explored))
-            case _ =>
-          }
-        case None =>
+    private def expandLoc[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](node: Loc4, network: TileNetwork[C, N], explored: mutable.HashSet[Loc4]): mutable.HashSet[Loc4] = {
+      if (!explored.contains(node)) {
+        explored += node
+        network.getConnections(node).getOrElse(Set()).foreach(expandLoc(_, network, explored))
       }
 
       explored
     }
-
   }
 
 }
 
-abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id: Int) extends INetwork[C, N] {
+abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val id: Int) extends INetwork[C, N] {
 
-  val nodeMap = new ConcurrentHashMap[Loc4, INetworkNode[N]]().asScala
+  val nodeMap = new ConcurrentHashMap[Loc4, C]().asScala
 
-  val connectionMap = mutable.HashMap[Loc4, mutable.HashSet[Loc4]]()
+  val connectionMap: mutable.Map[Loc4, mutable.HashSet[Loc4]] = mutable.HashMap[Loc4, mutable.HashSet[Loc4]]()
 
-  override def canConnect(a: Loc4, b: Loc4): Boolean = (a.getTileEntity().orNull, b.getTileEntity().orNull) match {
-    case (nodeA: INetworkNode[N], nodeB: INetworkNode[N]) => nodeA.canConnect(b) && nodeB.canConnect(a)
+  def networkModule: IModule[C]
+
+  override def canConnect(a: Loc4, b: Loc4): Boolean = (a.getITileEntity().orNull, b.getITileEntity().orNull) match {
+    case (null, _) => false
+    case (_, null) => false
+    case (nodeA: ITileEntity, nodeB: ITileEntity) if nodeA.hasModule(networkModule, null) && nodeB.hasModule(networkModule, null) => nodeA.getModule(networkModule, null).canConnect(b) && nodeB.getModule(networkModule, null).canConnect(a)
     case _ => false
   }
 
@@ -59,17 +58,29 @@ abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id:
     *
     * @param nodes
     */
-  override def removeNodes(nodes: util.Collection[INetworkNode[N]]): Unit = {
+  override def removeNodes(nodes: util.Collection[C]): Unit = {
     //Map nodes to locations
     val nodeLocs = HashSet() ++ nodes.map(_.getLoc)
     //Find all edges.  These are the set of locations that are connected to nodeLocs, that aren't nodeLocs themselves.
-    val edges = nodes.flatMap(a => getConnections(a.getLoc)).flatten.toSet -- nodeLocs
+    val edges    = nodes.flatMap(a => getConnections(a.getLoc)).flatten.toSet -- nodeLocs
     //Removal all edges that touch nodeLocs.
     nodeLocs.foreach { a =>
-      getConnections(a).getOrElse(Set()).foreach(removeConnection(a, _))
+      (Set[Loc4]() ++ getConnections(a).getOrElse(Set())).foreach(removeConnectionBatch(a, _))
       nodeMap.remove(a)
-                     }
+    }
+
+    Debug.only {
+      nodeLocs.foreach(a => Debug.assert(!nodeMap.contains(a), "NodeMap should not have any of the nodes that have been removed."))
+      nodeLocs.foreach(a => Debug.assert(!connectionMap.contains(a), "ConnectionMap should not have any of the nodes that have been removed."))
+      nodeLocs.foreach(a => connectionMap.values.foreach(b => Debug.assert(!b.contains(a), "No loc in ConnectionMap should point to a node that has been removed.")))
+    }
+
     split(edges)
+
+    if (size == 0) {
+      clear()
+      unregister()
+    }
   }
 
   /**
@@ -80,7 +91,7 @@ abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id:
     */
   override def split(edges: util.Set[Loc4]): Unit = {
     val workingSet = mutable.HashSet() ++= edges
-    val networks = mutable.ArrayBuffer[util.Collection[Loc4]]()
+    val networks   = mutable.ArrayBuffer[util.Collection[Loc4]]()
     while (workingSet.nonEmpty) {
       val first = workingSet.head
       val nodes = NetworkExplorer.explore[C, N](first, this)
@@ -96,53 +107,59 @@ abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id:
       val edgeTuples = getEdges
 
       networks.foreach { collect =>
-        val nodes = collect.flatMap(_.getTileEntity()).collect { case a: INetworkNode[N] => a.asInstanceOf[INetworkNode[N]] }.asJavaCollection
-        val edges = edgeTuples.filter { case (loc1, loc2) => collect.contains(loc1)
-                                        /*&& collect.contains(loc2)  Not necessary, as these are fully explored graphs.*/
-                                      }.toSet
+        val nodes   = collect.map(nodeMap(_))
+        //val nodes   = collect.flatMap(_.getITileEntity()).withFilter(_.hasCapability(networkCapability, null)).map(_.getCapability(networkCapability, null)).asJavaCollection
+        val edges   = edgeTuples.filter { case (loc1, loc2) => collect.contains(loc1)
+          /*&& collect.contains(loc2)  Not necessary, as these are fully explored graphs.*/
+        }.toSet
         val network = create(nodes, edges)
-        network.onSplit(this)
+        network.onSplit(this.asInstanceOf[N])
         network.register()
-                       }
+      }
       clear()
       unregister()
     }
   }
 
-  override def removeConnection(a: Loc4, b: Loc4): Unit = {
+  def removeConnectionBatch(a: Loc4, b: Loc4): Unit = {
     removeConnectionSilently(a, b)
-    (a.getTileEntity().orNull, b.getTileEntity().orNull) match {
-      case (nodeA: INetworkNode[N], nodeB: INetworkNode[N]) =>
-        nodeA.disconnect(b)
-        nodeB.disconnect(a)
-        split(Set(a, b))
-      case _ =>
+
+    a.getITileEntity().withFilter(_.hasModule(networkModule, null)).foreach { tile =>
+      tile.getModule(networkModule, null).disconnect(b)
     }
+    b.getITileEntity().withFilter(_.hasModule(networkModule, null)).foreach { tile =>
+      tile.getModule(networkModule, null).disconnect(a)
+    }
+  }
+
+  override def removeConnection(a: Loc4, b: Loc4): Unit = {
+    removeConnectionBatch(a, b)
+    split(Set(a, b))
   }
 
   def getConnections(a: Loc4): Option[mutable.HashSet[Loc4]] =
     connectionMap.synchronized {
-                                 connectionMap.get(a)
-                               }
+      connectionMap.get(a)
+    }
 
-  override def addNode(node: INetworkNode[N]): Unit = {
-    if (!(canAddNode(node) && node.canAdd(this))) return
-    getNodes.filter { a => a.canConnect(node.getLoc) && node.canConnect(a.getLoc) }.foreach(n => addConnection(n.getLoc, node.getLoc))
+  override def addNode(node: C): Unit = {
+    if (!(canAddNode(node) && node.canAdd(this.asInstanceOf[N]))) return
     addNodeSilently(node)
     node.setNetwork(this.asInstanceOf[N])
-    node.added(this)
+    node.added(this.asInstanceOf[N])
+    getNodes.withFilter { a => a.canConnect(node.getLoc) && node.canConnect(a.getLoc) }.foreach(n => addConnection(n.getLoc, node.getLoc))
   }
 
   override def addConnection(a: Loc4, b: Loc4): Unit = {
     addConnectionSilently(a, b)
-    (a.getTileEntity().orNull, b.getTileEntity().orNull) match {
-      case (nodeA: INetworkNode[N], nodeB: INetworkNode[N]) =>
-        if (nodeA.getNetwork != nodeB.getNetwork) {
-          if (nodeA.getNetwork == this) takeover(nodeB.getNetwork)
-          else takeover(nodeA.getNetwork)
-        }
-        nodeA.connect(b)
-        nodeB.connect(a)
+    (a.getITileEntity().orNull, b.getITileEntity().orNull) match {
+      case (null, _) =>
+      case (_, null) =>
+      case (nodeA: ITileEntity, nodeB: ITileEntity) if nodeA.hasModule(networkModule, null) && nodeB.hasModule(networkModule, null) =>
+        val aCap = nodeA.getModule(networkModule, null)
+        val bCap = nodeB.getModule(networkModule, null)
+
+        addConnectionInternal(aCap, bCap)
       case _ =>
     }
   }
@@ -153,7 +170,7 @@ abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id:
     *
     * @param iNetwork Network that this network is taking over.
     */
-  override def takeover(iNetwork: INetwork[C, N]): Unit = {
+  override def takeover(iNetwork: N): Unit = {
     iNetwork.getNodes.foreach { n => addNodeSilently(n); n.setNetwork(this.asInstanceOf[N]) }
     iNetwork.getEdges.foreach { case (loc1, loc2) => addConnectionSilently(loc1, loc2) }
     iNetwork.clear()
@@ -162,20 +179,19 @@ abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id:
 
   protected def addConnectionSilently(a: Loc4, b: Loc4): Unit =
     connectionMap.synchronized {
-                                 connectionMap.getOrElseUpdate(a, mutable.HashSet[Loc4]()) += b
-                                 connectionMap.getOrElseUpdate(b, mutable.HashSet[Loc4]()) += a
+      connectionMap.getOrElseUpdate(a, mutable.HashSet[Loc4]()) += b
+      connectionMap.getOrElseUpdate(b, mutable.HashSet[Loc4]()) += a
+    }
 
-                               }
-
-  def addNodeSilently(node: INetworkNode[N]): Unit = {
+  def addNodeSilently(node: C): Unit = {
     nodeMap(node.getLoc) = node
   }
 
-  override def canAddNode(node: INetworkNode[N]): Boolean = true
+  override def canAddNode(node: C): Boolean = true
 
-  override def ID = id
+  override def ID: Int = id
 
-  override def size = nodeMap.size
+  override def size: Int = nodeMap.size
 
   override def clear(): Unit = {
     nodeMap.clear()
@@ -186,13 +202,13 @@ abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id:
     getNodes.foreach(_.refresh())
   }
 
-  override def getNodes = nodeMap.values.asJavaCollection
+  override def getNodes: util.Collection[C] = nodeMap.values.asJavaCollection
 
-  override def removeNode(node: INetworkNode[N]) = removeNodes(List(node))
+  override def removeNode(node: C): Unit = removeNodes(List(node))
 
-  override def register(): Unit = ManagerNetwork.addNetwork(this)
+  override def register(): Unit = ManagerNetwork.instance.addNetwork(this)
 
-  override def unregister(): Unit = ManagerNetwork.removeNetwork(this)
+  override def unregister(): Unit = ManagerNetwork.instance.removeNetwork(this)
 
   /**
     *
@@ -200,7 +216,7 @@ abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id:
     * @param edges Edges to include in the network.
     * @return Create a new network of this type from the given collection of nodes.
     */
-  override def create(nodes: util.Collection[INetworkNode[N]], edges: util.Set[(Loc4, Loc4)]): N = {
+  override def create(nodes: util.Collection[C], edges: util.Set[(Loc4, Loc4)]): N = {
     val t = create()
     nodes.foreach(n => {t.addNodeSilently(n); n.setNetwork(t)})
     edges.foreach(a => t.addConnectionSilently(a._1, a._2))
@@ -213,21 +229,45 @@ abstract class TileNetwork[C <: INetworkNode[N], N <: TileNetwork[C, N]](val id:
     * @return Tuple of all edge pairs.
     */
   override def getEdges: util.Set[(Loc4, Loc4)] = {
-                                                    for {
-                                                      pairs <- getConnections.toIterable
-                                                      con <- pairs._2
-                                                      if pairs._1.compareTo(con) < 0
+    for {
+      pairs <- getConnections.toIterable
+      con <- pairs._2
+      if pairs._1.compareTo(con) < 0
 
-                                                    } yield (pairs._1, con)
-                                                  }.toSet.asJava
+    } yield (pairs._1, con)
+  }.toSet.asJava
 
   protected def removeConnectionSilently(a: Loc4, b: Loc4): Unit =
     connectionMap.synchronized {
-                                 val setA = connectionMap.getOrElse(a, return)
-                                 setA -= b
-                                 if (setA.isEmpty) connectionMap.remove(a)
-                                 val setB = connectionMap.getOrElse(b, return)
-                                 setB -= a
-                                 if (setB.isEmpty) connectionMap.remove(b)
-                               }
+      val setA = connectionMap.getOrElse(a, return)
+      setA -= b
+      if (setA.isEmpty) connectionMap.remove(a)
+      val setB = connectionMap.getOrElse(b, return)
+      setB -= a
+      if (setB.isEmpty) connectionMap.remove(b)
+    }
+
+  override def canConnectNodes(a: C, b: C): Boolean = canConnect(a.getLoc, b.getLoc)
+
+  override def addConnectionNodes(a: C, b: C): Unit = {
+    addConnectionSilently(a.getLoc, b.getLoc)
+    addConnectionInternal(a, b)
+  }
+
+  private def addConnectionInternal(a: C, b: C): Unit = {
+    if (a.getNetwork != b.getNetwork) {
+      if (a.getNetwork == this) takeover(b.getNetwork)
+      else takeover(a.getNetwork)
+    }
+    a.connect(b.getLoc)
+    b.connect(a.getLoc)
+  }
+
+  override def removeConnectionNodes(a: C, b: C): Unit = {
+    removeConnectionSilently(a.getLoc, b.getLoc)
+    a.disconnect(b.getLoc)
+    b.disconnect(a.getLoc)
+    split(Set(a.getLoc, b.getLoc))
+  }
+
 }

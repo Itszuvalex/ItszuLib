@@ -1,8 +1,9 @@
 package com.itszuvalex.itszulib.api.events
 
-import cpw.mods.fml.common.eventhandler.{Cancelable, Event}
-import net.minecraft.block.Block
-import net.minecraft.world.World
+import com.itszuvalex.itszulib.api.wrappers.IWorld
+import net.minecraft.block.state.IBlockState
+import net.minecraft.util.math.BlockPos
+import net.minecraftforge.fml.common.eventhandler.{Cancelable, Event}
 
 import scala.beans.BeanProperty
 
@@ -15,25 +16,21 @@ object EventTileEntityRelocation {
     * Posted when a block or item using the SpatialRelocation format will be picked up from the world.
     *
     * @param world
-    * @param x
-    * @param y
-    * @param z
+    * @param pos
     */
   @Cancelable
-  class Pickup(world: World, x: Int, y: Int, z: Int) extends EventTileEntityRelocation(world, x, y, z)
+  class Pickup(world: IWorld, pos: BlockPos) extends EventTileEntityRelocation(world, pos: BlockPos)
 
   /**
     * Posted when a block or item using the SpatialRelocation format will place the given block at the given world coordinates.
     *
     * @param world
-    * @param x
-    * @param y
-    * @param z
-    * @param block
+    * @param pos
+    * @param state
     */
   @Cancelable
-  class Placement(world: World, x: Int, y: Int, z: Int, @BeanProperty val block: Block)
-    extends EventTileEntityRelocation(world, x, y, z)
+  class Placement(world: IWorld, pos: BlockPos, @BeanProperty val state: IBlockState)
+    extends EventTileEntityRelocation(world, pos)
 
 }
 
@@ -41,9 +38,6 @@ object EventTileEntityRelocation {
   * Base class for all SpatialRelocation events.
   *
   * @param world
-  * @param x
-  * @param y
-  * @param z
+  * @param pos
   */
-@Cancelable abstract class EventTileEntityRelocation(@BeanProperty val world: World, @BeanProperty val x: Int,
-                                                     @BeanProperty val y: Int, @BeanProperty val z: Int) extends Event
+@Cancelable abstract class EventTileEntityRelocation(@BeanProperty val world: IWorld, @BeanProperty val pos: BlockPos) extends Event

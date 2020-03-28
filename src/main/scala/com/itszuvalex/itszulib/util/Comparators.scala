@@ -6,7 +6,7 @@ import com.itszuvalex.itszulib.implicits.IDImplicits._
 import com.itszuvalex.itszulib.util.Comparators.NBT.CompoundSizeComparator
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.{FluidRegistry, FluidStack}
 import net.minecraftforge.oredict.OreDictionary
 
 /**
@@ -92,7 +92,7 @@ object Comparators {
         case (null, null) => 0
         case (null, _) => -1
         case (_, null) => 1
-        case (f1, f2) => f1.getFluidID - f2.getFluidID
+        case (f1, f2) => FluidRegistry.getFluidName(f1.getFluid).compareTo(FluidRegistry.getFluidName(f2.getFluid))
       }
     }
 
@@ -117,7 +117,7 @@ object Comparators {
         case (null, null) => 0
         case (null, _) => -1
         case (_, null) => 1
-        case (c1, c2) => c1.func_150296_c().size() - c2.func_150296_c().size()
+        case (c1, c2) => c1.getKeySet().size() - c2.getKeySet().size()
       }
     }
 

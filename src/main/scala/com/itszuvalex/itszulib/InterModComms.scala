@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib
 
-import cpw.mods.fml.common.event.FMLInterModComms
+import net.minecraftforge.fml.common.event.FMLInterModComms
 import org.apache.logging.log4j.Level
 
 import scala.collection.JavaConversions._

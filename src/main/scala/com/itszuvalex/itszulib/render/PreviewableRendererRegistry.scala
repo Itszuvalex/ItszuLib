@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.render
 
-import com.itszuvalex.itszulib.api.IPreviewableRenderer
-import cpw.mods.fml.relauncher.{Side, SideOnly}
+import com.itszuvalex.itszulib.api.client.IPreviewableRenderer
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.collection._
 
@@ -20,6 +20,6 @@ object PreviewableRendererRegistry {
     id
   }
 
-  def getRenderer(id: Int) = renderMap.get(id)
+  def getRenderer(id: Int): Option[IPreviewableRenderer] = renderMap.get(id)
 
 }

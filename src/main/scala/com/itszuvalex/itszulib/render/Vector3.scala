@@ -20,14 +20,13 @@
  */
 package com.itszuvalex.itszulib.render
 
-import com.itszuvalex.itszulib.api.core.{NBTSerializable, Saveable}
-import com.itszuvalex.itszulib.util.DataUtils
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.INBTSerializable
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 5/16/14.
   */
-case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable var z: Double) extends NBTSerializable {
+case class Vector3(var x: Double, var y: Double, var z: Double) extends INBTSerializable[NBTTagCompound] {
 
   def this(a: Point3D, b: Point3D) =
     this(a.x - b.x, a.y - b.y, a.z - b.z)
@@ -35,46 +34,46 @@ case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable v
   def this() =
     this(0, 0, 0)
 
-  def +(other: Vector3) = Vector3(x + other.x, y + other.y, z + other.z)
+  def +(other: Vector3): Vector3 = Vector3(x + other.x, y + other.y, z + other.z)
 
-  def +=(other: Vector3) = {
+  def +=(other: Vector3): Unit = {
     x += other.x
     y += other.y
     z += other.z
   }
 
-  def -(other: Vector3) = Vector3(x - other.x, y - other.y, z - other.z)
+  def -(other: Vector3): Vector3 = Vector3(x - other.x, y - other.y, z - other.z)
 
-  def -=(other: Vector3) = {
+  def -=(other: Vector3): Unit = {
     x -= other.x
     y -= other.y
     z -= other.z
   }
 
-  def /(other: Float) = this * (1 / other)
+  def /(other: Float): Vector3 = this * (1 / other)
 
-  def *(other: Float) = Vector3(x * other, y * other, z * other)
+  def *(other: Float): Vector3 = Vector3(x * other, y * other, z * other)
 
-  def /=(other: Float) = this *= (1 / other)
+  def /=(other: Float): Unit = this *= (1 / other)
 
-  def *=(other: Float) = {
+  def *=(other: Float): Unit = {
     x *= other
     y *= other
     z *= other
   }
 
-  def inversed = copy().inverse()
+  def inversed: Vector3 = copy().inverse()
 
-  def inverse() = {
+  def inverse(): Vector3 = {
     x = -x
     y = -y
     z = -z
     this
   }
 
-  def normalized = copy().normalize()
+  def normalized: Vector3 = copy().normalize()
 
-  def copy() = Vector3(x, y, z)
+  def copy(): Vector3 = Vector3(x, y, z)
 
   def normalize(): Vector3 = {
     val mag = magnitude
@@ -84,21 +83,25 @@ case class Vector3(@Saveable var x: Double, @Saveable var y: Double, @Saveable v
     this
   }
 
-  def magnitude = Math.sqrt(magnitudeSquared)
+  def magnitude: Double = Math.sqrt(magnitudeSquared)
 
-  def magnitudeSquared = x * x + y * y + z * z
+  def magnitudeSquared: Double = x * x + y * y + z * z
 
   def cross(vector: Vector3): Vector3 = Vector3(y * vector.z - z * vector.y, z * vector.x - x * vector.z, x * vector.y - y * vector.x)
 
+  def dot(vector: Vector3): Double = x * vector.x + y * vector.y + z * vector.z
 
-  def dot(vector: Vector3) = x * vector.x + y * vector.y + z * vector.z
-
-
-  def saveToNBT(compound: NBTTagCompound) {
-    DataUtils.saveObjectToNBT(compound, this, DataUtils.EnumSaveType.WORLD)
+  override def serializeNBT(): NBTTagCompound = {
+    val compound = new NBTTagCompound
+    compound.setDouble("x", x)
+    compound.setDouble("y", y)
+    compound.setDouble("z", z)
+    compound
   }
 
-  def loadFromNBT(compound: NBTTagCompound) {
-    DataUtils.loadObjectFromNBT(compound, this, DataUtils.EnumSaveType.WORLD)
+  override def deserializeNBT(compound: NBTTagCompound): Unit = {
+    x = compound.getDouble("x")
+    y = compound.getDouble("y")
+    z = compound.getDouble("z")
   }
 }

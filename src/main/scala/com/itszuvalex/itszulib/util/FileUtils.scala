@@ -22,18 +22,17 @@ package com.itszuvalex.itszulib.util
 
 import java.io.File
 
-import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.relauncher.Side
 import net.minecraft.client.Minecraft
-import net.minecraft.server.MinecraftServer
 import net.minecraft.world.World
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.relauncher.Side
 
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 7/26/14.
   */
 object FileUtils {
-  def savePathMod(world: World, modID: String) = {
+  def savePathMod(world: World, modID: String): String = {
     val dir = new File(savePath(world), modID.toLowerCase)
     if (!dir.exists) {
       dir.mkdir
@@ -41,26 +40,24 @@ object FileUtils {
     dir.getPath
   }
 
-  def savePath(world: World) = if (!MinecraftServer.getServer.isDedicatedServer) {
-    Minecraft.getMinecraft.mcDataDir + "/saves/" + world.getSaveHandler.getWorldDirectoryName
-  } else {MinecraftServer.getServer.getFile(world.getSaveHandler.getWorldDirectoryName).getPath}
+  def savePath(world: World): String = world.getSaveHandler.getWorldDirectory.getAbsolutePath
 
   def configFolder(modID: String): File = {
     val path = configPath(modID)
-    val f = new File(path)
+    val f    = new File(path)
     if (!f.exists()) {
       f.mkdir()
     }
     f
   }
 
-  def configPath(modID: String) = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
-    MinecraftServer.getServer.getFile(MinecraftServer.getServer.getFolderName + "/config/" + modID + "/").getPath + "/"
-  } else {Minecraft.getMinecraft.mcDataDir + "/config/" + modID + "/"}
+  def customConfigPath(modID: String): String = configPath(modID) + "custom" + File.separator
 
-  def customConfigPath(modID: String) = configPath(modID) + "custom/"
+  def configPath(modID: String): String = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
+    FMLCommonHandler.instance.getMinecraftServerInstance.getFile(FMLCommonHandler.instance().getMinecraftServerInstance.getFolderName + File.separator + "config" + File.separator + modID + File.separator).getPath + File.separator
+  } else {Minecraft.getMinecraft.mcDataDir + File.separator + "config" + File.separator + modID + File.separator}
 
-  def autogenConfigPath(modID: String) = configPath(modID) + "autogen/"
+  def autogenConfigPath(modID: String): String = configPath(modID) + "autogen" + File.separator
 }
 
 

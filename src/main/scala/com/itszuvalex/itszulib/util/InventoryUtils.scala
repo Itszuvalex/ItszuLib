@@ -3,11 +3,10 @@ package com.itszuvalex.itszulib.util
 import java.util
 import java.util.Random
 
-import com.itszuvalex.itszulib.implicits.IDImplicits._
+import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.api.wrappers.IItemStack
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.World
 import net.minecraftforge.oredict.OreDictionary
 
 /**
@@ -24,19 +23,19 @@ object InventoryUtils {
     * @param restrictions Array of slot indexs to skip when placing.
     * @return True if slots contains room for item.
     */
-  def placeItem(item: ItemStack, slots: Array[ItemStack], restrictions: Array[Int]): Boolean = {
-    if (item == null) {
+  def placeItem(item: IItemStack, slots: Array[IItemStack], restrictions: Array[Int]): Boolean = {
+    if (item == null || item.isEmpty) {
       return true
     }
     var amount = item.stackSize
     if (restrictions != null) {
       util.Arrays.sort(restrictions)
     }
-    for (i <- 0 until slots.length) {
+    slots.indices.foreach { i =>
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) != null && compareItem(slots(i), item) == 0) {
           val slot = slots(i)
-          val room = slot.getMaxStackSize - slot.stackSize
+          val room = slot.stackSizeMax - slot.stackSize
           if (room < amount) {
             slot.stackSize += room
             amount -= room
@@ -47,10 +46,10 @@ object InventoryUtils {
         }
       }
     }
-    for (i <- 0 until slots.length) {
+    slots.indices.foreach { i =>
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) == null) {
-          slots(i) = item.copy
+          slots(i) = item.copy()
           slots(i).stackSize = amount
           return true
         }
@@ -59,7 +58,7 @@ object InventoryUtils {
     false
   }
 
-  def compareItem(cur: ItemStack, in: ItemStack): Int = {
+  def compareItem(cur: IItemStack, in: IItemStack): Int = {
     if (cur == null && in != null) {
       return -1
     }
@@ -69,14 +68,14 @@ object InventoryUtils {
     if (cur == null && in == null) {
       return 0
     }
-    if (cur.getItem.itemID < in.getItem.itemID) {
+    if (cur.itemID < in.itemID) {
       return -1
     }
-    if (cur.getItem.itemID > in.getItem.itemID) {
+    if (cur.itemID > in.itemID) {
       return 1
     }
-    val damage = cur.getItemDamage
-    val indamage = in.getItemDamage
+    val damage   = cur.damage
+    val indamage = in.damage
     if (damage == OreDictionary.WILDCARD_VALUE) return 0
     if (indamage == OreDictionary.WILDCARD_VALUE) return 0
     if (damage < indamage) {
@@ -92,37 +91,38 @@ object InventoryUtils {
     * Drops the item in the world.
     *
     * @param item
-    * @param world
-    * @param x
-    * @param y
-    * @param z
+    * @param loc
     * @param rand
     */
-  def dropItem(item: ItemStack, world: World, x: Int, y: Int, z: Int, rand: Random): Unit = {
+  def dropItem(item: IItemStack, loc: Loc4, rand: Random): Unit = {
     if (item == null) return
+    if (item.isEmpty) return
 
-    val f = rand.nextFloat * 0.8F + 0.1F
+    val f  = rand.nextFloat * 0.8F + 0.1F
     val f1 = rand.nextFloat * 0.8F + 0.1F
     val f2 = rand.nextFloat * 0.8F + 0.1F
+
     while (item.stackSize > 0) {
       var k1 = rand.nextInt(21) + 10
       if (k1 > item.stackSize) {
         k1 = item.stackSize
       }
+      val dstack = new ItemStack(item.serializeNBT())
+      dstack.setCount(k1)
+      val entityItem = new EntityItem(loc.getWorld.get.toMinecraft,
+                                      (loc.getPos.getX.toFloat + f).toDouble,
+                                      (loc.getPos.getY.toFloat + f1).toDouble,
+                                      (loc.getPos.getZ.toFloat + f2).toDouble,
+                                      dstack)
       item.stackSize -= k1
-      val entityitem = new EntityItem(world,
-                                      (x.toFloat + f).toDouble,
-                                      (y.toFloat + f1).toDouble,
-                                      (z.toFloat + f2).toDouble,
-                                      new ItemStack(item.getItem, k1, item.getItemDamage))
-      if (item.hasTagCompound) {
-        entityitem.getEntityItem.setTagCompound(item.getTagCompound.copy.asInstanceOf[NBTTagCompound])
+      if (item.hasNbt) {
+        entityItem.getItem.setTagCompound(item.nbt.copy)
       }
       val f3 = 0.05F
-      entityitem.motionX = (rand.nextGaussian.toFloat * f3).toDouble
-      entityitem.motionY = (rand.nextGaussian.toFloat * f3 + 0.2F).toDouble
-      entityitem.motionZ = (rand.nextGaussian.toFloat * f3).toDouble
-      world.spawnEntityInWorld(entityitem)
+      entityItem.motionX = (rand.nextGaussian.toFloat * f3).toDouble
+      entityItem.motionY = (rand.nextGaussian.toFloat * f3 + 0.2F).toDouble
+      entityItem.motionZ = (rand.nextGaussian.toFloat * f3).toDouble
+      loc.getWorld.get.spawnEntity(entityItem)
     }
   }
 
@@ -135,8 +135,8 @@ object InventoryUtils {
     * @param restrictions
     * @return
     */
-  def removeItem(item: ItemStack, slots: Array[ItemStack], restrictions: Array[Int]): Boolean = {
-    if (item == null) {
+  def removeItem(item: IItemStack, slots: Array[IItemStack], restrictions: Array[Int]): Boolean = {
+    if (item == null || item.isEmpty) {
       return true
     }
     var amountLeftToRemove: Int = item.stackSize
@@ -144,10 +144,10 @@ object InventoryUtils {
     if (restrictions != null) {
       util.Arrays.sort(restrictions)
     }
-    for (i <- 0 until slots.length) {
+    slots.indices.foreach { i =>
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) != null && compareItem(slots(i), item) == 0) {
-          val slot = slots(i)
+          val slot   = slots(i)
           val amount = slot.stackSize
           if (amount <= amountLeftToRemove) {
             slots(i) = null

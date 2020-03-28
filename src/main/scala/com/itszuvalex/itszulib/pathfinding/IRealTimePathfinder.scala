@@ -7,6 +7,6 @@ trait IRealTimePathfinder extends IPathfinder {
 
   def run(maxExpands: Int): Unit
 
-  override def run() = run(Int.MaxValue)
+  override def run(): Unit = run(Int.MaxValue)
 
 }

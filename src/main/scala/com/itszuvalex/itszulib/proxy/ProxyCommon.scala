@@ -20,13 +20,19 @@
  */
 package com.itszuvalex.itszulib.proxy
 
-import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
-import cpw.mods.fml.common.network.IGuiHandler
-import cpw.mods.fml.common.registry.GameRegistry
+import com.itszuvalex.itszulib.api.wrappers.IWorld
+import com.itszuvalex.itszulib.gui.ItszuGuiHandler
+import com.itszuvalex.itszulib.initialization.{BlockBuilder, ItemBuilder}
+import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.Item
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.fml.relauncher.Side
 
-class ProxyCommon extends IGuiHandler {
+abstract class ProxyCommon extends ItszuGuiHandler {
+  def preInit(): Unit = {}
+
   def init(): Unit = {
     registerRendering()
     registerTileEntities()
@@ -37,20 +43,32 @@ class ProxyCommon extends IGuiHandler {
   }
 
   def registerTileEntities(): Unit = {
-    GameRegistry.registerTileEntity(classOf[PortalTileTest], "PortalTileTest")
-    GameRegistry.registerTileEntity(classOf[TileLocTrackerTest], "TileLocTrackerTest")
-    GameRegistry.registerTileEntity(classOf[TileTankTest], "TileTankTest")
   }
 
   def registerTickHandlers() {
   }
 
-  override def getServerGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
-    (ID, world.getTileEntity(x, y, z)) match {
-      case (0, te: TileTankTest) => new ContainerTankTest(player, player.inventory, te)
+  override def getServerGuiElement(ID: Int, data: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
+    (ID, world.getTileEntity(new BlockPos(x, y, z))) match {
       case (_, _) => null
     }
   }
 
-  override def getClientGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = null
+  override def getClientGuiElement(ID: Int, data: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = null
+
+  def side: Side
+
+  def addScheduledTask(f: () => Unit)
+
+  def getWorld(id: Int): World
+
+  def getIWorld(id: Int): IWorld
+
+  def registerItemModel[T <: Item](item: ItemBuilder[T]): Unit = {
+  }
+
+  def registerBlockModel[B <: Block](block: BlockBuilder[B]): Unit = {
+
+  }
+
 }

@@ -34,7 +34,6 @@ import org.apache.logging.log4j.Level
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.reflect.runtime.{universe => ru}
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 9/10/14.
@@ -47,11 +46,11 @@ object ConfigHelper {
   private val configStringEscapes           = HashBiMap.create[String, String]
   private val loaderMap                     = new mutable.HashMap[Class[_], ConfigHelper.FieldLoader[_]]
 
-  def escapeCategorySplitter(string: String) = string.replace(CATEGORY_SPLITTER_CHAR, CATEGORY_SPLITTER_REPLACEMENT)
+  def escapeCategorySplitter(string: String): String = string.replace(CATEGORY_SPLITTER_CHAR, CATEGORY_SPLITTER_REPLACEMENT)
 
-  def unescapeCategorySplitter(string: String) = string.replace(CATEGORY_SPLITTER_REPLACEMENT, CATEGORY_SPLITTER_CHAR)
+  def unescapeCategorySplitter(string: String): String = string.replace(CATEGORY_SPLITTER_REPLACEMENT, CATEGORY_SPLITTER_CHAR)
 
-  def loadClassFromConfig(configuration: Configuration, section: String, key: String, clazz: Class[_]) = {
+  def loadClassFromConfig(configuration: Configuration, section: String, key: String, clazz: Class[_]): Unit = {
     loadClassInstanceFromConfig(configuration, section, key, clazz, null)
   }
 
@@ -69,7 +68,7 @@ object ConfigHelper {
         superclass = superclass.getSuperclass
       }
     }
-    fieldsList.foreach(field => {
+    fieldsList.foreach { field =>
       if (!(field.getDeclaringClass.ne(clazz) && obj == null)) {
         val accessible = field.isAccessible
         if (!accessible) field.setAccessible(true)
@@ -91,7 +90,7 @@ object ConfigHelper {
           field.setAccessible(false)
         }
       }
-    })
+    }
   }
 
   def init() {
@@ -124,7 +123,7 @@ object ConfigHelper {
       }
     })
     loaderMap.put(classOf[String], new ConfigHelper.FieldLoader[String] {
-      def load(field: Field, section: String, anno: Configurable, obj: AnyRef, config: Configuration) =
+      def load(field: Field, section: String, anno: Configurable, obj: AnyRef, config: Configuration): Unit =
         field.set(obj, getValue(field.getName, field.get(obj).asInstanceOf[String], section, anno, config))
 
 
@@ -200,7 +199,7 @@ object ConfigHelper {
 
       def getValue(key: String, default: Array[ItemStack], section: String, anno: Configurable, config: Configuration): Array[ItemStack] = {
         val defsar = if (default == null) new Array[String](0) else new Array[String](default.length)
-        for (i <- 0 until defsar.length) {
+        defsar.indices.foreach { i =>
           defsar(i) = default(i).toModQualifiedString
         }
         val sar = config.get(section, key, defsar, anno.comment).getStringList
@@ -235,6 +234,4 @@ object ConfigHelper {
   }
 
 }
-
-
 

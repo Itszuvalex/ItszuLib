@@ -1,52 +1,39 @@
 package com.itszuvalex.itszulib
 
-import com.itszuvalex.itszulib.network.PacketHandler
+import com.itszuvalex.itszulib.api.ManagerCapabilities
+import com.itszuvalex.itszulib.initialization.{InitializationStage, ModInit}
+import com.itszuvalex.itszulib.logistics.ManagerNetwork
+import com.itszuvalex.itszulib.network.ItszuLibPacketHandler
 import com.itszuvalex.itszulib.proxy.ProxyCommon
-import com.itszuvalex.itszulib.testing.{BlockLocTrackerTest, BlockPortalTest, BlockTankTest, ItemPreviewable}
-import cpw.mods.fml.common.Mod.EventHandler
-import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLInterModComms, FMLPostInitializationEvent, FMLPreInitializationEvent}
-import cpw.mods.fml.common.network.NetworkRegistry
-import cpw.mods.fml.common.registry.GameRegistry
-import cpw.mods.fml.common.{Mod, SidedProxy}
-import net.minecraft.creativetab.CreativeTabs
+import net.minecraftforge.fml.common.Mod.EventHandler
+import net.minecraftforge.fml.common.event.FMLInterModComms
+import net.minecraftforge.fml.common.network.NetworkRegistry
+import net.minecraftforge.fml.common.{Mod, SidedProxy}
 import org.apache.logging.log4j.LogManager
 
 /**
   * Created by Christopher on 4/5/2015.
   */
-@Mod(modid = ItszuLib.ID, name = ItszuLib.ID, version = ItszuLib.VERSION, modLanguage = "scala")
-object ItszuLib {
-  final val ID      = "ItszuLib"
+@Mod(modid = ItszuLib.ID, name = ItszuLib.NAME, version = ItszuLib.VERSION, modLanguage = "scala")
+object ItszuLib extends ModInit {
+  final val NAME    = "ItszuLib"
+  final val ID      = "itszulib"
   final val VERSION = Version.FULL_VERSION
   final val logger  = LogManager.getLogger(ID)
 
-  @SidedProxy(clientSide = "com.itszuvalex.itszulib.proxy.ProxyClient",
-              serverSide = "com.itszuvalex.itszulib.proxy.ProxyServer")
+  final val CLIENT_PROXY = "com.itszuvalex.itszulib.proxy.ProxyClient";
+  final val SERVER_PROXY = "com.itszuvalex.itszulib.proxy.ProxyServer";
+
+  @SidedProxy(clientSide = ItszuLib.CLIENT_PROXY, serverSide = ItszuLib.SERVER_PROXY)
   var proxy: ProxyCommon = null
 
-  @EventHandler def preInit(event: FMLPreInitializationEvent): Unit = {
-    PacketHandler.init()
-    //    PlayerUUIDTracker.init()
-    //    PlayerUUIDTracker.setFile(new File())
-    proxy.init()
-    NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy)
-  }
-
-  @EventHandler def load(event: FMLInitializationEvent): Unit = {
-    GameRegistry.registerBlock(new BlockPortalTest, "BlockPortalTest").setCreativeTab(CreativeTabs.tabBlock)
-    GameRegistry.registerBlock(new BlockLocTrackerTest, "BlockLocTrackerTest").setCreativeTab(CreativeTabs.tabBlock)
-    GameRegistry.registerBlock(new BlockTankTest, "BlockTankTest").setCreativeTab(CreativeTabs.tabBlock)
-    val prev = new ItemPreviewable
-    prev.setCreativeTab(CreativeTabs.tabDecorations)
-    GameRegistry.registerItem(prev, "TilePreviewable")
-  }
-
-  @EventHandler def postInit(event: FMLPostInitializationEvent): Unit = {
-
-  }
+  initializationManager.addInitStage(InitializationStage.Pre, () => ItszuLibPacketHandler.init())
+  initializationManager.addInitStage(InitializationStage.Pre, () => NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy))
+  initializationManager.addInitStage(InitializationStage.Pre, () => ManagerCapabilities.register())
+  initializationManager.addInitStage(InitializationStage.Pre, () => ManagerNetwork.init())
+  initializationManager.addInitStage(InitializationStage.Main, () => proxy.init())
 
   @EventHandler def imcCallback(event: FMLInterModComms.IMCEvent) {
     InterModComms.imcCallback(event)
   }
-
 }

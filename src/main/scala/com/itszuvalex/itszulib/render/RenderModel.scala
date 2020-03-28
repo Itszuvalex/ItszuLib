@@ -21,19 +21,19 @@
 package com.itszuvalex.itszulib.render
 
 import net.minecraft.client.renderer.Tessellator
-import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.common.util.ForgeDirection._
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumFacing._
 
 import scala.collection.mutable.ArrayBuffer
 
 class RenderModel(var location: Point3D, var center: Point3D) {
   val faces = new ArrayBuffer[RenderQuad]
 
-  def this(location: Point3D) = this(location, new Point3D(0, 0, 0))
+  def this(location: Point3D) = this(location, Point3D(0, 0, 0))
 
-  def this() = this(new Point3D(0, 0, 0))
+  def this() = this(Point3D(0, 0, 0))
 
-  def removeQuad(quad: RenderQuad) = faces -= quad
+  def removeQuad(quad: RenderQuad): Unit = faces -= quad
 
   def rotatedOnXAxis(rot: Double): RenderModel = rotatedOnXAxis(rot, center.y, center.z)
 
@@ -47,47 +47,39 @@ class RenderModel(var location: Point3D, var center: Point3D) {
 
   def rotatedOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float): RenderModel = copy.rotateOnZAxis(rot, xrotoffset, yrotoffset)
 
-  def rotate(x: Double, y: Double, z: Double) = rotateOnXAxis(x).rotateOnYAxis(y).rotateOnZAxis(z)
+  def rotate(x: Double, y: Double, z: Double): RenderModel = rotateOnXAxis(x).rotateOnYAxis(y).rotateOnZAxis(z)
 
-  def rotated(x: Double, y: Double, z: Double) = copy.rotateOnXAxis(x).rotateOnYAxis(y).rotateOnZAxis(z)
+  def rotated(x: Double, y: Double, z: Double): RenderModel = copy.rotateOnXAxis(x).rotateOnYAxis(y).rotateOnZAxis(z)
 
-  def copy = {
-    val ret = new RenderModel(location.copy, center.copy)
-    faces.foreach(quad => ret.addQuad(quad.copy))
-    ret
+  def rotateOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float): RenderModel = {
+    faces.foreach(_.rotateOnZAxis(rot, xrotoffset, yrotoffset))
+    this
   }
 
-  def addQuad(quad: RenderQuad) = faces += quad
+  def rotateOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float): RenderModel = {
+    faces.foreach(_.rotateOnYAxis(rot, xrotoffset, zrotoffset))
+    this
+  }
 
   def rotateOnZAxis(rot: Double): RenderModel = rotateOnZAxis(rot, center.x, center.y)
 
-  def rotateOnZAxis(rot: Double, xrotoffset: Float, yrotoffset: Float) = {
-    faces.foreach(_.rotateOnZAxis(rot, xrotoffset, yrotoffset))
+  def rotateOnXAxis(rot: Double, yrotoffset: Float, zrotoffset: Float): RenderModel = {
+    faces.foreach(_.rotateOnXAxis(rot, yrotoffset, zrotoffset))
     this
   }
 
   def rotateOnYAxis(rot: Double): RenderModel = rotateOnYAxis(rot, center.x, center.z)
 
-  def rotateOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float) = {
-    faces.foreach(_.rotateOnYAxis(rot, xrotoffset, zrotoffset))
-    this
+  def draw() {
+    val tes = Tessellator.getInstance()
+    //    tes.addTranslation(location.x, location.y, location.z)
+    faces.foreach(_.draw())
+    //    tes.addTranslation(-location.x, -location.y, -location.z)
   }
 
   def rotateOnXAxis(rot: Double): RenderModel = rotateOnXAxis(rot, center.y, center.z)
 
-  def rotateOnXAxis(rot: Double, yrotoffset: Float, zrotoffset: Float) = {
-    faces.foreach(_.rotateOnXAxis(rot, yrotoffset, zrotoffset))
-    this
-  }
-
-  def draw() {
-    val tes = Tessellator.instance
-    tes.addTranslation(location.x, location.y, location.z)
-    faces.foreach(_.draw)
-    tes.addTranslation(-location.x, -location.y, -location.z)
-  }
-
-  def rotatedToDirection(dir: ForgeDirection) = dir match {
+  def rotatedToDirection(dir: EnumFacing): RenderModel = dir match {
     case SOUTH => rotatedOnXAxis(Math.PI)
     case EAST => rotatedOnYAxis(-Math.PI / 2d)
     case WEST => rotatedOnYAxis(Math.PI / 2d)
@@ -95,4 +87,12 @@ class RenderModel(var location: Point3D, var center: Point3D) {
     case DOWN => rotatedOnXAxis(-Math.PI / 2d)
     case _ => copy
   }
+
+  def copy: RenderModel = {
+    val ret = new RenderModel(location.copy, center.copy)
+    faces.foreach(quad => ret.addQuad(quad.copy))
+    ret
+  }
+
+  def addQuad(quad: RenderQuad): Unit = faces += quad
 }

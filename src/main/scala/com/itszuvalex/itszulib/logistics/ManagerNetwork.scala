@@ -1,40 +1,81 @@
 package com.itszuvalex.itszulib.logistics
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 import com.itszuvalex.itszulib.ItszuLib
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent
-import cpw.mods.fml.common.network.NetworkRegistry
+import com.itszuvalex.itszulib.util.Debug
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.network.NetworkRegistry
+import org.apache.logging.log4j.Level
 
-import scala.actors.threadpool.AtomicInteger
 import scala.collection.JavaConverters._
 
 /**
   * Created by Christopher on 4/5/2015.
   */
 object ManagerNetwork {
-  val INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(ItszuLib.ID.toLowerCase + "|" + "logistics")
+  val NETWORK_CHANNEL_INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(ItszuLib.ID.toLowerCase + "|" + "logistics")
+  private var INSTANCE: INetworkManager = new ManagerNetwork()
 
-  private val nextID     = new AtomicInteger(0)
-  private val networkMap = new ConcurrentHashMap[Int, INetwork[_, _]].asScala
-
-  def getNextID = nextID.getAndIncrement
-
-  def addNetwork(network: INetwork[_, _]) = networkMap(network.ID) = network
-
-  def removeNetwork(network: INetwork[_, _]) = networkMap.remove(network.ID)
+  def instance: INetworkManager = INSTANCE
 
   def init(): Unit = {
     MinecraftForge.EVENT_BUS.register(this)
   }
 
-  def getNetwork(id: Int) = networkMap.get(id)
+  def setInstance(instance: INetworkManager): Unit = INSTANCE = instance
 
   @SubscribeEvent def onTickBegin(event: TickEvent.ServerTickEvent): Unit = {
-    if (event.phase == TickEvent.Phase.START) networkMap.values.foreach(_.onTickStart())
-    if (event.phase == TickEvent.Phase.END) networkMap.values.foreach(_.onTickEnd())
+    event.phase match {
+      case TickEvent.Phase.START => INSTANCE.onTickStart()
+      case TickEvent.Phase.END => INSTANCE.onTickEnd()
+      case _ =>
+    }
   }
+
+  @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload): Unit = {
+    val server = FMLCommonHandler.instance().getMinecraftServerInstance
+    if (server == null || !server.isServerRunning) {
+      INSTANCE.clear()
+    }
+  }
+}
+
+class ManagerNetwork extends INetworkManager {
+  private val nextID     = new AtomicInteger(0)
+  private val networkMap = new ConcurrentHashMap[Int, INetwork[_, _]].asScala
+
+  override def getNextID: Int = nextID.getAndIncrement
+
+  override def addNetwork(network: INetwork[_, _]): Unit = {
+    Debug.log(Level.WARN, "Added Network:" + network.ID)
+    Debug.log(Level.WARN, "Active Networks:" + networkMap.size)
+    networkMap(network.ID) = network
+    Debug.log(Level.WARN, "Active Network After Addition:" + networkMap.size)
+  }
+
+  override def removeNetwork(network: INetwork[_, _]): Unit = {
+    Debug.log(Level.WARN, "Removed Network:" + network.ID)
+    Debug.log(Level.WARN, "Active Networks:" + networkMap.size)
+    networkMap.remove(network.ID)
+    Debug.log(Level.WARN, "Active Networks After Removal:" + networkMap.size)
+  }
+
+  override def getNetwork(id: Int): Option[INetwork[_, _]] = networkMap.get(id)
+
+  override def onTickStart(): Unit = networkMap.values.foreach(_.onTickStart())
+
+  override def onTickEnd(): Unit = networkMap.values.foreach(_.onTickEnd())
+
+  override def clear(): Unit = networkMap.clear()
+
+  override def networkCount: Int = networkMap.size
+
+  override def networks: Iterable[INetwork[_, _]] = networkMap.values
 
 }

@@ -20,25 +20,65 @@
  */
 package com.itszuvalex.itszulib.render
 
+import com.itszuvalex.itszulib.util.Color
+import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
-import net.minecraft.client.renderer.{ActiveRenderInfo, Tessellator}
-import net.minecraft.util.IIcon
-import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.common.util.ForgeDirection._
+import net.minecraft.client.renderer._
+import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
+import net.minecraft.client.renderer.vertex.{DefaultVertexFormats, VertexFormat}
+import net.minecraft.util.EnumFacing
+import net.minecraft.util.EnumFacing._
 import org.lwjgl.opengl.GL11
 
 object RenderUtils {
-  //  val MICRO_POWER_PARTICLE = "MicroPower"
-  //  val NANO_POWER_PARTICLE  = "NanoPower"
-  //  val FEMTO_POWER_PARTICLE = "FemtoPower"
-  //  var particleLocation: ResourceLocation = new ResourceLocation(Femtocraft.ID.toLowerCase, "textures/particles/particles.png")
 
-  def renderCube(x: Float, y: Float, z: Float, startx: Float, starty: Float, startz: Float, endx: Float, endy: Float, endz: Float, texture: IIcon) {
+  def drawBlock(format: VertexFormat = DefaultVertexFormats.POSITION_TEX)(func: => Unit): Unit = {
+    startDrawing(format)
+    try {
+      func
+    }
+    finally finishDrawing()
+  }
+
+  def glMatrixBlock(func: => Unit): Unit = {
+    GL11.glPushMatrix()
+    try {
+      func
+    }
+    finally GL11.glPopMatrix()
+  }
+
+  def translationBlock(x: Double, y: Double, z: Double)(func: => Unit): Unit = {
+    GL11.glTranslated(x, y, z)
+    try {
+      func
+    }
+    finally GL11.glTranslated(-x, -y, -z)
+  }
+
+  def rotationBlock(angle: Double, xrot: Double, yrot: Double, zrot: Double)(func: => Unit) = {
+    GL11.glRotated(angle, xrot, yrot, zrot)
+    try {
+      func
+    }
+    finally GL11.glRotated(-angle, xrot, yrot, zrot)
+  }
+
+  def getDefaultTextureForBlock(block: Block): TextureAtlasSprite = getTextureForBlockInState(block, block.getDefaultState)
+
+  def getTextureForBlockInState(block: Block, state: IBlockState) = Minecraft.getMinecraft.getBlockRendererDispatcher.getBlockModelShapes.getTexture(state)
+
+  def setNormal(x: Double, y: Double, z: Double) = {
+    GL11.glNormal3d(x, y, z)
+  }
+
+  def renderCube(x: Float, y: Float, z: Float, startx: Float, starty: Float, startz: Float, endx: Float, endy: Float, endz: Float, texture: TextureAtlasSprite) {
     renderCube(x, y, z, startx, starty, startz, endx, endy, endz, texture, texture.getMinU, texture.getMaxU, texture.getMinV, texture.getMaxV)
   }
 
-  def renderCube(x: Float, y: Float, z: Float, startx: Float, starty: Float, startz: Float, endx: Float, endy: Float, endz: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+  def renderCube(x: Float, y: Float, z: Float, startx: Float, starty: Float, startz: Float, endx: Float, endy: Float, endz: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     drawTopFace(x, y, z, startx, endx, startz, endz, endy, texture, minU, maxU, minV, maxV)
     drawBottomFace(x, y, z, startx, endx, startz, endz, starty, texture, minU, maxU, minV, maxV)
     drawNorthFace(x, y, z, startx, endx, starty, endy, startz, texture, minU, maxU, minV, maxV)
@@ -47,67 +87,91 @@ object RenderUtils {
     drawWestFace(x, y, z, starty, endy, startz, endz, startx, texture, minU, maxU, minV, maxV)
   }
 
-  def drawTopFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float) {
-    val tes = Tessellator.instance
-    tes.addTranslation(x, y, z)
-    tes.addVertexWithUV(xmin, yoffset, zmin, minU, maxV)
-    tes.addVertexWithUV(xmin, yoffset, zmax, minU, minV)
-    tes.addVertexWithUV(xmax, yoffset, zmax, maxU, minV)
-    tes.addVertexWithUV(xmax, yoffset, zmin, maxU, maxV)
-    tes.addTranslation(-x, -y, -z)
+  def drawTopFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.UP.getFrontOffsetX.toFloat
+    val ny = EnumFacing.UP.getFrontOffsetY.toFloat
+    val nz = EnumFacing.UP.getFrontOffsetZ.toFloat
+    translationBlock(x, y, z) {
+      drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+        addVertexUVNormal(xmax, yoffset, zmax, maxU, maxV, nx, ny, nz)
+        addVertexUVNormal(xmax, yoffset, zmin, maxU, minV, nx, ny, nz)
+        addVertexUVNormal(xmin, yoffset, zmin, minU, minV, nx, ny, nz)
+        addVertexUVNormal(xmin, yoffset, zmax, minU, maxV, nx, ny, nz)
+      }
+    }
   }
 
-  def drawBottomFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float) {
-    val tes = Tessellator.instance
-    tes.addTranslation(x, y, z)
-    tes.addVertexWithUV(xmin, yoffset, zmin, minU, maxV)
-    tes.addVertexWithUV(xmax, yoffset, zmin, minU, minV)
-    tes.addVertexWithUV(xmax, yoffset, zmax, maxU, minV)
-    tes.addVertexWithUV(xmin, yoffset, zmax, maxU, maxV)
-    tes.addTranslation(-x, -y, -z)
+  def drawBottomFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.DOWN.getFrontOffsetX.toFloat
+    val ny = EnumFacing.DOWN.getFrontOffsetY.toFloat
+    val nz = EnumFacing.DOWN.getFrontOffsetZ.toFloat
+    translationBlock(x, y, z) {
+      drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+        addVertexUVNormal(xmin, yoffset, zmax, maxU, maxV, nx, ny, nz)
+        addVertexUVNormal(xmin, yoffset, zmin, maxU, minV, nx, ny, nz)
+        addVertexUVNormal(xmax, yoffset, zmin, minU, minV, nx, ny, nz)
+        addVertexUVNormal(xmax, yoffset, zmax, minU, maxV, nx, ny, nz)
+      }
+    }
   }
 
-  def drawNorthFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float) {
-    val tes = Tessellator.instance
-    tes.addTranslation(x, y, z)
-    tes.addVertexWithUV(xmin, ymin, zoffset, minU, maxV)
-    tes.addVertexWithUV(xmin, ymax, zoffset, minU, minV)
-    tes.addVertexWithUV(xmax, ymax, zoffset, maxU, minV)
-    tes.addVertexWithUV(xmax, ymin, zoffset, maxU, maxV)
-    tes.addTranslation(-x, -y, -z)
+  def drawNorthFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.NORTH.getFrontOffsetX.toFloat
+    val ny = EnumFacing.NORTH.getFrontOffsetY.toFloat
+    val nz = EnumFacing.NORTH.getFrontOffsetZ.toFloat
+    translationBlock(x, y, z) {
+      drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+        addVertexUVNormal(xmin, ymin, zoffset, maxU, maxV, nx, ny, nz)
+        addVertexUVNormal(xmin, ymax, zoffset, maxU, minV, nx, ny, nz)
+        addVertexUVNormal(xmax, ymax, zoffset, minU, minV, nx, ny, nz)
+        addVertexUVNormal(xmax, ymin, zoffset, minU, maxV, nx, ny, nz)
+      }
+    }
   }
 
-  def drawEastFace(x: Float, y: Float, z: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float) {
-    val tes = Tessellator.instance
-    tes.addTranslation(x, y, z)
-    tes.addVertexWithUV(xoffset, ymin, zmin, minU, maxV)
-    tes.addVertexWithUV(xoffset, ymax, zmin, minU, minV)
-    tes.addVertexWithUV(xoffset, ymax, zmax, maxU, minV)
-    tes.addVertexWithUV(xoffset, ymin, zmax, maxU, maxV)
-    tes.addTranslation(-x, -y, -z)
+  def drawEastFace(x: Float, y: Float, z: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.EAST.getFrontOffsetX.toFloat
+    val ny = EnumFacing.EAST.getFrontOffsetY.toFloat
+    val nz = EnumFacing.EAST.getFrontOffsetZ.toFloat
+    translationBlock(x, y, z) {
+      drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+        addVertexUVNormal(xoffset, ymin, zmin, maxU, maxV, nx, ny, nz)
+        addVertexUVNormal(xoffset, ymax, zmin, maxU, minV, nx, ny, nz)
+        addVertexUVNormal(xoffset, ymax, zmax, minU, minV, nx, ny, nz)
+        addVertexUVNormal(xoffset, ymin, zmax, minU, maxV, nx, ny, nz)
+      }
+    }
   }
 
-  def drawSouthFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float) {
-    val tes = Tessellator.instance
-    tes.addTranslation(x, y, z)
-    tes.addVertexWithUV(xmin, ymin, zoffset, minU, maxV)
-    tes.addVertexWithUV(xmax, ymin, zoffset, minU, minV)
-    tes.addVertexWithUV(xmax, ymax, zoffset, maxU, minV)
-    tes.addVertexWithUV(xmin, ymax, zoffset, maxU, maxV)
-    tes.addTranslation(-x, -y, -z)
+  def drawSouthFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.SOUTH.getFrontOffsetX.toFloat
+    val ny = EnumFacing.SOUTH.getFrontOffsetY.toFloat
+    val nz = EnumFacing.SOUTH.getFrontOffsetZ.toFloat
+    translationBlock(x, y, z) {
+      drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+        addVertexUVNormal(xmax, ymin, zoffset, maxU, maxV, nx, ny, nz)
+        addVertexUVNormal(xmax, ymax, zoffset, maxU, minV, nx, ny, nz)
+        addVertexUVNormal(xmin, ymax, zoffset, minU, minV, nx, ny, nz)
+        addVertexUVNormal(xmin, ymin, zoffset, minU, maxV, nx, ny, nz)
+      }
+    }
   }
 
-  def drawWestFace(x: Float, y: Float, z: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float) {
-    val tes = Tessellator.instance
-    tes.addTranslation(x, y, z)
-    tes.addVertexWithUV(xoffset, ymin, zmin, minU, maxV)
-    tes.addVertexWithUV(xoffset, ymin, zmax, minU, minV)
-    tes.addVertexWithUV(xoffset, ymax, zmax, maxU, minV)
-    tes.addVertexWithUV(xoffset, ymax, zmin, maxU, maxV)
-    tes.addTranslation(-x, -y, -z)
+  def drawWestFace(x: Float, y: Float, z: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    val nx = EnumFacing.WEST.getFrontOffsetX.toFloat
+    val ny = EnumFacing.WEST.getFrontOffsetY.toFloat
+    val nz = EnumFacing.WEST.getFrontOffsetZ.toFloat
+    translationBlock(x, y, z) {
+      drawBlock(DefaultVertexFormats.POSITION_TEX_NORMAL) {
+        addVertexUVNormal(xoffset, ymin, zmax, maxU, maxV, nx, ny, nz)
+        addVertexUVNormal(xoffset, ymax, zmax, maxU, minV, nx, ny, nz)
+        addVertexUVNormal(xoffset, ymax, zmin, minU, minV, nx, ny, nz)
+        addVertexUVNormal(xoffset, ymin, zmin, minU, maxV, nx, ny, nz)
+      }
+    }
   }
 
-  def renderDoubleSidedCube(x: Float, y: Float, z: Float, startx: Float, starty: Float, startz: Float, endx: Float, endy: Float, endz: Float, texture: IIcon) {
+  def renderDoubleSidedCube(x: Float, y: Float, z: Float, startx: Float, starty: Float, startz: Float, endx: Float, endy: Float, endz: Float, texture: TextureAtlasSprite) {
     drawTopFace(x, y, z, startx, endx, startz, endz, endy, texture, texture.getMinU, texture.getMaxU, texture.getMinV, texture.getMaxV)
     drawBottomFace(x, y, z, startx, endx, startz, endz, endy, texture, texture.getMinU, texture.getMaxU, texture.getMinV, texture.getMaxV)
     drawBottomFace(x, y, z, startx, endx, startz, endz, starty, texture, texture.getMinU, texture.getMaxU, texture.getMinV, texture.getMaxV)
@@ -122,7 +186,7 @@ object RenderUtils {
     drawEastFace(x, y, z, starty, endy, startz, endz, startx, texture, texture.getMinU, texture.getMaxU, texture.getMinV, texture.getMaxV)
   }
 
-  def makeTopFace(xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = {
+  def makeTopFace(xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = {
     val a = new Point3D
     val b = new Point3D
     val c = new Point3D
@@ -135,7 +199,7 @@ object RenderUtils {
     new RenderQuad(a, b, c, d, texture, minU, maxU, minV, maxV)
   }
 
-  def makeBottomFace(xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = {
+  def makeBottomFace(xmin: Float, xmax: Float, zmin: Float, zmax: Float, yoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = {
     val a = new Point3D
     val b = new Point3D
     val c = new Point3D
@@ -148,15 +212,15 @@ object RenderUtils {
     new RenderQuad(a, b, c, d, texture, minU, maxU, minV, maxV)
   }
 
-  def makeNorthFace(xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = new RenderQuad(new Point3D(xmax, ymax, zoffset), new Point3D(xmax, ymin, zoffset), new Point3D(xmin, ymin, zoffset), new Point3D(xmin, ymax, zoffset), texture, minU, maxU, minV, maxV)
+  def makeNorthFace(xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = new RenderQuad(new Point3D(xmax, ymax, zoffset), new Point3D(xmax, ymin, zoffset), new Point3D(xmin, ymin, zoffset), new Point3D(xmin, ymax, zoffset), texture, minU, maxU, minV, maxV)
 
-  def makeEastFace(ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = new RenderQuad(new Point3D(xoffset, ymin, zmin), new Point3D(xoffset, ymax, zmin), new Point3D(xoffset, ymax, zmax), new Point3D(xoffset, ymin, zmax), texture, minU, maxU, minV, maxV)
+  def makeEastFace(ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = new RenderQuad(new Point3D(xoffset, ymin, zmin), new Point3D(xoffset, ymax, zmin), new Point3D(xoffset, ymax, zmax), new Point3D(xoffset, ymin, zmax), texture, minU, maxU, minV, maxV)
 
-  def makeWestFace(ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = new RenderQuad(new Point3D(xoffset, ymin, zmin), new Point3D(xoffset, ymin, zmax), new Point3D(xoffset, ymax, zmax), new Point3D(xoffset, ymax, zmin), texture, minU, maxU, minV, maxV)
+  def makeWestFace(ymin: Float, ymax: Float, zmin: Float, zmax: Float, xoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = new RenderQuad(new Point3D(xoffset, ymin, zmin), new Point3D(xoffset, ymin, zmax), new Point3D(xoffset, ymax, zmax), new Point3D(xoffset, ymax, zmin), texture, minU, maxU, minV, maxV)
 
-  def makeSouthFace(xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = new RenderQuad(new Point3D(xmin, ymax, zoffset), new Point3D(xmin, ymin, zoffset), new Point3D(xmax, ymin, zoffset), new Point3D(xmax, ymax, zoffset), texture, minU, maxU, minV, maxV)
+  def makeSouthFace(xmin: Float, xmax: Float, ymin: Float, ymax: Float, zoffset: Float, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float): RenderQuad = new RenderQuad(new Point3D(xmin, ymax, zoffset), new Point3D(xmin, ymin, zoffset), new Point3D(xmax, ymin, zoffset), new Point3D(xmax, ymax, zoffset), texture, minU, maxU, minV, maxV)
 
-  def drawArbitraryFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, normal: ForgeDirection, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+  def drawArbitraryFace(x: Float, y: Float, z: Float, xmin: Float, xmax: Float, ymin: Float, ymax: Float, zmin: Float, zmax: Float, normal: EnumFacing, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
     normal match {
       case UP => drawTopFace(x, y, z, xmin, xmax, zmin, zmax, ymax, texture, minU, maxU, minV, maxV)
       case DOWN => drawBottomFace(x, y, z, xmin, xmax, zmin, zmax, ymin, texture, minU, maxU, minV, maxV)
@@ -168,14 +232,13 @@ object RenderUtils {
     }
   }
 
-  def drawFaceByPoints(x: Float, y: Float, z: Float, A: Point3D, B: Point3D, C: Point3D, D: Point3D, texture: IIcon, minU: Float, maxU: Float, minV: Float, maxV: Float) {
-    val tes = Tessellator.instance
-    tes.addTranslation(x, y, z)
-    tes.addVertexWithUV(A.x, A.y, A.z, minU, maxV)
-    tes.addVertexWithUV(B.x, B.y, B.z, minU, minV)
-    tes.addVertexWithUV(C.x, C.y, C.z, maxU, minV)
-    tes.addVertexWithUV(D.x, D.y, D.z, maxU, maxV)
-    tes.addTranslation(-x, -y, -z)
+  def drawFaceByPoints(x: Float, y: Float, z: Float, A: Point3D, B: Point3D, C: Point3D, D: Point3D, texture: TextureAtlasSprite, minU: Float, maxU: Float, minV: Float, maxV: Float) {
+    drawBlock() {
+      addVertexUV(A.x + x, A.y + y, A.z + z, minU, maxV)
+      addVertexUV(B.x + x, B.y + y, B.z + z, minU, minV)
+      addVertexUV(C.x + x, C.y + y, C.z + z, maxU, minV)
+      addVertexUV(D.x + x, D.y + y, D.z + z, maxU, maxV)
+    }
   }
 
   def drawBillboard(x: Double, y: Double, z: Double, rot: Float, scale: Double, uMin: Float = 0, uMax: Float = 1, vMin: Float = 0, vMax: Float = 1): Unit = {
@@ -183,19 +246,18 @@ object RenderUtils {
   }
 
   def drawBillboardPerpendicular(x: Double, y: Double, z: Double, rot: Float, scale: Double, uMin: Float = 0, uMax: Float = 1, vMin: Float = 0, vMax: Float = 1): Unit = {
-    val xRot = ActiveRenderInfo.rotationX
-    val zRot = ActiveRenderInfo.rotationZ
-    val rotYZ = ActiveRenderInfo.rotationYZ
-    val rotXY = ActiveRenderInfo.rotationXY
-    val rotXZ = ActiveRenderInfo.rotationXZ
+    val xRot = ActiveRenderInfo.getRotationX
+    val zRot = ActiveRenderInfo.getRotationZ
+    val rotYZ = ActiveRenderInfo.getRotationYZ
+    val rotXY = ActiveRenderInfo.getRotationXY
+    val rotXZ = ActiveRenderInfo.getRotationXZ
 
-    val tes = Tessellator.instance
-    tes.startDrawingQuads()
-    tes.addVertexWithUV(x - xRot * scale - rotYZ * scale, y - rotXZ * scale, z - zRot * scale - rotXY * scale, uMax, vMax)
-    tes.addVertexWithUV(x - xRot * scale + rotYZ * scale, y + rotXZ * scale, z - zRot * scale + rotXY * scale, uMax, vMin)
-    tes.addVertexWithUV(x + xRot * scale + rotYZ * scale, y + rotXZ * scale, z + zRot * scale + rotXY * scale, uMin, vMin)
-    tes.addVertexWithUV(x + xRot * scale - rotYZ * scale, y - rotXZ * scale, z + zRot * scale - rotXY * scale, uMin, vMax)
-    tes.draw()
+    drawBlock() {
+      addVertexUV(x - xRot * scale - rotYZ * scale, y - rotXZ * scale, z - zRot * scale - rotXY * scale, uMax, vMax)
+      addVertexUV(x - xRot * scale + rotYZ * scale, y + rotXZ * scale, z - zRot * scale + rotXY * scale, uMax, vMin)
+      addVertexUV(x + xRot * scale + rotYZ * scale, y + rotXZ * scale, z + zRot * scale + rotXY * scale, uMin, vMin)
+      addVertexUV(x + xRot * scale - rotYZ * scale, y - rotXZ * scale, z + zRot * scale - rotXY * scale, uMin, vMax)
+    }
   }
 
   def drawBillboardFacingCamera(x: Double, y: Double, z: Double, dx: Double, dy: Double, dz: Double, rot: Float, scale: Double, uMin: Float = 0, uMax: Float = 1, vMin: Float = 0, vMax: Float = 1): Unit = {
@@ -218,13 +280,12 @@ object RenderUtils {
     val pos3 = billPos - rightVector + upVector
     val pos4 = billPos - rightVector - upVector
 
-    val tes = Tessellator.instance
-    tes.startDrawingQuads()
-    tes.addVertexWithUV(pos1.x, pos1.y, pos1.z, uMin, vMin)
-    tes.addVertexWithUV(pos2.x, pos2.y, pos2.z, uMin, vMax)
-    tes.addVertexWithUV(pos3.x, pos3.y, pos3.z, uMax, vMax)
-    tes.addVertexWithUV(pos4.x, pos4.y, pos4.z, uMax, vMin)
-    tes.draw()
+    drawBlock() {
+      addVertexUV(pos1.x, pos1.y, pos1.z, uMin, vMin)
+      addVertexUV(pos2.x, pos2.y, pos2.z, uMin, vMax)
+      addVertexUV(pos3.x, pos3.y, pos3.z, uMax, vMax)
+      addVertexUV(pos4.x, pos4.y, pos4.z, uMax, vMin)
+    }
   }
 
   def drawBillboardFacingUp(x: Double, y: Double, z: Double, dx: Double, dy: Double, dz: Double, rot: Float, scale: Double, uMin: Float = 0, uMax: Float = 1, vMin: Float = 0, vMax: Float = 1): Unit = {
@@ -237,13 +298,12 @@ object RenderUtils {
     drawBillboardUpRightVector(billPos, up, right, uMin, uMax, vMin, vMax)
   }
 
-  def renderLiquidInGUI(container: GuiContainer, zheight: Float, icon: IIcon, x: Int, y: Int, width: Int, height: Int) {
-    val man = Minecraft.getMinecraft.getTextureManager
-    man.bindTexture(man.getResourceLocation(0))
+  def renderLiquidInGUI(container: GuiContainer, zheight: Float, icon: TextureAtlasSprite, x: Int, y: Int, width: Int, height: Int) {
+    bindBlockTextures()
     renderLiquidInGUI_height(container, zheight, icon, x, y, width, height)
   }
 
-  private def renderLiquidInGUI_height(container: GuiContainer, zheight: Float, icon: IIcon, x: Int, y: Int, width: Int, height: Int) {
+  private def renderLiquidInGUI_height(container: GuiContainer, zheight: Float, icon: TextureAtlasSprite, x: Int, y: Int, width: Int, height: Int) {
     var i = 0
     var remaining = height
     if ((height - width) > 0) {
@@ -271,22 +331,61 @@ object RenderUtils {
     val red = (color >> 16 & 255).toFloat / 255.0F
     val green = (color >> 8 & 255).toFloat / 255.0F
     val blue = (color & 255).toFloat / 255.0F
-    val tessellator = Tessellator.instance
     GL11.glEnable(GL11.GL_BLEND)
     GL11.glDisable(GL11.GL_TEXTURE_2D)
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
     GL11.glColor4f(red, green, blue, alpha)
-    tessellator.startDrawingQuads()
-    tessellator.addVertex(x2.toDouble - xS, y2.toDouble + yS, 0.0D)
-    tessellator.addVertex(x2.toDouble + xS, y2.toDouble - yS, 0.0D)
-    tessellator.addVertex(x1.toDouble + xS, y1.toDouble - yS, 0.0D)
-    tessellator.addVertex(x1.toDouble - xS, y1.toDouble + yS, 0.0D)
-    tessellator.draw
+
+    //Taken from net.minecraft.client.Gui
+    drawBlock() {
+      addVertex(x2.toDouble - xS, y2.toDouble + yS, 0.0D).endVertex()
+      addVertex(x2.toDouble + xS, y2.toDouble - yS, 0.0D).endVertex()
+      addVertex(x1.toDouble + xS, y1.toDouble - yS, 0.0D).endVertex()
+      addVertex(x1.toDouble - xS, y1.toDouble + yS, 0.0D).endVertex()
+    }
     GL11.glEnable(GL11.GL_TEXTURE_2D)
     GL11.glDisable(GL11.GL_BLEND)
   }
 
-  private def renderLiquidInGUI_width(container: GuiContainer, zheight: Float, icon: IIcon, x: Int, y: Int, width: Int, height: Int) {
+  def startDrawing(format: VertexFormat) {
+    Tessellator.getInstance().getBuffer.begin(7, format)
+  }
+
+  def addVertex(x: Double, y: Double, z: Double): BufferBuilder = {
+    Tessellator.getInstance().getBuffer.pos(x, y, z)
+  }
+
+  def addVertex(point: Point3D): BufferBuilder = addVertex(point.x, point.y, point.z)
+
+  def addVertexUV(x: Double, y: Double, z: Double, u: Double, v: Double): Unit = {
+    addVertex(x, y, z).tex(u, v).endVertex()
+  }
+
+  def addVertexUV(point: Point3D, u: Double, v: Double): Unit = addVertexUV(point.x, point.y, point.z, u, v)
+
+  def addVertexUVColor(x: Double, y: Double, z: Double, u: Double, v: Double, color: Color): Unit = {
+    addVertex(x, y, z).tex(u, v).color(color.red, color.green, color.blue, color.alpha).endVertex()
+  }
+
+  def addVertexUVColor(point: Point3D, u: Double, v: Double, color: Color): Unit = addVertexUVColor(point.x, point.y, point.z, u, v, color)
+
+  def addVertexUVNormal(x: Double, y: Double, z: Double, u: Double, v: Double, nx: Float, ny: Float, nz: Float): Unit = {
+    addVertex(x, y, z).tex(u, v).normal(nx, ny, nz).endVertex()
+  }
+
+  def addVertexUVNormal(point: Point3D, u: Double, v: Double, normal: Vector3): Unit = addVertexUVNormal(point.x, point.y, point.z, u, v, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat)
+
+  def addVertexUVColorNormal(x: Double, y: Double, z: Double, u: Double, v: Double, color: Color, nx: Float, ny: Float, nz: Float): Unit = {
+    addVertex(x, y, z).tex(u, v).color(color.red, color.green, color.blue, color.alpha).normal(nx, ny, nz).endVertex()
+  }
+
+  def addVertexUVColorNormal(point: Point3D, u: Double, v: Double, color: Color, normal: Vector3): Unit = addVertexUVColorNormal(point.x, point.y, point.z, u, v, color, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat)
+
+  def finishDrawing(): Unit = {
+    Tessellator.getInstance().draw()
+  }
+
+  private def renderLiquidInGUI_width(container: GuiContainer, zheight: Float, icon: TextureAtlasSprite, x: Int, y: Int, width: Int, height: Int) {
     var i = 0
     var remaining = width
     if ((width - height) > 0) {
@@ -304,42 +403,23 @@ object RenderUtils {
     drawTexturedModalRectFromIcon(zheight, x + i, y, remaining, height, icon.getMinU, icon.getInterpolatedV((remaining * 16f) / height), icon.getMinV, icon.getMaxV)
   }
 
-  private def drawTexturedModalSquareFromIcon(zheight: Float, x: Int, y: Int, size: Int, icon: IIcon) {
+  private def drawTexturedModalSquareFromIcon(zheight: Float, x: Int, y: Int, size: Int, icon: TextureAtlasSprite) {
     drawTexturedModalRectFromIcon(zheight, x, y, size, size, icon.getMinU, icon.getMaxU, icon.getMinV, icon.getMaxV)
   }
 
-  //
-  //  def spawnParticle(world: World, name: String, x: Double, y: Double, z: Double): EntityFX = {
-  //    val mc = Minecraft.getMinecraft
-  //    val deltaX = mc.renderViewEntity.posX - x
-  //    val deltaY = mc.renderViewEntity.posY - y
-  //    val deltaZ = mc.renderViewEntity.posZ - z
-  //    val renderDistance = 16D
-  //    var fx: EntityFX = null
-  //    if ((deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) > (renderDistance * renderDistance)) {
-  //      return null
-  //    }
-  //    if (name == MICRO_POWER_PARTICLE) {
-  //      fx = new EntityFxPower(world, x, y, z, .1f, .1f, 1.0f)
-  //    }
-  //    else if (name == NANO_POWER_PARTICLE) {
-  //      fx = new EntityFxPower(world, x, y, z, .1f, 1.0f, .1f)
-  //    }
-  //    else if (name == FEMTO_POWER_PARTICLE) {
-  //      fx = new EntityFxPower(world, x, y, z, 1f, .5f, .1f)
-  //    }
-  //    mc.effectRenderer.addEffect(fx)
-  //    fx
-  //  }
-
   private def drawTexturedModalRectFromIcon(zheight: Float, x: Int, y: Int, width: Int, height: Int, minU: Float, maxU: Float, minV: Float, maxV: Float) {
-    val tessellator = Tessellator.instance
-    tessellator.startDrawingQuads()
-    tessellator.addVertexWithUV(x.toDouble, (y + height).toDouble, zheight.toDouble, minU.toDouble, maxV.toDouble)
-    tessellator.addVertexWithUV((x + width).toDouble, (y + height).toDouble, zheight.toDouble, maxU.toDouble, maxV.toDouble)
-    tessellator.addVertexWithUV((x + width).toDouble, y.toDouble, zheight.toDouble, maxU.toDouble, minV.toDouble)
-    tessellator.addVertexWithUV(x.toDouble, y.toDouble, zheight.toDouble, minU.toDouble, minV.toDouble)
-    tessellator.draw
+    //Taken from net.minecraft.client.Gui
+    drawBlock() {
+      addVertexUV(x.toDouble, (y + height).toDouble, zheight.toDouble, minU.toDouble, maxV.toDouble)
+      addVertexUV((x + width).toDouble, (y + height).toDouble, zheight.toDouble, maxU.toDouble, maxV.toDouble)
+      addVertexUV((x + width).toDouble, y.toDouble, zheight.toDouble, maxU.toDouble, minV.toDouble)
+      addVertexUV(x.toDouble, y.toDouble, zheight.toDouble, minU.toDouble, minV.toDouble)
+    }
+  }
+
+  def bindBlockTextures(): Unit = {
+    Minecraft.getMinecraft.getTextureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE)
+    Minecraft.getMinecraft.getTextureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).setBlurMipmap(false, false)
   }
 }
 

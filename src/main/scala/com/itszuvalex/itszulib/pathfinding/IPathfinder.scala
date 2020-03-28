@@ -1,16 +1,16 @@
 package com.itszuvalex.itszulib.pathfinding
 
 import com.itszuvalex.itszulib.api.core.Loc4
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.util.EnumFacing
 
 /**
   * Created by Christopher Harris (Itszuvalex) on 3/1/16.
   */
 trait IPathfinder {
 
-  var isGoalState: (Loc4) => Boolean = null
-  var isPathable: (Loc4) => Boolean = (loc) => loc.getBlock(force = false).exists(_.isBlockSolid(loc.getWorld.orNull, loc.x, loc.y, loc.z, ForgeDirection.UP.ordinal()))
-  var getNeighbors: (Loc4) => Set[Loc4] = (loc) => ForgeDirection.VALID_DIRECTIONS.map(loc.getOffset(_, 1)).toSet
+  var isGoalState : Loc4 => Boolean   = null
+  var isPathable  : Loc4 => Boolean   = loc => loc.getBlock(force = false).exists(_.isTopSolid(loc.getBlockState(force = true).get))
+  var getNeighbors: Loc4 => Set[Loc4] = loc => EnumFacing.VALUES.map(loc.getOffset(_, 1)).toSet
 
   def isCompleted: Boolean
 

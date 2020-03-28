@@ -20,13 +20,19 @@
  */
 package com.itszuvalex.itszulib.proxy
 
+import com.itszuvalex.itszulib.api.wrappers.{Converter, IWorld}
 import com.itszuvalex.itszulib.gui.GuiStack
-import com.itszuvalex.itszulib.render.{PreviewableRenderHandler, PreviewableRendererRegistry, RenderSimpleMachine, ShaderUtils}
-import com.itszuvalex.itszulib.testing.{PortalTileTest, _}
-import cpw.mods.fml.client.registry.{ClientRegistry, RenderingRegistry}
+import com.itszuvalex.itszulib.initialization.{BlockBuilder, ItemBuilder}
+import com.itszuvalex.itszulib.render.{PreviewableRenderHandler, ShaderUtils}
+import net.minecraft.block.Block
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.Item
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.{DimensionManager, MinecraftForge}
+import net.minecraftforge.fml.relauncher.Side
 
 
 class ProxyClient extends ProxyCommon {
@@ -36,19 +42,29 @@ class ProxyClient extends ProxyCommon {
     MinecraftForge.EVENT_BUS.register(new PreviewableRenderHandler)
 
     // Previewable Rendering Test
-    PreviewableIDs.testID = PreviewableRendererRegistry.bindRenderer(new TestPreviewableRenderer)
-    RenderSimpleMachine.renderID = RenderingRegistry.getNextAvailableRenderId
-    RenderingRegistry.registerBlockHandler(RenderSimpleMachine.renderID, new RenderSimpleMachine)
-
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[PortalTileTest], new RenderPortalTest)
-
     GuiStack.init()
   }
 
-  override def getClientGuiElement(ID: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
-    (ID, world.getTileEntity(x, y, z)) match {
-      case (0, te: TileTankTest) => new GuiTankTest(player, player.inventory, te)
+  override def getClientGuiElement(ID: Int, data: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef = {
+    (ID, world.getTileEntity(new BlockPos(x, y, z))) match {
       case (_, _) => null
     }
+  }
+
+  override def side: Side = Side.CLIENT
+
+  override def addScheduledTask(f: () => Unit): Unit = Minecraft.getMinecraft.addScheduledTask(new Runnable {override def run(): Unit = f()})
+
+  override def getIWorld(id: Int): IWorld = Converter.IWorldFromWorld(Option(DimensionManager.getWorld(id)).getOrElse(Minecraft.getMinecraft.world))
+
+  override def getWorld(id: Int): World = Option(DimensionManager.getWorld(id)).getOrElse(Minecraft.getMinecraft.world)
+
+
+  override def registerItemModel[T <: Item](item: ItemBuilder[T]): Unit = {
+    Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(item.build(), 0, new ModelResourceLocation(item.registryName.get, "inventory"))
+  }
+
+  override def registerBlockModel[B <: Block](block: BlockBuilder[B]): Unit = {
+    Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(block.build()), 0, new ModelResourceLocation(block.registryName.get, "inventory"))
   }
 }

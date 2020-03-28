@@ -1,7 +1,7 @@
 package com.itszuvalex.itszulib.implicits
 
-import com.itszuvalex.itszulib.api.core.NBTSerializable
 import net.minecraft.nbt.{NBTBase, NBTTagCompound, NBTTagList}
+import net.minecraftforge.common.util.INBTSerializable
 
 import scala.collection.JavaConversions._
 import scala.collection.TraversableOnce
@@ -13,15 +13,11 @@ object NBTHelpers {
 
   object NBTLiterals {
 
-    def NBTCompound(serializable: NBTSerializable) = {
-      val compound = new NBTTagCompound
-      serializable.saveToNBT(compound)
-      compound
-    }
+    def NBTCompound(serializable: INBTSerializable[NBTTagCompound]): NBTTagCompound = serializable.serializeNBT()
 
     def NBTCompound(elems: (String, Any)*): NBTTagCompound = NBTAdditions.NBTCompoundAdding(new NBTTagCompound)(elems: _*)
 
-    def NBTList(collection: TraversableOnce[_ <: NBTBase]) = {
+    def NBTList(collection: TraversableOnce[_ <: NBTBase]): NBTTagList = {
       val list = new NBTTagList
       collection.foreach(list.appendTag)
       list
@@ -38,9 +34,9 @@ object NBTHelpers {
   object NBTAdditions {
 
     implicit class NBTListAdding(list: NBTTagList) {
-      def +=(tag: NBTBase) = list.appendTag(tag)
+      def +=(tag: NBTBase): Unit = list.appendTag(tag)
 
-      def ++=(xs: TraversableOnce[_ <: NBTBase]) = xs.foreach(list.appendTag)
+      def ++=(xs: TraversableOnce[_ <: NBTBase]): Unit = xs.foreach(list.appendTag)
     }
 
     implicit class NBTListIterable(list: NBTTagList) extends Iterable[NBTTagCompound] {
@@ -49,7 +45,7 @@ object NBTHelpers {
       class NBTListIterator(private val list: NBTTagList) extends Iterator[NBTTagCompound] {
         var index = 0
 
-        override def hasNext = index < list.tagCount()
+        override def hasNext: Boolean = index < list.tagCount()
 
         override def next(): NBTTagCompound = {
           val ret = list.getCompoundTagAt(index)
@@ -75,11 +71,11 @@ object NBTHelpers {
           case s: Short => compound.setShort(key, s)
           case s: String => compound.setString(key, s)
           case n: NBTBase => compound.setTag(key, n)
-          case save: NBTSerializable =>
-            compound.setTag(key, NBTLiterals.NBTCompound(save))
+          case save: INBTSerializable[_] =>
+            compound.setTag(key, save.serializeNBT())
           case _ =>
         }
-                      }
+        }
         compound
       }
 
@@ -89,40 +85,48 @@ object NBTHelpers {
           case n: NBTTagCompound =>
             if (compound.hasKey(key)) {
               val nc = compound.getCompoundTag(key)
-              nc.merge(n.func_150296_c().collect { case key: String => (key, n.getTag(key)) }.toSeq: _*)
+              nc.seqMerge(
+                n.getKeySet.map { key =>
+                  (key, n.getTag(key).asInstanceOf[Any])
+                }.toSeq
+                )
             }
             else {
               compound.setTag(key, n)
             }
           case _ => apply((key, value))
         }
-                      }
+        }
         compound
       }
+
+      def seqMerge(elems: Seq[(String, Any)]): NBTTagCompound = merge(elems: _*)
     }
 
 
     implicit class NBTCompoundReading(compound: NBTTagCompound) {
 
-      def Bool(key: String) = compound.getBoolean(key)
+      def Bool(key: String): Boolean = compound.getBoolean(key)
 
-      def Byte(key: String) = compound.getByte(key)
+      def Byte(key: String): Byte = compound.getByte(key)
 
-      def ByteArray(key: String) = if (compound.hasKey(key)) compound.getByteArray(key) else null
+      def ByteArray(key: String): Array[Byte] = if (compound.hasKey(key)) compound.getByteArray(key) else null
 
-      def Double(key: String) = compound.getDouble(key)
+      def Double(key: String): Double = compound.getDouble(key)
 
-      def Float(key: String) = compound.getFloat(key)
+      def Float(key: String): Float = compound.getFloat(key)
 
-      def IntArray(key: String) = if (compound.hasKey(key)) compound.getIntArray(key) else null
+      def IntArray(key: String): Array[Int] = if (compound.hasKey(key)) compound.getIntArray(key) else null
 
-      def Int(key: String) = compound.getInteger(key)
+      def Int(key: String): Int = compound.getInteger(key)
 
-      def Long(key: String) = compound.getLong(key)
+      def Long(key: String): Long = compound.getLong(key)
 
-      def Short(key: String) = compound.getShort(key)
+      def Short(key: String): Short = compound.getShort(key)
 
-      def String(key: String) = if (compound.hasKey(key)) compound.getString(key) else null
+      def String(key: String): String = if (compound.hasKey(key)) compound.getString(key) else null
+
+      def Compound(key: String): NBTTagCompound = if (compound.hasKey(key)) compound.getCompoundTag(key) else null
 
       def NBTCompound[T <: AnyRef](key: String)(callback: NBTTagCompound => T): T = if (compound != null) {
         if (compound.hasKey(key)) {
@@ -132,9 +136,9 @@ object NBTHelpers {
         } else null.asInstanceOf[T]
       } else null.asInstanceOf[T]
 
-      def NBTList(key: String) = if (compound.hasKey(key)) compound.getTagList(key, 10) else null
+      def NBTList(key: String): NBTTagList = if (compound.hasKey(key)) compound.getTagList(key, 10) else null
 
-      def NBTTag(key: String) = if (compound.hasKey(key)) compound.getTag(key) else null
+      def NBTTag(key: String): NBTBase = if (compound.hasKey(key)) compound.getTag(key) else null
     }
 
   }

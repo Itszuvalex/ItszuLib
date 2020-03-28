@@ -3,10 +3,10 @@ package com.itszuvalex.itszulib
 import java.io.File
 import java.util.UUID
 
-import com.itszuvalex.itszulib.configuration.xml.XMLLoaderWriter
-import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent
+import com.itszuvalex.itszulib.xml.XMLLoaderWriter
+import net.minecraftforge.fml.common.FMLCommonHandler
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent
 
 import scala.collection.mutable
 
@@ -27,22 +27,13 @@ object PlayerUUIDTracker {
     load()
   }
 
-  def load() = {
+  def load(): Unit = {
     UUIDToUsername.clear()
     xml.load()
     (xml.xml \ "Mapping").foreach(node => try addMapping(UUID.fromString(node \@ "uuid"), node \@ "username", doSave = false) catch {case _: Throwable =>})
   }
 
-  def getUsername(uuid: UUID) = UUIDToUsername.getOrElse(uuid, "")
-
-  def getUUID(string: String) = UsernameToUUID.getOrElse(string, null)
-
-  @SubscribeEvent
-  def onPlayerLogin(event: PlayerLoggedInEvent) = {
-    addMapping(event.player.getUniqueID, event.player.getCommandSenderName)
-  }
-
-  def addMapping(uuid: UUID, username: String, doSave: Boolean = true) = {
+  def addMapping(uuid: UUID, username: String, doSave: Boolean = true): Unit = {
     if (UUIDToUsername.get(uuid).orNull != username) {
       UUIDToUsername(uuid) = username
       UsernameToUUID(username) = uuid
@@ -50,10 +41,19 @@ object PlayerUUIDTracker {
     }
   }
 
-  def save() = {
+  def save(): Unit = {
     xml.xml = <xml>
       {for (mapping <- UUIDToUsername) yield <Mapping uuid={mapping._1.toString} username={mapping._2}/>}
     </xml>
     xml.save()
+  }
+
+  def getUsername(uuid: UUID): String = UUIDToUsername.getOrElse(uuid, "")
+
+  def getUUID(string: String): UUID = UsernameToUUID.getOrElse(string, null)
+
+  @SubscribeEvent
+  def onPlayerLogin(event: PlayerLoggedInEvent): Unit = {
+    addMapping(event.player.getUniqueID, event.player.getName)
   }
 }

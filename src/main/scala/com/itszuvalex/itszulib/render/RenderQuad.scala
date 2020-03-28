@@ -20,23 +20,22 @@
 */
 package com.itszuvalex.itszulib.render
 
-import net.minecraft.client.renderer.Tessellator
-import net.minecraft.util.IIcon
+import net.minecraft.client.renderer.texture.TextureAtlasSprite
 
 class RenderQuad(var a: Point3D,
                  var b: Point3D,
                  var c: Point3D,
                  var d: Point3D,
-                 var icon: IIcon,
+                 var icon: TextureAtlasSprite,
                  var minU: Float,
                  var maxU: Float,
                  var minV: Float,
                  var maxV: Float) {
 
-  def this(a: Point3D, b: Point3D, c: Point3D, d: Point3D, icon: IIcon) =
+  def this(a: Point3D, b: Point3D, c: Point3D, d: Point3D, icon: TextureAtlasSprite) =
     this(a, b, c, d, icon, icon.getMinU, icon.getMaxU, icon.getMinV, icon.getMaxV)
 
-  def reverse = {
+  def reverse: RenderQuad = {
     var temp = a
     a = d
     d = temp
@@ -48,9 +47,9 @@ class RenderQuad(var a: Point3D,
 
   def reversed = new RenderQuad(d.copy, c.copy, b.copy, a.copy, icon, minU, maxU, minV, maxV)
 
-  def flippedU = copy.flipU
+  def flippedU: RenderQuad = copy.flipU
 
-  def flipU = {
+  def flipU: RenderQuad = {
     val temp = minU
     minU = maxU
     maxU = temp
@@ -59,9 +58,9 @@ class RenderQuad(var a: Point3D,
 
   def copy = new RenderQuad(a.copy, b.copy, c.copy, d.copy, icon, minU, maxU, minV, maxV)
 
-  def flippedV = copy.flipV
+  def flippedV: RenderQuad = copy.flipV
 
-  def flipV = {
+  def flipV: RenderQuad = {
     val temp = minV
     minV = maxV
     maxV = temp
@@ -86,7 +85,7 @@ class RenderQuad(var a: Point3D,
     this
   }
 
-  def rotatedOnXAxis(rot: Double, yrotoffset: Float, zrotoffset: Float) = copy.rotateOnXAxis(rot, yrotoffset, zrotoffset)
+  def rotatedOnXAxis(rot: Double, yrotoffset: Float, zrotoffset: Float): RenderQuad = copy.rotateOnXAxis(rot, yrotoffset, zrotoffset)
 
   def rotateOnXAxis(rot: Double, yrotoffset: Float, zrotoffset: Float): RenderQuad = {
     a.rotateOnXAxis(rot, yrotoffset, zrotoffset)
@@ -96,7 +95,7 @@ class RenderQuad(var a: Point3D,
     this
   }
 
-  def rotatedOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float) = copy.rotateOnYAxis(rot, xrotoffset, zrotoffset)
+  def rotatedOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float): RenderQuad = copy.rotateOnYAxis(rot, xrotoffset, zrotoffset)
 
   def rotateOnYAxis(rot: Double, xrotoffset: Float, zrotoffset: Float): RenderQuad = {
     a.rotateOnYAxis(rot, xrotoffset, zrotoffset)
@@ -118,17 +117,19 @@ class RenderQuad(var a: Point3D,
     this
   }
 
-  def draw() {
-    val tes = Tessellator.instance
+  def draw(): Unit = {
+    import RenderUtils._
     val normal = getNormal
-    tes.setNormal(normal.x.toFloat, normal.y.toFloat, normal.z.toFloat)
-    tes.addVertexWithUV(a.x, a.y, a.z, minU, maxV)
-    tes.addVertexWithUV(b.x, b.y, b.z, minU, minV)
-    tes.addVertexWithUV(c.x, c.y, c.z, maxU, minV)
-    tes.addVertexWithUV(d.x, d.y, d.z, maxU, maxV)
+    drawBlock() {
+      //                setNormal(normal.x, normal.y, normal.z)
+      addVertexUV(a.x, a.y, a.z, minU, maxV)
+      addVertexUV(b.x, b.y, b.z, minU, minV)
+      addVertexUV(c.x, c.y, c.z, maxU, minV)
+      addVertexUV(d.x, d.y, d.z, maxU, maxV)
+    }
   }
 
-  def getNormal = new Vector3(c, b).cross(new Vector3(a, b)).normalize()
+  def getNormal: Vector3 = new Vector3(c, b).cross(new Vector3(a, b)).normalize()
 
   private def this(a: Point3D, b: Point3D, c: Point3D, d: Point3D) =
     this(a, b, c, d, null)

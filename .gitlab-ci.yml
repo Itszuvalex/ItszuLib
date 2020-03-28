@@ -1,4 +1,4 @@
-image: ubuntu_gradle_jdk:latest
+image: openjdk:8u242-jdk
 
 stages:
   - build
@@ -9,12 +9,11 @@ full_build:
     - master
     - develop
   script:
-    - apt-get update
-    - apt-get install --yes --force-yes gradle
     - rm -rf build/libs/*
-    - gradle setupCIWorkspace
-    - gradle build
-    - gradle artifactoryPublish
+    - chmod +x ./gradlew
+    - ./gradlew setupCIWorkspace
+    - ./gradlew build -x test
+    - ./gradlew artifactoryPublish
   cache:
     untracked: true
     key: "$CI_BUILD_NAME"
