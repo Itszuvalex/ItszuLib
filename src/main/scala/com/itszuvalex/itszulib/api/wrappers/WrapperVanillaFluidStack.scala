@@ -23,11 +23,11 @@ object WrapperVanillaFluidStack {
   val nbtSerializer = new Overridable((c: WrapperVanillaFluidStack) => {
     val nbt = new NBTTagCompound
     c.toMinecraft match {
-      case null => null
+      case null =>
       case a =>
         a.writeToNBT(nbt)
-        nbt
     }
+    nbt
   })
 
   val nbtDeserializer = new Overridable((n: NBTTagCompound) => {

@@ -8,7 +8,7 @@ import net.minecraftforge.common.util.INBTSerializable
   * Created by Christopher Harris (Itszuvalex) on 7/14/16.
   */
 object IFluidStorage {
-  val Empty: IFluidStorage = new IFluidStorage {
+  val Empty: IFluidStorage = new IFluidStorageModifiable {
     override def deserializeNBT(nbt: NBTTagCompound): Unit = {}
 
     override def serializeNBT(): NBTTagCompound = new NBTTagCompound
@@ -26,6 +26,8 @@ object IFluidStorage {
     override def length: Int = 0
 
     override def apply(idx: Int): IFluidStack = IFluidStack.Empty
+
+    override def update(i: Int, s: IFluidStack): Unit = {}
   }
 }
 

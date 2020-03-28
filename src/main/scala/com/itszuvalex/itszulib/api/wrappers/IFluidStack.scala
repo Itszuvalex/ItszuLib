@@ -10,7 +10,7 @@ import net.minecraftforge.fluids.{Fluid, FluidStack}
   * Created by Chris on 7/6/2016.
   */
 object IFluidStack {
-  val Empty: IFluidStack = new WrapperVanillaFluidStack() {
+  val Empty: IFluidStack = new IFluidStack {
     override def amount: Int = 0
 
     override def amount_=(amount: Int): Unit = {}
@@ -28,6 +28,14 @@ object IFluidStack {
     override def nbt_=(nbt: NBTTagCompound): Unit = {}
 
     override def toMinecraft: FluidStack = null
+
+    override def writeToNBT(nbt: NBTTagCompound): Unit = {}
+
+    override def identifier: FluidIdentifier = FluidIdentifier("Empty")
+
+    override def serializeNBT(): NBTTagCompound = new NBTTagCompound
+
+    override def deserializeNBT(nbt: NBTTagCompound): Unit = {}
   }
 
   def Serializer: INBTObjectSerializer[IFluidStack, NBTTagCompound] = OverrideSerializer.getOrElse(VanillaSerializer)
