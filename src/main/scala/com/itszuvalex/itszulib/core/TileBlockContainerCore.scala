@@ -60,11 +60,21 @@ abstract class TileBlockContainerCore(material: Material, val ibtcDelegate: IBlo
   }
 
 
+  /**
+    * There are three of these.
+    * 1.  neighborChanged - Deprecated.
+    * 2.  observedNeighborChanged - Looks like it's called in the same situations as neighborChanged.  Not deprecated.
+    * 3.  onNeighborChanged - Tried to hook this for events, only called when neighboring Tiles were removed.  Not placed.  So wires were broken.
+    */
+  override def observedNeighborChange(observerState: IBlockState, world: IWorld, observerPos: BlockPos, changedBlock: IBlock, changedBlockPos: BlockPos): Unit = {
+    behavior.observedNeighborChange(observerState, world, observerPos, changedBlock, changedBlockPos)
+    ibtcDelegate.observedNeighborChange(observerState, world, observerPos, changedBlock, changedBlockPos)
+  }
+
   override def observedNeighborChange(observerState: IBlockState, world: World, observerPos: BlockPos, changedBlock: Block, changedBlockPos: BlockPos): Unit = {
     val iworld = Converter.IWorldFromWorld(world)
     val iblock = Converter.IBlockFromBlock(changedBlock)
-    behavior.observedNeighborChange(observerState, iworld, observerPos, iblock, changedBlockPos)
-    ibtcDelegate.observedNeighborChange(observerState, iworld, observerPos, iblock, changedBlockPos)
+    observedNeighborChange(observerState, iworld, observerPos, iblock, changedBlockPos)
   }
 
   override def onBlockActivated(worldIn: World, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
