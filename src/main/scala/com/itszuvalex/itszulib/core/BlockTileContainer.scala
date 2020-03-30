@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.core
 
-import com.itszuvalex.itszulib.api.wrappers.{IBlockCallbacks, IBlockTileContainer, IItemStack, IWorld}
+import com.itszuvalex.itszulib.api.wrappers._
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
@@ -27,11 +27,25 @@ abstract class BlockTileContainer(private val block: () => Block) extends IBlock
       case _ =>
     }
 
-  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, box: Option[KeyedBoundingBox]): Boolean = {
     world.getITileEntity(pos) match {
       case null => false
-      case tile: IBlockCallbacks => tile.onBlockActivated(world, pos, state, playerIn, hand, facing, hitX, hitY, hitZ)
+      case tile: IBlockCallbacks => tile.onBlockActivated(world, pos, state, playerIn, hand, facing, hitX, hitY, hitZ, box)
       case _ => false
+    }
+  }
+
+  /**
+    * There are three of these.
+    * 1.  neighborChanged - Deprecated.
+    * 2.  observedNeighborChanged - Looks like it's called in the same situations as neighborChanged.  Not deprecated.
+    * 3.  onNeighborChanged - Tried to hook this for events, only called when neighboring Tiles were removed.  Not placed.  So wires were broken.
+    */
+  override def observedNeighborChange(observerState: IBlockState, world: IWorld, observerPos: BlockPos, changedBlock: IBlock, changedBlockPos: BlockPos): Unit = {
+    world.getITileEntity(observerPos) match {
+      case null =>
+      case tile: IBlockCallbacks => tile.onNeighborChanged(world, observerPos, observerState, changedBlock, changedBlockPos)
+      case _ =>
     }
   }
 }

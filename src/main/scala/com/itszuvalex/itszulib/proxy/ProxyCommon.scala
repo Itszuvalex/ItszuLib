@@ -71,4 +71,6 @@ abstract class ProxyCommon extends ItszuGuiHandler {
 
   }
 
+  def getPartialTicks() : Float
+
 }

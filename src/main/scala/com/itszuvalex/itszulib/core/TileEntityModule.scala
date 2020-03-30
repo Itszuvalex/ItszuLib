@@ -1,12 +1,12 @@
 package com.itszuvalex.itszulib.core
 
-import com.itszuvalex.itszulib.api.wrappers.{IItemStack, ITileEntity, IWorld}
+import com.itszuvalex.itszulib.api.wrappers.{IBlock, IItemStack, ITileEntity, IWorld}
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.{EnumFacing, EnumHand}
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.{EnumFacing, EnumHand}
 
 abstract class TileEntityModule[T] extends ITileEntityModule[T] {
   override def hasItemNBT: Boolean = false
@@ -39,5 +39,7 @@ abstract class TileEntityModule[T] extends ITileEntityModule[T] {
 
   override def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit = {}
 
-  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, box: Option[KeyedBoundingBox]): Boolean = false
+
+  override def onNeighborChanged(world: IWorld, pos: BlockPos, state: IBlockState, changedBlock: IBlock, changedPos: BlockPos): Unit = {}
 }

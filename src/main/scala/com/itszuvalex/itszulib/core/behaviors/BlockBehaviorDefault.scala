@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.core.behaviors
 
-import com.itszuvalex.itszulib.api.wrappers.{IBlockBehavior, IItemStack, IWorld}
+import com.itszuvalex.itszulib.api.wrappers.{IBlock, IBlockBehavior, IItemStack, IWorld}
 import net.minecraft.block.Block
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
 import net.minecraft.entity.EntityLivingBase
@@ -14,6 +14,8 @@ private class BlockBehaviorDefault extends IBlockBehavior {
   override def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit = {}
 
   override def onBlockAdded(world: IWorld, pos: BlockPos, state: IBlockState): Unit = {}
+
+  override def observedNeighborChange(observerState: IBlockState, world: IWorld, observerPos: BlockPos, changedBlock: IBlock, changedBlockPos: BlockPos): Unit = {}
 
   override def getStateFromMeta(inState: IBlockState, meta: Int): IBlockState = inState
 
