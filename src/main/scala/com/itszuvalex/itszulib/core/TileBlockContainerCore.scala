@@ -119,7 +119,7 @@ abstract class TileBlockContainerCore(material: Material, val ibtcDelegate: IBlo
     boundingBoxes match {
       case None =>
       case Some(x) =>
-        x.getIntersectingBoxes(entityBox).foreach(collidingBoxes.add)
+        x.getIntersectingBoxes(Converter.IWorldFromWorld(worldIn), pos, entityBox).foreach(collidingBoxes.add)
     }
   }
 
@@ -128,7 +128,7 @@ abstract class TileBlockContainerCore(material: Material, val ibtcDelegate: IBlo
       case None =>
         super.collisionRayTrace(blockState, worldIn, pos, start, end)
       case Some(x) =>
-        x.collisionRayTrace(blockState, worldIn, pos, start, end)
+        x.collisionRayTrace(blockState, Converter.IWorldFromWorld(worldIn), pos, start, end)
     }
   }
 
