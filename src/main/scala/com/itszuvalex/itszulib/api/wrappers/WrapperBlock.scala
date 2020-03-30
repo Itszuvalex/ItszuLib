@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.api.wrappers
 
+import com.itszuvalex.itszulib.core.KeyedBoundingBox
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.EntityLivingBase
@@ -17,8 +18,11 @@ class WrapperBlock(val block: Block) extends IBlock {
   override def onBlockPlacedBy(world: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, stack: IItemStack): Unit
   = block.onBlockPlacedBy(Converter.WorldFromIWorld(world), pos, state, placer, Converter.ItemStackFromIItemStack(stack))
 
-  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean
+  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, box: Option[KeyedBoundingBox]): Boolean
   = block.onBlockActivated(Converter.WorldFromIWorld(world), pos, state, playerIn, hand, facing, hitX, hitY, hitZ)
+
+  override def observedNeighborChange(observerState: IBlockState, world: IWorld, observerPos: BlockPos, changedBlock: IBlock, changedBlockPos: BlockPos): Unit
+  = block.observedNeighborChange(observerState, Converter.WorldFromIWorld(world), observerPos, Converter.BlockFromIBlock(changedBlock), changedBlockPos)
 
   override def toMinecraft: Block = block
 

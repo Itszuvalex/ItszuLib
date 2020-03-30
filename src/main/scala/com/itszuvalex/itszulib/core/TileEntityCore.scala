@@ -156,7 +156,20 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
     super.onLoad()
   }
 
-  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    modules.view.exists(_.onBlockActivated(world, pos, state, playerIn, hand, facing, hitX, hitY, hitZ))
+  override def onBlockActivated(world: IWorld, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float, box:Option[KeyedBoundingBox]): Boolean = {
+    modules.view.exists(_.onBlockActivated(world, pos, state, playerIn, hand, facing, hitX, hitY, hitZ, box))
+  }
+
+  /**
+    * Called from observedNeighborChanged, not onNeighborChanged from regular blocks, due to the latter not triggering on NEW tile entities placed next to this block.
+    *
+    * @param world
+    * @param pos
+    * @param state
+    * @param changedBlock
+    * @param changedPos
+    */
+  override def onNeighborChanged(world: IWorld, pos: BlockPos, state: IBlockState, changedBlock: IBlock, changedPos: BlockPos): Unit = {
+    modules.view.foreach(_.onNeighborChanged(world, pos, state, changedBlock, changedPos))
   }
 }

@@ -14,6 +14,8 @@ trait IBlockBehavior {
 
   def onBlockAdded(world: IWorld, pos: BlockPos, state: IBlockState): Unit
 
+  def observedNeighborChange(observerState: IBlockState, world: IWorld, observerPos: BlockPos, changedBlock: IBlock, changedBlockPos: BlockPos): Unit
+
   def getStateFromMeta(inState: IBlockState, meta: Int): IBlockState
 
   def getMetaFromState(inMeta: Int, state: IBlockState): Int
