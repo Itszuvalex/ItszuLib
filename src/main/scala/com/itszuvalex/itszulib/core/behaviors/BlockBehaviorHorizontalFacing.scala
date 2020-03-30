@@ -1,6 +1,6 @@
 package com.itszuvalex.itszulib.core.behaviors
 
-import com.itszuvalex.itszulib.api.wrappers.{IBlockBehavior, IItemStack, IWorld}
+import com.itszuvalex.itszulib.api.wrappers.{IBlock, IBlockBehavior, IItemStack, IWorld}
 import com.itszuvalex.itszulib.core.behaviors.BlockBehaviorHorizontalFacing.FACING
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
 import net.minecraft.block.{Block, BlockHorizontal}
@@ -23,6 +23,8 @@ private class BlockBehaviorHorizontalFacing extends IBlockBehavior {
   override def onBlockAdded(world: IWorld, pos: BlockPos, state: IBlockState): Unit = {
     setDefaultFacing(world, pos, state)
   }
+
+  override def observedNeighborChange(observerState: IBlockState, world: IWorld, observerPos: BlockPos, changedBlock: IBlock, changedBlockPos: BlockPos): Unit = {}
 
   override def getStateFromMeta(inState: IBlockState, meta: Int): IBlockState = {
     var enumfacing: EnumFacing = EnumFacing.getFront(meta)

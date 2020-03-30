@@ -19,5 +19,7 @@ class ProxyServer extends ProxyCommon {
 
   override def getWorld(id: Int): World = DimensionManager.getWorld(id)
 
+  override def getPartialTicks(): Float = 1f
+
   override def getIWorld(id: Int): IWorld = new WrapperWorld(DimensionManager.getWorld(id))
 }

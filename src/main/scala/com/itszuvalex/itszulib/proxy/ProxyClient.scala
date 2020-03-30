@@ -67,4 +67,6 @@ class ProxyClient extends ProxyCommon {
   override def registerBlockModel[B <: Block](block: BlockBuilder[B]): Unit = {
     Minecraft.getMinecraft.getRenderItem.getItemModelMesher.register(Item.getItemFromBlock(block.build()), 0, new ModelResourceLocation(block.registryName.get, "inventory"))
   }
+
+  override def getPartialTicks(): Float = Minecraft.getMinecraft.getRenderPartialTicks
 }

@@ -18,7 +18,8 @@ object TileEntityUtils {
   }
 
   def incrementTicks(ticks: Int, ticksToAct: Int): Int = {
-    (ticks - 1 + ticksToAct) % ticksToAct
+    if (ticksToAct <= 0) 0 else
+      (ticks - 1 + ticksToAct) % ticksToAct
   }
 
   def checkDoItemInputIO(te: ITileEntity, config: SidedItemStorageConfiguration, ticks: Int, inputSize: Int): Unit = {
