@@ -8,17 +8,23 @@ import com.itszuvalex.itszulib.api.core.Loc4
 trait TileNetworkNode[C <: TileNetworkNode[C, T], T <: TileNetwork[C, T]] extends INetworkNode[C, T] {
   var network: T = null.asInstanceOf[T]
 
-  override def canConnect(loc: Loc4): Boolean = getLoc.isNeighbor(loc)
+  def getLoc: Loc4
+
+
+  override def canConnect(node: C): Boolean = node match {
+    case null => false
+    case n => n.getLoc.isNeighbor(getLoc)
+  }
+
+  override def connect(node: C): Unit = {}
+
+  override def disconnect(node: C): Unit = {}
 
   override def canAdd(iNetwork: T): Boolean = true
 
   override def added(iNetwork: T): Unit = {}
 
   override def removed(iNetwork: T): Unit = {}
-
-  override def connect(node: Loc4): Unit = {}
-
-  override def disconnect(node: Loc4): Unit = {}
 
   override def getNetwork: T = network
 

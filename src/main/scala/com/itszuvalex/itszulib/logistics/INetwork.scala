@@ -2,12 +2,29 @@ package com.itszuvalex.itszulib.logistics
 
 import java.util
 
-import com.itszuvalex.itszulib.api.core.Loc4
 import com.itszuvalex.itszulib.logistics.INetwork.Edge
+
+import scala.collection.immutable.HashSet
+import scala.collection.{Set, immutable, mutable}
 
 object INetwork {
 
-  case class Edge(a: Loc4, b: Loc4)
+  object NetworkExplorer {
+    def explore[C <: INetworkNode[C, N], N <: INetwork[C, N]](start: C, network: INetwork[C, N]): HashSet[C] = {
+      immutable.HashSet[C]() ++ expandNode(start, network, mutable.HashSet[C]())
+    }
+
+    private def expandNode[C <: INetworkNode[C, N], N <: INetwork[C, N]](node: C, network: INetwork[C, N], explored: mutable.HashSet[C]): mutable.HashSet[C] = {
+      if (!explored.contains(node)) {
+        explored += node
+        network.getConnections(node).getOrElse(Set()).foreach(expandNode(_, network, explored))
+      }
+
+      explored
+    }
+  }
+
+  case class Edge[C <: INetworkNode[C, N], N <: INetwork[C, N]](a: C, b: C)
 
 }
 
@@ -35,7 +52,7 @@ trait INetwork[C <: INetworkNode[C, N], N <: INetwork[C, N]] {
     * @param edges Edges to include in the network.
     * @return Create a new network of this type from the given collection of nodes.
     */
-  def create(nodes: util.Collection[C], edges: util.Set[Edge]): N
+  def create(nodes: util.Collection[C], edges: util.Set[Edge[C, N]]): N
 
   /**
     *
@@ -49,26 +66,22 @@ trait INetwork[C <: INetworkNode[C, N], N <: INetwork[C, N]] {
     *
     * @return All connections, mapped by location.
     */
-  def getConnections: util.Map[Loc4, util.Set[Loc4]]
+  def getConnections: util.Map[C, util.Set[C]]
+
+  def getConnections(node: C): Option[mutable.HashSet[C]]
 
   /**
     * Helper function for getting edges in an easy to parse manner.
     *
     * @return Tuple of all edge pairs.
     */
-  def getEdges: util.Set[Edge]
+  def getEdges: util.Set[Edge[C, N]]
 
-  def canConnectNodes(a: C, b: C): Boolean
+  def canConnect(a: C, b: C): Boolean
 
-  def canConnect(a: Loc4, b: Loc4): Boolean
+  def addConnection(a: C, b: C): Unit
 
-  def addConnectionNodes(a: C, b: C): Unit
-
-  def addConnection(a: Loc4, b: Loc4): Unit
-
-  def removeConnectionNodes(a: C, b: C): Unit
-
-  def removeConnection(a: Loc4, b: Loc4): Unit
+  def removeConnection(a: C, b: C): Unit
 
   /**
     *
@@ -142,7 +155,7 @@ trait INetwork[C <: INetworkNode[C, N], N <: INetwork[C, N]] {
     *
     * @param edges All nodes that were connected to all nodes that were removed.
     */
-  def split(edges: util.Set[Loc4]): Unit
+  def split(edges: util.Set[C]): Unit
 
   /**
     *

@@ -82,7 +82,7 @@ class TestNetworking extends TestBase {
         network.addNode(neighbor)
         val edges = network.getEdges
         edges.size() shouldBe 1
-        edges should contain(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)))
+        edges should contain(Edge[TestNode, TestableNetwork](origin, neighbor))
       }
     }
 
@@ -118,7 +118,7 @@ class TestNetworking extends TestBase {
         network.addNode(neighbor2)
         val edges = network.getEdges
         edges.size() shouldBe 2
-        edges should contain allOf(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)), Edge(Loc4(1, 0, 0, 0), Loc4(2, 0, 0, 0)))
+        edges should contain allOf(Edge[TestNode, TestableNetwork](origin, neighbor), Edge[TestNode, TestableNetwork](neighbor, neighbor2))
       }
 
       "when removing nodes" should {
@@ -150,7 +150,7 @@ class TestNetworking extends TestBase {
             network.removeNode(neighbor2)
             val edges = network.getEdges
             edges.size() shouldBe 1
-            edges should contain(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)))
+            edges should contain(Edge[TestNode, TestableNetwork](origin, neighbor))
           }
         }
 
@@ -278,7 +278,7 @@ class TestNetworking extends TestBase {
         network2.addNode(neighbor)
         network3.addNode(neighbor2)
 
-        network.addConnectionNodes(origin, neighbor)
+        network.addConnection(origin, neighbor)
 
         network2.getNodes.size() shouldBe 0
         network2.getEdges.size() shouldBe 0
@@ -290,9 +290,9 @@ class TestNetworking extends TestBase {
         var edges = network.getEdges
         nodes.size() shouldBe 2
         nodes should contain allOf(origin, neighbor)
-        edges should contain(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)))
+        edges should contain(Edge[TestNode, TestableNetwork](origin, neighbor))
 
-        network.addConnectionNodes(neighbor, neighbor2)
+        network.addConnection(neighbor, neighbor2)
 
         network3.getNodes.size() shouldBe 0
         network3.getEdges.size() shouldBe 0
@@ -305,7 +305,7 @@ class TestNetworking extends TestBase {
 
         nodes.size() shouldBe 3
         nodes should contain allOf(origin, neighbor, neighbor2)
-        edges should contain allOf(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)), Edge(Loc4(1, 0, 0, 0), Loc4(2, 0, 0, 0)))
+        edges should contain allOf(Edge[TestNode, TestableNetwork](origin, neighbor), Edge[TestNode, TestableNetwork](neighbor, neighbor2))
       }
 
       "takeover by loc" in new NetworkWithOrigin {
@@ -322,7 +322,7 @@ class TestNetworking extends TestBase {
         network2.addNode(neighbor)
         network3.addNode(neighbor2)
 
-        network.addConnection(origin.getLoc, neighbor.getLoc)
+        network.addConnectionLocs(origin.getLoc, neighbor.getLoc)
 
         network2.getNodes.size() shouldBe 0
         network2.getEdges.size() shouldBe 0
@@ -334,9 +334,9 @@ class TestNetworking extends TestBase {
         var edges = network.getEdges
         nodes.size() shouldBe 2
         nodes should contain allOf(origin, neighbor)
-        edges should contain(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)))
+        edges should contain(Edge[TestNode, TestableNetwork](origin, neighbor))
 
-        network.addConnection(neighbor.getLoc, neighbor2.getLoc)
+        network.addConnectionLocs(neighbor.getLoc, neighbor2.getLoc)
 
         network3.getNodes.size() shouldBe 0
         network3.getEdges.size() shouldBe 0
@@ -349,7 +349,7 @@ class TestNetworking extends TestBase {
 
         nodes.size() shouldBe 3
         nodes should contain allOf(origin, neighbor, neighbor2)
-        edges should contain allOf(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)), Edge(Loc4(1, 0, 0, 0), Loc4(2, 0, 0, 0)))
+        edges should contain allOf(Edge[TestNode, TestableNetwork](origin, neighbor), Edge[TestNode, TestableNetwork](neighbor, neighbor2))
       }
     }
     "adding two connectable nodes in L" should {
@@ -378,7 +378,7 @@ class TestNetworking extends TestBase {
         network.addNode(neighbor2)
         val edges = network.getEdges
         edges.size() shouldBe 2
-        edges should contain allOf(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)), Edge(Loc4(0, 0, 0, 0), Loc4(0, 1, 0, 0)))
+        edges should contain allOf(Edge[TestNode, TestableNetwork](origin, neighbor), Edge[TestNode, TestableNetwork](origin, neighbor2))
       }
     }
     "adding three connectable nodes in square" should {
@@ -415,8 +415,8 @@ class TestNetworking extends TestBase {
         network.addNode(neighbor3)
         val edges = network.getEdges
         edges.size() shouldBe 4
-        edges should contain allOf(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)), Edge(Loc4(0, 0, 0, 0), Loc4(0, 1, 0, 0)), Edge(Loc4(1, 0, 0, 0), Loc4(1, 1, 0, 0)),
-          Edge(Loc4(0, 1, 0, 0), Loc4(1, 1, 0, 0)))
+        edges should contain allOf(Edge[TestNode, TestableNetwork](origin, neighbor), Edge[TestNode, TestableNetwork](origin, neighbor2), Edge[TestNode, TestableNetwork](neighbor, neighbor3),
+          Edge[TestNode, TestableNetwork](neighbor2, neighbor3))
       }
 
       "when 2 connections removed should split" in new NetworkWithOrigin {
@@ -437,18 +437,24 @@ class TestNetworking extends TestBase {
         nodes should contain allOf(origin, neighbor, neighbor2, neighbor3)
         var edges = network.getEdges
         edges.size() shouldBe 4
-        edges should contain allOf(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)), Edge(Loc4(0, 0, 0, 0), Loc4(0, 1, 0, 0)), Edge(Loc4(1, 0, 0, 0), Loc4(1, 1, 0, 0)),
-          Edge(Loc4(0, 1, 0, 0), Loc4(1, 1, 0, 0)))
+        edges should contain allOf(
+          Edge[TestNode, TestableNetwork](origin, neighbor),
+          Edge[TestNode, TestableNetwork](origin, neighbor2),
+          Edge[TestNode, TestableNetwork](neighbor, neighbor3),
+          Edge[TestNode, TestableNetwork](neighbor2, neighbor3))
 
-        network.removeConnection(Loc4(0, 0, 0, 0), Loc4(0, 1, 0, 0))
+        network.removeConnectionLocs(Loc4(0, 0, 0, 0), Loc4(0, 1, 0, 0))
         nodes = network.getNodes
         nodes.size() shouldBe 4
         nodes should contain allOf(origin, neighbor, neighbor2, neighbor3)
         edges = network.getEdges
         edges.size() shouldBe 3
-        edges should contain allOf(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)), Edge(Loc4(1, 0, 0, 0), Loc4(1, 1, 0, 0)), Edge(Loc4(0, 1, 0, 0), Loc4(1, 1, 0, 0)))
+        edges should contain allOf(
+          Edge[TestNode, TestableNetwork](origin, neighbor),
+          Edge[TestNode, TestableNetwork](neighbor, neighbor3),
+          Edge[TestNode, TestableNetwork](neighbor2, neighbor3))
 
-        network.removeConnection(Loc4(1, 0, 0, 0), Loc4(1, 1, 0, 0))
+        network.removeConnectionLocs(Loc4(1, 0, 0, 0), Loc4(1, 1, 0, 0))
         origin.network should be theSameInstanceAs neighbor.network
         val newNetwork = origin.getNetwork
         nodes = newNetwork.getNodes
@@ -456,7 +462,7 @@ class TestNetworking extends TestBase {
         nodes should contain allOf(origin, neighbor)
         edges = newNetwork.getEdges
         edges.size() shouldBe 1
-        edges should contain(Edge(Loc4(0, 0, 0, 0), Loc4(1, 0, 0, 0)))
+        edges should contain(Edge[TestNode, TestableNetwork](origin, neighbor))
 
         neighbor2.network should be theSameInstanceAs neighbor3.network
         val network2 = neighbor2.network
@@ -465,7 +471,7 @@ class TestNetworking extends TestBase {
         nodes should contain allOf(neighbor2, neighbor3)
         edges = network2.getEdges
         edges.size() shouldBe 1
-        edges should contain(Edge(Loc4(0, 1, 0, 0), Loc4(1, 1, 0, 0)))
+        edges should contain(Edge[TestNode, TestableNetwork](neighbor2, neighbor3))
 
         newNetwork shouldNot be theSameInstanceAs network2
 
