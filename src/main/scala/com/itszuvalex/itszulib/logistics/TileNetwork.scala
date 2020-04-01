@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.itszuvalex.itszulib.api.core.{IModule, Loc4}
 import com.itszuvalex.itszulib.api.wrappers.ITileEntity
+import com.itszuvalex.itszulib.logistics.INetwork.Edge
 import com.itszuvalex.itszulib.logistics.TileNetwork.NetworkExplorer
 import com.itszuvalex.itszulib.util.Debug
 
@@ -46,7 +47,9 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
   override def canConnect(a: Loc4, b: Loc4): Boolean = (a.getITileEntity().orNull, b.getITileEntity().orNull) match {
     case (null, _) => false
     case (_, null) => false
-    case (nodeA: ITileEntity, nodeB: ITileEntity) if nodeA.hasModule(networkModule, null) && nodeB.hasModule(networkModule, null) => nodeA.getModule(networkModule, null).canConnect(b) && nodeB.getModule(networkModule, null).canConnect(a)
+    case (nodeA: ITileEntity, nodeB: ITileEntity)
+      if nodeA.hasModule(networkModule, null) && nodeB.hasModule(networkModule, null) =>
+      canConnectNodes(nodeA.getModule(networkModule, null), nodeB.getModule(networkModule, null))
     case _ => false
   }
 
@@ -109,7 +112,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
       networks.foreach { collect =>
         val nodes   = collect.map(nodeMap(_))
         //val nodes   = collect.flatMap(_.getITileEntity()).withFilter(_.hasCapability(networkCapability, null)).map(_.getCapability(networkCapability, null)).asJavaCollection
-        val edges   = edgeTuples.filter { case (loc1, loc2) => collect.contains(loc1)
+        val edges   = edgeTuples.filter { e => collect.contains(e.a)
           /*&& collect.contains(loc2)  Not necessary, as these are fully explored graphs.*/
         }.toSet
         val network = create(nodes, edges)
@@ -164,6 +167,11 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     }
   }
 
+  override def addConnectionNodes(a: C, b: C): Unit = {
+    addConnectionSilently(a.getLoc, b.getLoc)
+    addConnectionInternal(a, b)
+  }
+
   /**
     *
     * Called when a node is added to the network.  Sets ownership of all of its nodes to this one, takes over connections.
@@ -172,7 +180,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     */
   override def takeover(iNetwork: N): Unit = {
     iNetwork.getNodes.foreach { n => addNodeSilently(n); n.setNetwork(this.asInstanceOf[N]) }
-    iNetwork.getEdges.foreach { case (loc1, loc2) => addConnectionSilently(loc1, loc2) }
+    iNetwork.getEdges.foreach { e => addConnectionSilently(e.a, e.b) }
     iNetwork.clear()
     iNetwork.unregister()
   }
@@ -216,10 +224,10 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     * @param edges Edges to include in the network.
     * @return Create a new network of this type from the given collection of nodes.
     */
-  override def create(nodes: util.Collection[C], edges: util.Set[(Loc4, Loc4)]): N = {
+  override def create(nodes: util.Collection[C], edges: util.Set[Edge]): N = {
     val t = create()
     nodes.foreach(n => {t.addNodeSilently(n); n.setNetwork(t)})
-    edges.foreach(a => t.addConnectionSilently(a._1, a._2))
+    edges.foreach(e => t.addConnectionSilently(e.a, e.b))
     t
   }
 
@@ -228,13 +236,13 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     *
     * @return Tuple of all edge pairs.
     */
-  override def getEdges: util.Set[(Loc4, Loc4)] = {
+  override def getEdges: util.Set[Edge] = {
     for {
       pairs <- getConnections.toIterable
       con <- pairs._2
       if pairs._1.compareTo(con) < 0
 
-    } yield (pairs._1, con)
+    } yield Edge(pairs._1, con)
   }.toSet.asJava
 
   protected def removeConnectionSilently(a: Loc4, b: Loc4): Unit =
@@ -247,12 +255,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
       if (setB.isEmpty) connectionMap.remove(b)
     }
 
-  override def canConnectNodes(a: C, b: C): Boolean = canConnect(a.getLoc, b.getLoc)
-
-  override def addConnectionNodes(a: C, b: C): Unit = {
-    addConnectionSilently(a.getLoc, b.getLoc)
-    addConnectionInternal(a, b)
-  }
+  override def canConnectNodes(a: C, b: C): Boolean = a.canConnect(b.getLoc) && b.canConnect(a.getLoc)
 
   private def addConnectionInternal(a: C, b: C): Unit = {
     if (a.getNetwork != b.getNetwork) {
