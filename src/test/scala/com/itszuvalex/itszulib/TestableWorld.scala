@@ -15,6 +15,7 @@ class TestableWorld(private val dim: Int) extends IWorld {
   private val tileMap  = new mutable.HashMap[BlockPos, ITileEntity]()
   private val chunkMap = new mutable.HashMap[ChunkCoord, IChunk]()
 
+  TestBase.testableWorlds(dim) = this
 
   override def isRemote: Boolean = false
 

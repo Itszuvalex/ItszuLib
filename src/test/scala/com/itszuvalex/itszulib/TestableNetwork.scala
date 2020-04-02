@@ -1,9 +1,13 @@
 package com.itszuvalex.itszulib
 
 import com.itszuvalex.itszulib.api.core.IModule
-import com.itszuvalex.itszulib.logistics.{ManagerNetwork, TileNetwork}
+import com.itszuvalex.itszulib.logistics.{INetworkManager, ManagerNetwork, TileNetwork}
 
-class TestableNetwork(_id: Int, val mod: IModule[TestableNetworkNode]) extends TileNetwork[TestableNetworkNode, TestableNetwork](_id) {
+class TestableNetwork(_id: Int, val mod: IModule[TestableNetworkNode], val manager: INetworkManager) extends TileNetwork[TestableNetworkNode, TestableNetwork](_id) {
+
+  override def register(): Unit = manager.addNetwork(this)
+
+  override def unregister(): Unit = manager.removeNetwork(this)
 
   override def networkModule: IModule[TestableNetworkNode] = mod
 
@@ -45,5 +49,5 @@ class TestableNetwork(_id: Int, val mod: IModule[TestableNetworkNode]) extends T
     *
     * @return Create an empty new network of this type.
     */
-  override def create(): TestableNetwork = new TestableNetwork(ManagerNetwork.instance.getNextID, mod)
+  override def create(): TestableNetwork = new TestableNetwork(ManagerNetwork.instance.getNextID, mod, manager)
 }

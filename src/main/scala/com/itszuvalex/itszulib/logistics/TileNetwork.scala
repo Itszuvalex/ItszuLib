@@ -128,10 +128,10 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     removeConnectionSilently(a, b)
 
     a.getITileEntity().withFilter(_.hasModule(networkModule, null)).foreach { tile =>
-      tile.getModule(networkModule, null).disconnect(b, false)
+      tile.getModule(networkModule, null).onDisconnect(b)
     }
     b.getITileEntity().withFilter(_.hasModule(networkModule, null)).foreach { tile =>
-      tile.getModule(networkModule, null).disconnect(a, false)
+      tile.getModule(networkModule, null).onDisconnect(a)
     }
   }
 
@@ -149,7 +149,7 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
     if (!(canAddNode(node) && node.canAdd(this.asInstanceOf[N]))) return
     addNodeSilently(node)
     node.setNetwork(this.asInstanceOf[N])
-    node.added(this.asInstanceOf[N])
+    node.onAdded(this.asInstanceOf[N])
     getNodes.withFilter { a => a.canConnect(node.getLoc) && node.canConnect(a.getLoc) }.foreach(n => addConnection(n.getLoc, node.getLoc))
   }
 
@@ -262,14 +262,14 @@ abstract class TileNetwork[C <: INetworkNode[C, N], N <: TileNetwork[C, N]](val 
       if (a.getNetwork == this) takeover(b.getNetwork)
       else takeover(a.getNetwork)
     }
-    a.connect(b.getLoc, false)
-    b.connect(a.getLoc, false)
+    a.onConnect(b.getLoc)
+    b.onConnect(a.getLoc)
   }
 
   override def removeConnectionNodes(a: C, b: C): Unit = {
     removeConnectionSilently(a.getLoc, b.getLoc)
-    a.disconnect(b.getLoc, false)
-    b.disconnect(a.getLoc, false)
+    a.onDisconnect(b.getLoc)
+    b.onDisconnect(a.getLoc)
     split(Set(a.getLoc, b.getLoc))
   }
 
