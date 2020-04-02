@@ -16,9 +16,9 @@ trait TileNetworkNode[C <: TileNetworkNode[C, T], T <: TileNetwork[C, T]] extend
 
   override def removed(iNetwork: T): Unit = {}
 
-  override def connect(node: Loc4): Unit = {}
+  override def connect(node: Loc4, permanent: Boolean): Unit = {}
 
-  override def disconnect(node: Loc4): Unit = {}
+  override def disconnect(node: Loc4, permanent: Boolean): Unit = {}
 
   override def getNetwork: T = network
 

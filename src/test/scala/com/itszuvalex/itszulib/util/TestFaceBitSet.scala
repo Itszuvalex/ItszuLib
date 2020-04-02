@@ -10,7 +10,7 @@ class TestFaceBitSet extends TestBase {
     val facetestset: Array[EnumFacing] = Array(null) ++ EnumFacing.VALUES
   }
 
-  "A TestFaceBitSet" should {
+  "A FaceBitSet" should {
     "construct with false values and handle a null EnumFacing" in new test {
       facetestset.map(bitset.get).foreach(_ shouldBe false)
     }

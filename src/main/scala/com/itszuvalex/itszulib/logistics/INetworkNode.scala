@@ -24,8 +24,8 @@ trait INetworkNode[C <: INetworkNode[C, T], T <: INetwork[C, T]] {
 
   def removed(iNetwork: T): Unit
 
-  def connect(node: Loc4): Unit
+  def connect(node: Loc4, permanent: Boolean): Unit
 
-  def disconnect(node: Loc4): Unit
+  def disconnect(node: Loc4, permanent: Boolean): Unit
 
 }
