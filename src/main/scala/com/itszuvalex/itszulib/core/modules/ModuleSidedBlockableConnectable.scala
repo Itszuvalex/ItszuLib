@@ -8,7 +8,7 @@ object ModuleSidedBlockableConnectable {
   val BLOCK_NBT = "Block"
 }
 
-abstract class ModuleSidedBlockableConnectable[T <: ModuleSidedBlockableConnectable[T]] extends ModuleSidedConnectable[T] {
+abstract class ModuleSidedBlockableConnectable[T] extends ModuleSidedConnectable[T] {
   val blocked = new FaceBitSet
 
   def isBlocked(face: EnumFacing): Boolean = face match {

@@ -8,7 +8,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 
-abstract class ModuleNetworkedWire[T <: ModuleSidedBlockableConnectable[T] with IPersistedConnectableNetworkNode[T, N], N <: TileNetwork[T, N]](tile: ITileEntity, tnfact: () => N) extends ModuleSidedBlockableConnectable[T] with IPersistedConnectableNetworkNode[T, N] {
+abstract class ModuleNetworkedWire[T <: IPersistedConnectableNetworkNode[T,N], N <: TileNetwork[T, N]](tile: ITileEntity, tnfact: () => N) extends ModuleSidedBlockableConnectable[T] with IPersistedConnectableNetworkNode[T, N] {
   var network: N = null.asInstanceOf[N]
 
   override def setNetwork(network: N): Unit = this.network = network
@@ -33,7 +33,7 @@ abstract class ModuleNetworkedWire[T <: ModuleSidedBlockableConnectable[T] with 
 
   override def addPersistedConnection(node: Loc4): Unit = {
     val facing = EnumFacing.VALUES.view.filter(getLoc.getOffset(_) == node).head
-    if(isConnected(facing)) return
+    if (isConnected(facing)) return
 
     connect(facing)
 
@@ -43,9 +43,9 @@ abstract class ModuleNetworkedWire[T <: ModuleSidedBlockableConnectable[T] with 
       case None =>
       case Some(x) =>
         getNetworkNodeFromITE(x, facing.getOpposite) match {
-          case null =>
-          case x =>
-            val network = if(x.getNetwork != null) x.getNetwork else getNetwork
+          case None =>
+          case Some(x) =>
+            val network = if (x.getNetwork != null) x.getNetwork else getNetwork
             network.addConnection(getLoc, node)
             x.addPersistedConnection(getLoc)
         }
@@ -54,13 +54,22 @@ abstract class ModuleNetworkedWire[T <: ModuleSidedBlockableConnectable[T] with 
 
   override def removePersistedConnection(node: Loc4): Unit = {
     val facing = EnumFacing.VALUES.view.filter(getLoc.getOffset(_) == node).head
-    if(!isConnected(facing)) return
+    if (!isConnected(facing)) return
 
     disconnect(facing)
 
-    network.removeConnection(getLoc, node)
     tile.markDirtyForSave()
     tile.setUpdate()
+
+    node.getITileEntity() match {
+      case None =>
+      case Some(x) =>
+        getNetworkNodeFromITE(x, facing.getOpposite) match {
+          case None =>
+          case Some(n) =>
+            network.removeConnection(getLoc, node)
+        }
+    }
   }
 
 
@@ -93,7 +102,7 @@ abstract class ModuleNetworkedWire[T <: ModuleSidedBlockableConnectable[T] with 
 
   protected def getNetworkNode: T = this.asInstanceOf[T]
 
-  protected def getNetworkNodeFromITE(ite: ITileEntity, f: EnumFacing): T
+  protected def getNetworkNodeFromITE(ite: ITileEntity, f: EnumFacing): Option[T]
 
   override def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit = {
     if (iworld.isRemote) return
@@ -112,8 +121,8 @@ abstract class ModuleNetworkedWire[T <: ModuleSidedBlockableConnectable[T] with 
       new Loc4(core).getOffset(f).getITileEntity(true) match {
         case Some(a: ITileEntity) if shouldConnect(a, f.getOpposite) =>
           getNetworkNodeFromITE(a, f.getOpposite) match {
-            case null =>
-            case x => x.removePersistedConnection(new Loc4(core))
+            case None =>
+            case Some(x) => x.removePersistedConnection(new Loc4(core))
           }
         case _ =>
       }
@@ -130,8 +139,8 @@ abstract class ModuleNetworkedWire[T <: ModuleSidedBlockableConnectable[T] with 
         case None =>
         case Some(i: ITileEntity) if shouldConnect(i, f.getOpposite) =>
           getNetworkNodeFromITE(i, f.getOpposite) match {
-            case null =>
-            case x => if (x.getNetwork != null) {
+            case None =>
+            case Some(x) => if (x.getNetwork != null) {
               if (getNetwork == null)
                 x.getNetwork.addNode(getNetworkNode)
               else

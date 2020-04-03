@@ -9,7 +9,7 @@ object ModuleSidedConnectable {
   val CON_NBT = "Con"
 }
 
-abstract class ModuleSidedConnectable[T <: ModuleSidedConnectable[T]] extends TileEntityModule[T] {
+abstract class ModuleSidedConnectable[T] extends TileEntityModule[T] {
   val connections = new FaceBitSet
 
   def isConnected(face: EnumFacing): Boolean = face match {
