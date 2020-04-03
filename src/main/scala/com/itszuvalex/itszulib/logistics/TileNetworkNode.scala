@@ -12,13 +12,13 @@ trait TileNetworkNode[C <: TileNetworkNode[C, T], T <: TileNetwork[C, T]] extend
 
   override def canAdd(iNetwork: T): Boolean = true
 
-  override def added(iNetwork: T): Unit = {}
+  override def onAdded(iNetwork: T): Unit = {}
 
-  override def removed(iNetwork: T): Unit = {}
+  override def onRemoved(iNetwork: T): Unit = {}
 
-  override def connect(node: Loc4): Unit = {}
+  override def onConnect(node: Loc4): Unit = {}
 
-  override def disconnect(node: Loc4): Unit = {}
+  override def onDisconnect(node: Loc4): Unit = {}
 
   override def getNetwork: T = network
 

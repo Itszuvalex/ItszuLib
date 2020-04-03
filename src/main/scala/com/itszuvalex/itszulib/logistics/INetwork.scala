@@ -3,6 +3,13 @@ package com.itszuvalex.itszulib.logistics
 import java.util
 
 import com.itszuvalex.itszulib.api.core.Loc4
+import com.itszuvalex.itszulib.logistics.INetwork.Edge
+
+object INetwork {
+
+  case class Edge(a: Loc4, b: Loc4)
+
+}
 
 /**
   * Created by Christopher on 4/5/2015.
@@ -28,7 +35,7 @@ trait INetwork[C <: INetworkNode[C, N], N <: INetwork[C, N]] {
     * @param edges Edges to include in the network.
     * @return Create a new network of this type from the given collection of nodes.
     */
-  def create(nodes: util.Collection[C], edges: util.Set[(Loc4, Loc4)]): N
+  def create(nodes: util.Collection[C], edges: util.Set[Edge]): N
 
   /**
     *
@@ -49,7 +56,7 @@ trait INetwork[C <: INetworkNode[C, N], N <: INetwork[C, N]] {
     *
     * @return Tuple of all edge pairs.
     */
-  def getEdges: util.Set[(Loc4, Loc4)]
+  def getEdges: util.Set[Edge]
 
   def canConnectNodes(a: C, b: C): Boolean
 

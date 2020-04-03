@@ -39,7 +39,7 @@ class TestFluidStorageArray extends TestBase {
     })
   }
 
-  "an item storage array" should {
+  "an fluid storage array" should {
     "be the size of its underlying storage" in new withStorage {
       storage.length shouldEqual invSize
     }

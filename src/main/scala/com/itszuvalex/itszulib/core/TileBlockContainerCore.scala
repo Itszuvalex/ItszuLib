@@ -21,7 +21,7 @@ object TileBlockContainerCore {
 }
 
 abstract class TileBlockContainerCore(material: Material, val ibtcDelegate: IBlockTileContainer, val behavior: IBlockBehavior) extends BlockContainer(material) with IBlockTileContainer {
-  val boundingBoxes: Option[NamedBoundingBoxCollection] = Some(TileBlockContainerCore.DEFAULT_STATIC_BOUNDING_BOX_COLLECTION)
+  var boundingBoxes: Option[NamedBoundingBoxCollection] = Some(TileBlockContainerCore.DEFAULT_STATIC_BOUNDING_BOX_COLLECTION)
 
   override def toMinecraft: Block = this
 

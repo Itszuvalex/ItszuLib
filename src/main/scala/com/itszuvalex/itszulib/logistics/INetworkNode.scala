@@ -20,12 +20,12 @@ trait INetworkNode[C <: INetworkNode[C, T], T <: INetwork[C, T]] {
 
   def canAdd(iNetwork: T): Boolean
 
-  def added(iNetwork: T): Unit
+  def onAdded(iNetwork: T): Unit
 
-  def removed(iNetwork: T): Unit
+  def onRemoved(iNetwork: T): Unit
 
-  def connect(node: Loc4): Unit
+  def onConnect(node: Loc4): Unit
 
-  def disconnect(node: Loc4): Unit
+  def onDisconnect(node: Loc4): Unit
 
 }
