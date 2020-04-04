@@ -17,7 +17,7 @@ class ModuleDropInventory(val storage: IItemStorage) extends TileEntityInternalM
   override def onBlockBreak(core: ITileEntity, state: IBlockState): Unit = {
     if (shouldDrop) {
       val random = new Random
-      storage.foreach(InventoryUtils.dropItem(_, new Loc4(core), random))
+      storage.foreach(InventoryUtils.dropItem(_, Loc4(core), random))
       storage.indices.foreach(storage.setSlot(_, IItemStack.Empty))
     }
   }

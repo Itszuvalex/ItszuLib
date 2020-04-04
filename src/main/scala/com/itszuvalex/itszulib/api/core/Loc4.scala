@@ -21,7 +21,7 @@
 package com.itszuvalex.itszulib.api.core
 
 import com.itszuvalex.itszulib.ItszuLib
-import com.itszuvalex.itszulib.api.wrappers.{IChunk, ITileEntity, IWorld, WrapperWorld}
+import com.itszuvalex.itszulib.api.wrappers._
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.nbt.NBTTagCompound
@@ -46,46 +46,104 @@ object Loc4 {
 
   def DimensionMapper: DimensionMapper = OverrideDimensionMapper.getOrElse(VanillaDimensionMapper)
 
-  val ORIGIN: Loc4 = Loc4(0, 0, 0, 0)
+  val ORIGIN: Loc4 = Loc4Indirect(0, new BlockPos(0, 0, 0))
 
   def apply(compound: NBTTagCompound): Loc4 = {
     if (compound == null) null
     else {
-      val loc = new Loc4(0, 0, 0, 0)
+      val loc = new Loc4Indirect(0, new BlockPos(0, 0, 0))
       loc.deserializeNBT(compound)
       loc
     }
   }
+
+
+  def apply(): Loc4 = ORIGIN.copy()
+
+  def apply(x: Int, y: Int, z: Int, dim:Int) = Loc4Indirect(dim, new BlockPos(x, y, z))
+
+  def apply(loc: BlockPos, dim: Int): Loc4Indirect = Loc4Indirect(dim, loc)
+
+  def apply(world: World, pos: BlockPos): Loc4World = Loc4World(new WrapperWorld(world), pos)
+
+  def apply(world: IWorld, pos: BlockPos): Loc4World = Loc4World(world, pos)
+
+  def apply(te: TileEntity): Loc4World = Loc4World(Converter.IWorldFromWorld(te.getWorld), te.getPos)
+
+  def apply(ite: ITileEntity): Loc4World = Loc4World(ite.getIWorld, ite.getPos)
+
+  val X_KEY   = "x"
+  val Y_KEY   = "y"
+  val Z_KEY   = "z"
+  val DIM_KEY = "dim"
 }
 
-case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSerializable[NBTTagCompound] with Comparable[Loc4] {
+case class Loc4World(var iworld: IWorld, var blockPos: BlockPos) extends Loc4 {
 
-  def this() = this(0, 0, 0, 0)
+  override def world: IWorld = iworld
 
-  def this(loc: BlockPos, dim: Int) = this(loc.getX, loc.getY, loc.getZ, dim)
+  override def dim: Int = Loc4.DimensionMapper.dimensionIdForWorld(iworld)
 
-  def this(world: World, pos: BlockPos) = this(pos, Loc4.DimensionMapper.dimensionIdForWorld(new WrapperWorld(world)))
+  override def copy(): Loc4 = Loc4World(iworld, new BlockPos(blockPos))
 
-  def this(world: IWorld, pos: BlockPos) = this(pos, Loc4.DimensionMapper.dimensionIdForWorld(world))
-
-  def this(te: TileEntity) = this(te.getWorld, te.getPos)
-
-  def this(ite: ITileEntity) = this(ite.getIWorld, ite.getPos)
-
-  override def serializeNBT(): NBTTagCompound = {
-    val compound = new NBTTagCompound
-    compound.setInteger("x", x)
-    compound.setInteger("y", y)
-    compound.setInteger("z", z)
-    compound.setInteger("dim", dim)
-    compound
+  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
+    blockPos = new BlockPos(nbt.getInteger(Loc4.X_KEY),
+                            nbt.getInteger(Loc4.Y_KEY),
+                            nbt.getInteger(Loc4.Z_KEY))
+    iworld = Loc4.DimensionMapper.worldForDimensionId(nbt.getInteger(Loc4.DIM_KEY))
   }
 
-  override def deserializeNBT(compound: NBTTagCompound): Unit = {
-    x = compound.getInteger("x")
-    y = compound.getInteger("y")
-    z = compound.getInteger("z")
-    dim = compound.getInteger("dim")
+  override def getPos: BlockPos = blockPos
+
+  override def getOffset(xOffset: Int, yOffset: Int, zOffset: Int): Loc4 = Loc4World(iworld, blockPos.add(xOffset, yOffset, zOffset))
+}
+
+case class Loc4Indirect(var dimension: Int, var blockPos: BlockPos) extends Loc4 {
+
+  override def world: IWorld = Loc4.DimensionMapper.worldForDimensionId(dimension)
+
+  override def dim: Int = dimension
+
+  override def getPos: BlockPos = blockPos
+
+  override def getOffset(xOffset: Int, yOffset: Int, zOffset: Int): Loc4 = Loc4Indirect(dimension, blockPos.add(xOffset, yOffset, zOffset))
+
+  override def copy(): Loc4 = Loc4Indirect(dim, new BlockPos(blockPos))
+
+  override def deserializeNBT(nbt: NBTTagCompound): Unit = {
+    blockPos = new BlockPos(nbt.getInteger(Loc4.X_KEY),
+                            nbt.getInteger(Loc4.Y_KEY),
+                            nbt.getInteger(Loc4.Z_KEY))
+    dimension = nbt.getInteger(Loc4.DIM_KEY)
+  }
+}
+
+sealed abstract class Loc4 extends INBTSerializable[NBTTagCompound] with Comparable[Loc4] {
+  def world: IWorld
+
+  def dim: Int
+
+  def x: Int = getPos.getX
+
+  def y: Int = getPos.getY
+
+  def z: Int = getPos.getZ
+
+  def getPos: BlockPos
+
+  def getWorld: Option[IWorld] = Option(world)
+
+  def anchor(world: IWorld): Loc4World = Loc4World(world, getPos)
+
+  def copy(): Loc4
+
+  override def serializeNBT(): NBTTagCompound = {
+    val ret = new NBTTagCompound
+    ret.setInteger(Loc4.X_KEY, x)
+    ret.setInteger(Loc4.Y_KEY, y)
+    ret.setInteger(Loc4.Z_KEY, z)
+    ret.setInteger(Loc4.DIM_KEY, dim)
+    ret
   }
 
   def getITileEntity(force: Boolean = false): Option[ITileEntity] = getWorld match {
@@ -100,10 +158,6 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
     case None => None
   }
 
-  def getPos: BlockPos = new BlockPos(x, y, z)
-
-  def getWorld: Option[IWorld] = Option(Loc4.DimensionMapper.worldForDimensionId(dim))
-
   def getChunk(force: Boolean = false): Option[IChunk] = getWorld match {
     case Some(a) => Option(if (a.isBlockLoaded(getPos) || force) a.getChunkFromBlockCoords(getPos) else null)
     case None => None
@@ -113,11 +167,7 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
 
   def chunkContains(chunk: IChunk): Boolean = {
     if (Loc4.DimensionMapper.dimensionIdForWorld(chunk.world) != dim) false
-    else if (x <= chunk.x * 16) false
-    else if (x > chunk.x * 16 + 16) false
-    else if (z <= chunk.z * 16) false
-    else if (z > chunk.z * 16 + 16) false
-    else true
+    else ChunkCoord(chunk.x, chunk.z) == chunkCoords
   }
 
   def isNeighbor(loc: Loc4): Boolean = {
@@ -133,7 +183,7 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
                                                                       distance * dir.getFrontOffsetZ)
 
 
-  def getOffset(xOffset: Int, yOffset: Int, zOffset: Int): Loc4 = new Loc4(x + xOffset, y + yOffset, z + zOffset, dim)
+  def getOffset(xOffset: Int, yOffset: Int, zOffset: Int): Loc4
 
   def distSqr(other: Loc4): Double = {
     if (other.dim != dim) return Float.MaxValue
@@ -162,3 +212,9 @@ case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSe
     0
   }
 }
+
+/*
+case class Loc4(var x: Int, var y: Int, var z: Int, var dim: Int) extends INBTSerializable[NBTTagCompound] with Comparable[Loc4] {
+
+}
+ */

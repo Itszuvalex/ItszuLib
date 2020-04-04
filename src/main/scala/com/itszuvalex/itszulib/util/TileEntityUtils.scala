@@ -38,7 +38,7 @@ object TileEntityUtils {
     * @return Iterable Pairs of Storages.  First is outside, second is our te's.
     */
   def getItemStoragesForIO(te: ITileEntity, sidedStorageConfig: SidedItemStorageConfiguration, io: EnumAutomaticIO): Iterable[(IItemStorage, IItemStorage)] = {
-    val facings = sidedStorageConfig.automaticIO.zipWithIndex.filter(_._1 == io).map(a => FacingUtil.getAbsoluteFacingFromHorizontalRelative(EnumFacing.VALUES(a._2), sidedStorageConfig.front())).map(a => (new Loc4(te).getOffset(a), a))
+    val facings = sidedStorageConfig.automaticIO.zipWithIndex.filter(_._1 == io).map(a => FacingUtil.getAbsoluteFacingFromHorizontalRelative(EnumFacing.VALUES(a._2), sidedStorageConfig.front())).map(a => (Loc4(te).getOffset(a), a))
     val tiles   = facings.map(pair => (pair._1.getITileEntity(force = false).orNull, pair._2)).filterNot(_._1 == null)
     tiles.map { pair =>
       val inputStorage = if (pair._1.hasModule(ItszuLibModules.ITEM_STORAGE, pair._2.getOpposite)) pair._1.getModule(ItszuLibModules.ITEM_STORAGE, pair._2.getOpposite)
@@ -90,7 +90,7 @@ object TileEntityUtils {
   }
 
   def getFluidStoragesForIO(te: ITileEntity, sidedStorageConfig: SidedFluidStorageConfiguration, io: EnumAutomaticIO): Iterable[(IFluidStorage, IFluidStorage)] = {
-    val facings = sidedStorageConfig.automaticIO.zipWithIndex.filter(_._1 == io).map(a => FacingUtil.getAbsoluteFacingFromHorizontalRelative(EnumFacing.VALUES(a._2), sidedStorageConfig.front())).map(a => (new Loc4(te).getOffset(a), a))
+    val facings = sidedStorageConfig.automaticIO.zipWithIndex.filter(_._1 == io).map(a => FacingUtil.getAbsoluteFacingFromHorizontalRelative(EnumFacing.VALUES(a._2), sidedStorageConfig.front())).map(a => (Loc4(te).getOffset(a), a))
     val tiles   = facings.map(pair => (pair._1.getITileEntity(force = false).orNull, pair._2)).filterNot(_._1 == null)
     tiles.map { pair =>
       val inputStorage = if (pair._1.hasModule(ItszuLibModules.FLUID_STORAGE, pair._2.getOpposite)) pair._1.getModule(ItszuLibModules.FLUID_STORAGE, pair._2.getOpposite)

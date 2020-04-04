@@ -32,9 +32,9 @@ class PreviewableRenderHandler {
             val hitVec   = PlayerUtils.positionLookedAt(Minecraft.getMinecraft.playerController.getBlockReachDistance, event.getPartialTicks)
             val blockPos = new BlockPos(hitVec)
             if (prev.snapToBlockGrid)
-              renderer.renderAtLocation(Converter.IItemStackFromItemStack(stack), Minecraft.getMinecraft.player, new Loc4(player.getEntityWorld, blockPos), blockPos.getX - px, blockPos.getY - py, blockPos.getZ - pz)
+              renderer.renderAtLocation(Converter.IItemStackFromItemStack(stack), Minecraft.getMinecraft.player, Loc4(player.getEntityWorld, blockPos), blockPos.getX - px, blockPos.getY - py, blockPos.getZ - pz)
             else
-              renderer.renderAtLocation(Converter.IItemStackFromItemStack(stack), Minecraft.getMinecraft.player, new Loc4(player.getEntityWorld, blockPos), hitVec.x - px, hitVec.y - py, hitVec.z - pz)
+              renderer.renderAtLocation(Converter.IItemStackFromItemStack(stack), Minecraft.getMinecraft.player, Loc4(player.getEntityWorld, blockPos), hitVec.x - px, hitVec.y - py, hitVec.z - pz)
           case None =>
         }
       case _ =>
