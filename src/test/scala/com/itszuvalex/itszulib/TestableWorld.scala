@@ -64,7 +64,7 @@ class TestableWorld(private val dim: Int) extends IWorld {
   override def notifyBlockUpdate(getPos: BlockPos, state: IBlockState, state1: IBlockState, i: Int): Unit = {}
 
   override def notifyNeighborsOfStateChange(getPos: BlockPos, getBlock: IBlock, bool: Boolean): Unit = {
-    EnumFacing.VALUES.map(new Loc4(this, getPos).getOffset(_)).foreach { nloc =>
+    EnumFacing.VALUES.map(Loc4(this.asInstanceOf[IWorld], getPos).getOffset(_)).foreach { nloc =>
       nloc.getITileEntity() match {
         case None =>
         case Some(t: IBlockCallbacks) =>

@@ -9,7 +9,7 @@ import net.minecraftforge.common.util.INBTSerializable
 class MultiBlockInfo extends INBTSerializable[NBTTagCompound] {
   private var isMultiBlock        = false
   private var isControl           = false
-  private var controllerLoc: Loc4 = new Loc4(0, 0, 0, 0)
+  private var controllerLoc: Loc4 = Loc4.ORIGIN
 
   def isValidMultiBlock: Boolean = isMultiBlock
 

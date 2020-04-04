@@ -36,9 +36,11 @@ class WrapperWorld(private val world: World) extends IWorld {
   override def markAndNotifyBlock(pos: BlockPos, chunk: IChunk, blockstate: IBlockState, newstate: IBlockState, flags: Int): Unit =
     world.markAndNotifyBlock(pos, chunk.toMinecraft, blockstate, newstate, flags)
 
-  override def markBlockRangeForRenderUpdate(min: BlockPos, max: BlockPos): Unit = world.markBlockRangeForRenderUpdate(min, max)
+  override def markBlockRangeForRenderUpdate(min: BlockPos, max: BlockPos): Unit =
+    world.markBlockRangeForRenderUpdate(min, max)
 
-  override def markBlockRangeForRenderUpdate(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): Unit = world.markBlockRangeForRenderUpdate(x1, y1, z1, x2, y2, z2)
+  override def markBlockRangeForRenderUpdate(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): Unit
+  = world.markBlockRangeForRenderUpdate(x1, y1, z1, x2, y2, z2)
 
   override def markChunkDirty(pos: BlockPos): Unit = world.markChunkDirty(pos, null)
 

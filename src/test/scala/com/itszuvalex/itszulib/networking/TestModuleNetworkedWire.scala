@@ -18,7 +18,7 @@ class TestModuleNetworkedWire extends TestBase {
     val network = new TestableWiringNetwork(testableNetworkManager.getNextID, TestableNetworkModule, testableNetworkManager)
     network.register()
     val testableWorld = new TestableWorld(TestBase.getRandomWorldId)
-    val originTE      = new TestableNetworkNodeTileEntity(new Loc4(testableWorld, new BlockPos(0, 0, 0)), testableWorld, null)
+    val originTE      = new TestableNetworkNodeTileEntity(Loc4(testableWorld, new BlockPos(0, 0, 0)), testableWorld, null)
     val originNode    = new TestableNetworkWiringNode(originTE, TestableNetworkModule, testableNetworkManager)
     originTE.moduleCapabilityMap.addModule(TestableNetworkModule, _ => Some(originNode))
     testableWorld.setITileEntity(originTE.getPos, originTE)
@@ -32,7 +32,7 @@ class TestModuleNetworkedWire extends TestBase {
       }
     }
     "connect to nearby wires when placed" in new Network {
-      val neighborTE   = new TestableNetworkNodeTileEntity(new Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
+      val neighborTE   = new TestableNetworkNodeTileEntity(Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
       val neighborNode = new TestableNetworkWiringNode(neighborTE, TestableNetworkModule, testableNetworkManager)
       neighborTE.moduleCapabilityMap.addModule(TestableNetworkModule, _ => Some(neighborNode))
       testableWorld.setITileEntity(neighborTE.getPos, neighborTE)
@@ -55,7 +55,7 @@ class TestModuleNetworkedWire extends TestBase {
       neighborNode.isConnected(EnumFacing.WEST) shouldBe true
     }
     "persist connection when one node chunk unloads" in new Network {
-      val neighborTE   = new TestableNetworkNodeTileEntity(new Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
+      val neighborTE   = new TestableNetworkNodeTileEntity(Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
       val neighborNode = new TestableNetworkWiringNode(neighborTE, TestableNetworkModule, testableNetworkManager)
       neighborTE.moduleCapabilityMap.addModule(TestableNetworkModule, _ => Some(neighborNode))
       testableWorld.setITileEntity(neighborTE.getPos, neighborTE)
@@ -75,7 +75,7 @@ class TestModuleNetworkedWire extends TestBase {
       neighborNode.isConnected(EnumFacing.WEST) shouldBe true
     }
     "reconnect persisted connection when unloaded node reloads" in new Network {
-      val neighborTE   = new TestableNetworkNodeTileEntity(new Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
+      val neighborTE   = new TestableNetworkNodeTileEntity(Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
       val neighborNode = new TestableNetworkWiringNode(neighborTE, TestableNetworkModule, testableNetworkManager)
       neighborTE.moduleCapabilityMap.addModule(TestableNetworkModule, _ => Some(neighborNode))
       testableWorld.setITileEntity(neighborTE.getPos, neighborTE)
@@ -102,7 +102,7 @@ class TestModuleNetworkedWire extends TestBase {
       neighborNode.isConnected(EnumFacing.WEST) shouldBe true
     }
     "disconnect from nearby wires when broken" in new Network {
-      val neighborTE   = new TestableNetworkNodeTileEntity(new Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
+      val neighborTE   = new TestableNetworkNodeTileEntity(Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
       val neighborNode = new TestableNetworkWiringNode(neighborTE, TestableNetworkModule, testableNetworkManager)
       neighborTE.moduleCapabilityMap.addModule(TestableNetworkModule, _ => Some(neighborNode))
       testableWorld.setITileEntity(neighborTE.getPos, neighborTE)
@@ -133,8 +133,8 @@ class TestModuleNetworkedWire extends TestBase {
     }
     "connect to and disconnect from machines that *should* connect that are themselves not wires" should {
       "connect to a non-wire machine that 'shouldConnect' when notified of neighbor change" in new Network {
-        val machineTE    = new TestableNetworkNodeTileEntity(new Loc4(testableWorld, new BlockPos(2, 0, 0)), testableWorld, null)
-        val neighborTE   = new TestableNetworkNodeTileEntity(new Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
+        val machineTE    = new TestableNetworkNodeTileEntity(Loc4(testableWorld, new BlockPos(2, 0, 0)), testableWorld, null)
+        val neighborTE   = new TestableNetworkNodeTileEntity(Loc4(testableWorld, new BlockPos(1, 0, 0)), testableWorld, null)
         val neighborNode = new TestableNetworkWiringNode(neighborTE, TestableNetworkModule, testableNetworkManager) {
           override protected def shouldConnect(a: ITileEntity, f: EnumFacing): Boolean = super.shouldConnect(a, f) || a == machineTE
 

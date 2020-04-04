@@ -15,7 +15,7 @@ abstract class ModuleNetworkedWire[T <: IPersistedConnectableNetworkNode[T,N], N
 
   override def getNetwork: N = network
 
-  override def getLoc: Loc4 = new Loc4(tile)
+  override def getLoc: Loc4 = Loc4(tile)
 
   override def canConnect(loc: Loc4): Boolean = getLoc.isNeighbor(loc) && !EnumFacing.VALUES.view.filter(getLoc.getOffset(_) == loc).exists(isBlocked)
 
@@ -76,7 +76,7 @@ abstract class ModuleNetworkedWire[T <: IPersistedConnectableNetworkNode[T,N], N
   override def onNeighborChanged(world: IWorld, pos: BlockPos, state: IBlockState, changedBlock: IBlock, changedPos: BlockPos): Unit = {
     if (world.isRemote) return
     val loc  = getLoc
-    val nloc = new Loc4(world, changedPos)
+    val nloc = Loc4(world, changedPos)
     EnumFacing.VALUES.withFilter(loc.getOffset(_) == nloc).foreach(checkFacingForConnection)
   }
 
@@ -118,11 +118,11 @@ abstract class ModuleNetworkedWire[T <: IPersistedConnectableNetworkNode[T,N], N
     if (core.getIWorld.isRemote) return
 
     EnumFacing.VALUES.withFilter(isConnected).foreach { f =>
-      new Loc4(core).getOffset(f).getITileEntity(true) match {
+      Loc4(core).getOffset(f).getITileEntity(true) match {
         case Some(a: ITileEntity) if shouldConnect(a, f.getOpposite) =>
           getNetworkNodeFromITE(a, f.getOpposite) match {
             case None =>
-            case Some(x) => x.removePersistedConnection(new Loc4(core))
+            case Some(x) => x.removePersistedConnection(Loc4(core))
           }
         case _ =>
       }
@@ -134,7 +134,7 @@ abstract class ModuleNetworkedWire[T <: IPersistedConnectableNetworkNode[T,N], N
     if (tile.getIWorld.isRemote) return
 
     EnumFacing.VALUES.withFilter(isConnected).foreach { f =>
-      val loc = new Loc4(tile).getOffset(f)
+      val loc = Loc4(tile).getOffset(f)
       loc.getITileEntity(false) match {
         case None =>
         case Some(i: ITileEntity) if shouldConnect(i, f.getOpposite) =>

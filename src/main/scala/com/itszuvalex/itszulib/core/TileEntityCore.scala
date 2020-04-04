@@ -81,7 +81,7 @@ abstract class TileEntityCore extends TileEntity with ITileEntity with IBlockCal
     }
   }
 
-  def getLoc = new Loc4(this.asInstanceOf[ITileEntity])
+  def getLoc: Loc4 = Loc4(this.asInstanceOf[ITileEntity])
 
   def loadInfoFromItemNBT(compound: NBTTagCompound): Unit = {
     modules.view.filter(_.hasItemNBT).foreach { x =>

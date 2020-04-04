@@ -20,7 +20,7 @@ class MultiblockStatic(val blockpattern: IBlockPattern) extends IMultiblock {
           val mb = te.getModule(ItszuLibModules.TILE_MULTIBLOCK, null)
           if (mb == null) foundNonMultiblock = true
           else {
-            foundErroredMultiblock = !mb.formMultiBlock(new Loc4(world, x), new Loc4(world, pos)) || foundErroredMultiblock
+            foundErroredMultiblock = !mb.formMultiBlock(Loc4(world, x), Loc4(world, pos)) || foundErroredMultiblock
           }
         } else foundNonMultiblock = true
       }
@@ -46,7 +46,7 @@ class MultiblockStatic(val blockpattern: IBlockPattern) extends IMultiblock {
           val mb = te.getModule(ItszuLibModules.TILE_MULTIBLOCK, null)
           if (mb == null) foundNonMultiblock = true
           else {
-            foundErroredMultiblock = !mb.breakMultiBlock(new Loc4(world, pos)) || foundErroredMultiblock
+            foundErroredMultiblock = !mb.breakMultiBlock(Loc4(world, pos)) || foundErroredMultiblock
           }
         } else foundNonMultiblock = true
       }
