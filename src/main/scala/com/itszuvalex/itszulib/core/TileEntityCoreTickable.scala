@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.core
 
 import net.minecraft.util.ITickable
+import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.server.FMLServerHandler
 
 import scala.collection.mutable
@@ -18,7 +19,7 @@ abstract class TileEntityCoreTickable extends TileEntityCore with ITickable {
     if (!getIWorld.isRemote)
       serverUpdate()
     //
-    if (getIWorld.isRemote || Option(FMLServerHandler.instance().getServer).forall(!_.isDedicatedServer))
+    if (getIWorld.isRemote || Option(FMLCommonHandler.instance().getMinecraftServerInstance).forall(!_.isDedicatedServer))
         clientUpdate()
   }
 
