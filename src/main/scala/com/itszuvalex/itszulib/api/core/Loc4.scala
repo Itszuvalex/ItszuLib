@@ -211,6 +211,23 @@ sealed abstract class Loc4 extends INBTSerializable[NBTTagCompound] with Compara
     if (dim > o.dim) return 1
     0
   }
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Loc4]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: Loc4 =>
+      (that canEqual this) &&
+      dim == that.dim &&
+      x == that.x &&
+      y == that.y &&
+      z == that.z
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(dim, x, y, z)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 }
 
 /*

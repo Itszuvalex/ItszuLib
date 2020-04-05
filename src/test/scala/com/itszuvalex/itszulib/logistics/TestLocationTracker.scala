@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.logistics
 
 import com.itszuvalex.itszulib.TestBase
 import com.itszuvalex.itszulib.api.core.Loc4
+import net.minecraft.util.math.BlockPos
 
 class TestLocationTracker extends TestBase {
 
@@ -14,6 +15,11 @@ class TestLocationTracker extends TestBase {
       val loc = Loc4(0, 0, 0, 0)
       tracker.trackLocation(loc)
       tracker.isLocationTracked(loc) shouldBe true
+    }
+    "Not report untracked locations" in new TestTracker {
+      val loc = Loc4(0, 0, 0, 0)
+      tracker.trackLocation(loc)
+      tracker.isLocationTracked(Loc4(new BlockPos(0,0,1), 0)) shouldBe false
     }
     "Remove tracked locations" in new TestTracker {
       val loc = Loc4(0, 0, 0, 0)
