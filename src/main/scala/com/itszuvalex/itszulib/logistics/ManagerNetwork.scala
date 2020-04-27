@@ -16,8 +16,8 @@ import org.apache.logging.log4j.Level
 import scala.collection.JavaConverters._
 
 /**
-  * Created by Christopher on 4/5/2015.
-  */
+ * Created by Christopher on 4/5/2015.
+ */
 object ManagerNetwork {
   val NETWORK_CHANNEL_INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(ItszuLib.ID.toLowerCase + "|" + "logistics")
   private var INSTANCE: INetworkManager = new ManagerNetwork()
@@ -55,7 +55,10 @@ class ManagerNetwork extends INetworkManager {
   override def addNetwork(network: INetwork[_, _]): Unit = {
     Debug.log(Level.INFO, "Added Network:" + network.ID)
     Debug.log(Level.INFO, "Active Networks:" + networkMap.size)
-    networkMap(network.ID) = network
+    if (!networkMap.contains(network.ID))
+      networkMap(network.ID) = network
+    else
+      Debug.log(Level.WARN, "Attempted to re-register network of ID:" + network.ID)
     Debug.log(Level.INFO, "Active Network After Addition:" + networkMap.size)
   }
 

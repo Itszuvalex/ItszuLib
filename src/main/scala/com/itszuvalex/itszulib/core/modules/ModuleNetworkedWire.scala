@@ -8,7 +8,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 
-abstract class ModuleNetworkedWire[T <: IPersistedConnectableNetworkNode[T,N], N <: TileNetwork[T, N]](tile: ITileEntity, tnfact: () => N) extends ModuleSidedBlockableConnectable[T] with IPersistedConnectableNetworkNode[T, N] {
+abstract class ModuleNetworkedWire[T <: IPersistedConnectableNetworkNode[T, N], N <: TileNetwork[T, N]](tile: ITileEntity, tnfact: () => N) extends ModuleSidedBlockableConnectable[T] with IPersistedConnectableNetworkNode[T, N] {
   var network: N = null.asInstanceOf[N]
 
   override def setNetwork(network: N): Unit = this.network = network
@@ -107,9 +107,14 @@ abstract class ModuleNetworkedWire[T <: IPersistedConnectableNetworkNode[T,N], N
   override def onBlockPlacedBy(iworld: IWorld, pos: BlockPos, state: IBlockState, placer: EntityLivingBase, istack: IItemStack): Unit = {
     if (iworld.isRemote) return
 
-    val network = tnfact()
-    network.addNode(getNetworkNode)
-    network.register()
+    // We should never hit this but included if necessary.
+    // Testing shows onLoad is called before onBlockPlacedBy, and onLoad will create a network for us
+    // since it doubles up for reconnecting to stored connections on chunkLoad
+    if (network == null) {
+      val n = tnfact()
+      n.addNode(getNetworkNode)
+      n.register()
+    }
 
     EnumFacing.VALUES.foreach(checkFacingForConnection)
   }
