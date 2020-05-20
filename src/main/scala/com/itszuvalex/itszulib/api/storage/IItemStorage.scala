@@ -50,7 +50,7 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     *
     * @return Max stack size allowed in this storage.
     */
-  def maxStackSize(i: Int): Int = Math.min(64, apply(i).stackSizeMax)
+  def maxStackSize(i: Int): Int = Math.min(64, apply(i).amountMax)
 
   /**
     *
@@ -61,12 +61,12 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
   def split(i: Int, a: Int): IItemStack = {
     val slot = apply(i)
     val ret  = slot.copy()
-    if (a >= slot.stackSize)
+    if (a >= slot.amount)
       setSlot(i, IItemStack.Empty)
     else {
-      slot.stackSize -= a
+      slot.amount -= a
       setSlot(i, slot)
-      ret.stackSize = a
+      ret.amount = a
     }
     ret
   }
@@ -83,33 +83,33 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
 
     val slot = apply(i)
     if (slot.isEmpty) {
-      val max = Math.min(s.stackSizeMax, maxStackSize(i))
-      if (s.stackSize <= max) {
+      val max = Math.min(s.amountMax, maxStackSize(i))
+      if (s.amount <= max) {
         setSlot(i, s)
         IItemStack.Empty
       }
       else {
         val slot = s.copy()
-        slot.stackSize = max
+        slot.amount = max
         val ret = s.copy()
-        ret.stackSize -= max
+        ret.amount -= max
         setSlot(i, slot)
         ret
       }
     }
     else if (slot.isItemEqual(s)) {
-      val max  = Math.min(s.stackSizeMax, maxStackSize(i))
-      val room = max - slot.stackSize
-      if (s.stackSize <= room) {
-        slot.stackSize += s.stackSize
+      val max  = Math.min(s.amountMax, maxStackSize(i))
+      val room = max - slot.amount
+      if (s.amount <= room) {
+        slot.amount += s.amount
         setSlot(i, slot)
         IItemStack.Empty
       }
       else {
         val slotcopy = slot.copy()
-        slotcopy.stackSize += room
+        slotcopy.amount += room
         val ret = s.copy()
-        ret.stackSize -= room
+        ret.amount -= room
         setSlot(i, slotcopy)
         ret
       }
@@ -137,12 +137,12 @@ trait IItemStorage extends scala.collection.immutable.Seq[IItemStack] with INBTS
     var transferRemaining = amt
     val is                = apply(slot).copy()
     val up                = is.copy()
-    is.stackSize = Math.min(is.stackSize, transferRemaining)
+    is.amount = Math.min(is.amount, transferRemaining)
     val ins        = storage.insert(targetSlot, is)
-    val transfered = is.stackSize - ins.stackSize
+    val transfered = is.amount - ins.amount
     transferRemaining -= transfered
-    up.stackSize = up.stackSize - transfered
-    update(slot, if (up.stackSize <= 0) IItemStack.Empty else up)
+    up.amount = up.amount - transfered
+    update(slot, if (up.amount <= 0) IItemStack.Empty else up)
     transferRemaining
   }
 

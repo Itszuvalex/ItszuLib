@@ -1,36 +1,34 @@
 package com.itszuvalex.itszulib.api.storage
 
+import com.itszuvalex.itszulib.api.storage.nbt.NBTInstanceSerializable
 import net.minecraft.nbt.NBTTagCompound
 
 /**
   * Created by Chris on 7/8/2016.
   */
-case class PowerBattery(private var power: Double, private var powerMax: Double) extends IBattery {
+case class PowerBattery[N : Numeric : NBTInstanceSerializable](private var power: N, private var powerMax: N) extends IBattery[N] {
+  val numeric: Numeric[N] = implicitly[Numeric[N]]
 
-  def this(max: Double) = this(0, max)
+  override def amount: N = power
 
-  override def storage: Double = power
+  override def amount_=(amount: N): Unit = power = numeric.min(amountMax, amount)
 
-  override def maxStorage: Double = powerMax
+  override def amountMax: N = powerMax
 
-  override def maxStorage_=(max: Double): Unit = powerMax = max
+  override def clear(): Unit = power = numeric.zero
 
-  override def storage_=(amt: Double): Unit = power = Math.min(maxStorage, amt)
-
-  override def clear(): Unit = power = 0
-
-  override def copy(): IBattery = PowerBattery(power, powerMax)
+  override def copy(): IBattery[N] = PowerBattery[N](power, powerMax)
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {
-    val wrap = new PowerBatteryNBT(nbt)
-    powerMax = wrap.maxStorage
-    power = wrap.storage
+    val wrap = new PowerBatteryNBT[N](nbt)
+    powerMax = wrap.amountMax
+    power = wrap.amount
   }
 
   override def writeToNBT(nbt: NBTTagCompound): Unit = {
-    val wrap = new PowerBatteryNBT(nbt)
-    wrap.maxStorage = maxStorage
-    wrap.storage = storage
+    val wrap = new PowerBatteryNBT[N](nbt)
+    wrap.amountMax = amountMax
+    wrap.amount = amount
     wrap.writeToNBT(nbt)
   }
 }

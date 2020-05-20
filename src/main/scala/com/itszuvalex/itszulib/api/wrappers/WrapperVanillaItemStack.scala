@@ -47,15 +47,15 @@ class WrapperVanillaItemStack(private var stack: ItemStack) extends IItemStack {
 
   override def itemID: Int = item.itemID
 
-  override def stackSize_=(size: Int): Unit = toMinecraft.setCount(size)
+  override def amount: Int = toMinecraft.getCount
+
+  override def amount_=(amount: Int): Unit = toMinecraft.setCount(amount)
+
+  override def amountMax: Int = toMinecraft.getMaxStackSize
 
   override def damage: Int = toMinecraft.getItemDamage
 
   override def damage_=(dam: Int): Unit = toMinecraft.setItemDamage(dam)
-
-  override def stackSize: Int = toMinecraft.getCount
-
-  override def stackSizeMax: Int = toMinecraft.getMaxStackSize
 
   override def nbt_=(nbt: NBTTagCompound): Unit = toMinecraft.setTagCompound(nbt)
 

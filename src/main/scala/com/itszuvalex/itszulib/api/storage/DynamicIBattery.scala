@@ -2,16 +2,15 @@ package com.itszuvalex.itszulib.api.storage
 
 import net.minecraft.nbt.NBTTagCompound
 
-class DynamicIBattery(val getter: () => IBattery) extends IBattery {
-  override def storage: Double = getter().storage
+class DynamicIBattery[N](val getter: () => IBattery[N]) extends IBattery[N] {
 
-  override def storage_=(amt: Double): Unit = getter().storage_=(amt)
+  override def amount: N = getter().amount
 
-  override def maxStorage: Double = getter().maxStorage
+  override def amount_=(amount: N): Unit = getter().amount_=(amount)
 
-  override def maxStorage_=(max: Double): Unit = getter().maxStorage_=(max)
+  override def amountMax: N = getter().amountMax
 
-  override def copy(): IBattery = getter().copy()
+  override def copy(): IBattery[N] = getter().copy()
 
   override def clear(): Unit = getter().clear()
 
@@ -21,17 +20,7 @@ class DynamicIBattery(val getter: () => IBattery) extends IBattery {
 
   override def serializeNBT(): NBTTagCompound = getter().serializeNBT()
 
-  /**
-    *
-    * @param amt Amount to fill
-    * @return Amount filled
-    */
-  override def fill(amt: Double): Double = getter().fill(amt)
+  override def fill(amt: N)(implicit n: Numeric[N]): N = getter().fill(amt)
 
-  /**
-    *
-    * @param amt Amount to drain
-    * @return Amount drained
-    */
-  override def drain(amt: Double): Double = getter().drain(amt)
+  override def drain(amt: N)(implicit n: Numeric[N]): N = getter().drain(amt)
 }

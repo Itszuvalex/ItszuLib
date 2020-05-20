@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Level
   */
 object SyncIItemStack {
   def refreshComparison(a: IItemStack, b: IItemStack): Boolean = {
-    IItemStack.itemStackEquality.apply(a, b) && a.stackSize == b.stackSize
+    IItemStack.itemStackEquality.apply(a, b) && a.amount == b.amount
   }
 }
 

@@ -12,7 +12,7 @@ object StorageUtils {
     val removed = new Array[Int](storage.length)
     var removedAll = true
 
-    def getAmtInSlot(i: Int) = storage(i).stackSize - removed(i)
+    def getAmtInSlot(i: Int) = storage(i).amount - removed(i)
 
     def removeAmtInSlot(slot: Int, amt: Int): Int = {
       val remaining = getAmtInSlot(slot)
@@ -27,7 +27,7 @@ object StorageUtils {
     }
 
     items.filterNot(_.isEmpty).foreach { stack =>
-      var toRemove = stack.stackSize
+      var toRemove = stack.amount
       removedAll = storage.zipWithIndex.exists { store =>
         toRemove = removeAmtInSlot(store._2, toRemove)
         toRemove <= 0

@@ -90,7 +90,7 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
           if (p.isPlayerInv != sync.isPlayerInv && p.storage.canInsert(p.storageIndex, sync.storage(sync.storageIndex))) {
             sync.storage(sync.storageIndex) = p.storage.insert(p.storageIndex, sync.storage.split(sync.storageIndex, 64))
           }
-          sync.storage(sync.storageIndex).stackSize > 0
+          sync.storage(sync.storageIndex).amount > 0
         case _ =>
           true
       }
@@ -120,9 +120,9 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
             ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
           }
           else {
-            val room = a.stackSizeMax - a.stackSize
+            val room = a.amountMax - a.amount
             val copy = sync.storage.split(sync.storageIndex, room)
-            a.stackSize += copy.stackSize
+            a.amount += copy.amount
             player.inventory.setItemStack(a.toMinecraft)
             player.inventory.markDirty()
             ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
@@ -145,15 +145,15 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
       case (null, null) =>
       case (a, b) if a.isEmpty && b.isEmpty => // Do nothing
       case (a, b) if a.isEmpty && !b.isEmpty => // Set inventory item from slot.
-        player.inventory.setItemStack(sync.storage.split(sync.storageIndex, Math.ceil(sync.storage(sync.storageIndex).stackSize / 2f).toInt).toMinecraft)
+        player.inventory.setItemStack(sync.storage.split(sync.storageIndex, Math.ceil(sync.storage(sync.storageIndex).amount / 2f).toInt).toMinecraft)
         player.inventory.markDirty()
         ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
       case (a, b) if !a.isEmpty && b.isEmpty =>
         if (sync.storage.canInsert(sync.storageIndex, a)) {
           val copy = a.copy()
-          copy.stackSize = 1
+          copy.amount = 1
           if (sync.storage.insert(sync.storageIndex, copy).isEmpty) {
-            a.stackSize -= 1
+            a.amount -= 1
             player.inventory.markDirty()
             ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
           }
@@ -162,9 +162,9 @@ class MessageIItemStackSyncClick(sync: ISync[_], click: MessageIItemStackSyncCli
         if (IItemStack.itemStackEquality.apply(a, b)) {
           if (sync.storage.canInsert(sync.storageIndex, a)) {
             val copy = a.copy()
-            copy.stackSize = 1
+            copy.amount = 1
             if (sync.storage.insert(sync.storageIndex, copy).isEmpty) {
-              a.stackSize -= 1
+              a.amount -= 1
               player.inventory.markDirty()
               ItszuLibPacketHandler.INSTANCE.sendTo(new MessageUpdatePlayerInventory(player.inventory.getItemStack.serializeNBT()), player)
             }

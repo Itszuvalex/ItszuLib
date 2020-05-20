@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.gui
 import com.itszuvalex.itszulib.api.storage.{IItemStorage, ItemStoragePlayerInventory}
 import com.itszuvalex.itszulib.container.ContainerBase
 import com.itszuvalex.itszulib.container.sync.SyncItemStorageItemStack
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.entity.player.InventoryPlayer
 
@@ -15,6 +16,8 @@ import scala.collection.mutable.ListBuffer
 abstract class GuiBase(c: ContainerBase) extends GuiContainer(c) with GuiPanel {
 
   def GuiID: Int
+
+  fontRenderer = Minecraft.getMinecraft.fontRenderer
 
   override def _panelWidth: Int = xSize
 

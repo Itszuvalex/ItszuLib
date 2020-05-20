@@ -65,20 +65,20 @@ class TestItemStorageArray extends TestBase {
       "for less than the stack contains modify the underlying and return the split in a new stack" in new withStorage {
         val ret = storage.split(1, 2)
         ret should not be 'Empty
-        ret.stackSize shouldBe 2
+        ret.amount shouldBe 2
         storage(1) should not be 'Empty
-        storage(1).stackSize shouldBe 3
+        storage(1).amount shouldBe 3
       }
       "for exactly the stack return a copy of the stack and leave an empty stack in the storage" in new withStorage {
         val ret = storage.split(1, 5)
         ret should not be 'Empty
-        ret.stackSize shouldBe 5
+        ret.amount shouldBe 5
         storage(1) shouldBe 'Empty
       }
       "for more than the stack contains return a copy of the stack with as much as the stack had and leave an empty stack in the storage" in new withStorage {
         val ret = storage.split(1, 10)
         ret should not be 'Empty
-        ret.stackSize shouldBe 5
+        ret.amount shouldBe 5
         storage(1) shouldBe 'Empty
       }
     }
@@ -100,22 +100,22 @@ class TestItemStorageArray extends TestBase {
       "when inserting an itemstack that matches in a slot with room, add the contents together and return empty" in new withStorage {
         val ins = new TestableItemStack(1, 3)
         val cur = storage(1)
-        cur.stackSize shouldBe 5
+        cur.amount shouldBe 5
         ins.isItemEqual(cur) shouldBe true
         storage.insert(1, ins) shouldBe 'Empty
-        cur.stackSize shouldBe 8
+        cur.amount shouldBe 8
       }
       "when inserting an itemstack that matches in a slot with limited room, add until at max and return the remains" in new withStorage {
         val ins = new TestableItemStack(1, 63)
         val cur = storage(1)
-        cur.stackSize shouldBe 5
+        cur.amount shouldBe 5
         ins.isItemEqual(cur) shouldBe true
         val ret = storage.insert(1, ins)
         ret should not be 'Empty
         ins.isItemEqual(ret) shouldBe true
         storage(1) should not be 'Empty
-        storage(1).stackSize shouldBe 64
-        ret.stackSize shouldBe 4
+        storage(1).amount shouldBe 64
+        ret.amount shouldBe 4
       }
       "when inserting an itemstack into an empty slot with greater than the amount of room, set the slot with as much as can fit return the remains" in new withStorage {
         val ins = new TestableItemStack(1, 200)
@@ -123,9 +123,9 @@ class TestItemStorageArray extends TestBase {
         cur shouldBe 'Empty
         val ret = storage.insert(9, ins)
         ret.isItemEqual(ins) shouldBe true
-        ret.stackSize shouldBe (200 - 64)
+        ret.amount shouldBe (200 - 64)
         storage(9).isItemEqual(ins) shouldBe true
-        storage(9).stackSize shouldBe storage.maxStackSize(9)
+        storage(9).amount shouldBe storage.maxStackSize(9)
       }
       "when inserting an itemstack into a slot that contains a different itemstack, return the insert and modify nothing" in new withStorage {
         val ins      = new TestableItemStack(3, 20)
@@ -133,9 +133,9 @@ class TestItemStorageArray extends TestBase {
         val slotCopy = storage(1).copy()
         val ret      = storage.insert(1, ins)
         ret.isItemEqual(ins) shouldBe true
-        ret.stackSize shouldBe ins.stackSize
+        ret.amount shouldBe ins.amount
         slotCopy.isItemEqual(storage(1)) shouldBe true
-        slotCopy.stackSize shouldBe storage(1).stackSize
+        slotCopy.amount shouldBe storage(1).amount
       }
     }
     "transferring into another storage" should {
@@ -152,7 +152,7 @@ class TestItemStorageArray extends TestBase {
 
         emptying(0) shouldBe 'Empty
         filling(0) should not be 'Empty
-        filling(0).stackSize shouldBe 1
+        filling(0).amount shouldBe 1
         ret shouldBe 0
       }
 
@@ -168,9 +168,9 @@ class TestItemStorageArray extends TestBase {
         val ret = emptying.transferIntoStorage(filling, 1)
 
         emptying(0) should not be 'Empty
-        emptying(0).stackSize shouldBe 1
+        emptying(0).amount shouldBe 1
         filling(0) should not be 'Empty
-        filling(0).stackSize shouldBe 1
+        filling(0).amount shouldBe 1
         ret shouldBe 0
       }
 
@@ -187,7 +187,7 @@ class TestItemStorageArray extends TestBase {
 
         emptying(0) shouldBe 'Empty
         filling(0) should not be 'Empty
-        filling(0).stackSize shouldBe 1
+        filling(0).amount shouldBe 1
         ret shouldBe 1
       }
 
@@ -204,11 +204,11 @@ class TestItemStorageArray extends TestBase {
         val ret = emptying.transferIntoStorage(filling, 2)
 
         emptying(0) should not be 'Empty
-        emptying(0).stackSize shouldBe 3
+        emptying(0).amount shouldBe 3
         filling(0) should not be 'Empty
-        filling(0).stackSize shouldBe 64
+        filling(0).amount shouldBe 64
         filling(1) should not be 'Empty
-        filling(1).stackSize shouldBe 2
+        filling(1).amount shouldBe 2
         ret shouldBe 0
       }
 
@@ -229,10 +229,10 @@ class TestItemStorageArray extends TestBase {
         emptying(0) shouldBe 'Empty
         emptying(1) shouldBe 'Empty
         filling(0) should not be 'Empty
-        filling(0).stackSize shouldBe 1
+        filling(0).amount shouldBe 1
         filling(0).itemID shouldBe 0
         filling(1) should not be 'Empty
-        filling(1).stackSize shouldBe 1
+        filling(1).amount shouldBe 1
         filling(1).itemID shouldBe 1
         ret shouldBe 0
       }
@@ -253,7 +253,7 @@ class TestItemStorageArray extends TestBase {
         emptying(0) shouldBe 'Empty
         emptying(1) shouldBe 'Empty
         filling(0) should not be 'Empty
-        filling(0).stackSize shouldBe 2
+        filling(0).amount shouldBe 2
         ret shouldBe 0
       }
 
@@ -272,7 +272,7 @@ class TestItemStorageArray extends TestBase {
         emptying(0) shouldBe 'Empty
         filling(0) shouldBe 'Empty
         filling(1) should not be 'Empty
-        filling(1).stackSize shouldBe 2
+        filling(1).amount shouldBe 2
         ret shouldBe 0
       }
 
@@ -288,9 +288,9 @@ class TestItemStorageArray extends TestBase {
         val ret = emptying.transferIntoStorage(filling, 1)
 
         emptying(0) should not be 'Empty
-        emptying(0).stackSize shouldBe 1
+        emptying(0).amount shouldBe 1
         filling(0) should not be 'Empty
-        filling(0).stackSize shouldBe 1
+        filling(0).amount shouldBe 1
         ret shouldBe 1
       }
     }
@@ -303,7 +303,7 @@ class TestItemStorageArray extends TestBase {
         storage(i).isEmpty shouldBe storage2(i).isEmpty
         if (!storage(i).isEmpty) {
           storage(i).asInstanceOf[TestableItemStack].itemID shouldBe storage2(i).asInstanceOf[TestableItemStack].itemID
-          storage(i).stackSize shouldBe storage2(i).stackSize
+          storage(i).amount shouldBe storage2(i).amount
           storage(i).damage shouldBe storage2(i).damage
         }
       }

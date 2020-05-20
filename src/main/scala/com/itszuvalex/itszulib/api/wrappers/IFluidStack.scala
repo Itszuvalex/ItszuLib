@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
 import com.itszuvalex.itszulib.api.core.{FluidIdentifier, INBTObjectSerializer}
+import com.itszuvalex.itszulib.api.storage.{IStack, mL}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.INBTSerializable
 import net.minecraftforge.fluids.{Fluid, FluidStack}
@@ -10,12 +11,12 @@ import net.minecraftforge.fluids.{Fluid, FluidStack}
   * Created by Chris on 7/6/2016.
   */
 object IFluidStack {
-  val Empty: IFluidStack = new IFluidStack {
-    override def amount: Int = 0
+  object Empty extends IFluidStack {
+    override def amount: mL = 0
 
-    override def amount_=(amount: Int): Unit = {}
+    override def amount_=(amount: mL): Unit = {}
 
-    override def amountMax: Int = Int.MaxValue
+    override def amountMax: mL = Int.MaxValue
 
     override def copy(): IFluidStack = IFluidStack.Empty
 
@@ -60,15 +61,9 @@ object IFluidStack {
   })
 }
 
-trait IFluidStack extends INBTSerializable[NBTTagCompound] {
+trait IFluidStack extends IStack[mL] with INBTSerializable[NBTTagCompound] {
 
   def fluid: Fluid
-
-  def amount: Int
-
-  def amount_=(amount: Int): Unit
-
-  def amountMax: Int
 
   def nbt: NBTTagCompound
 

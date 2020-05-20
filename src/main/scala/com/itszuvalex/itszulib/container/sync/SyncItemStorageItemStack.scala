@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Level
 class SyncItemStorageItemStack(gui: Int, val storage: IItemStorage, protected var ind: Int, protected val playerInv: Boolean = false) extends SyncIItemStack(gui, () => IItemStack.Empty, (i: IItemStack) => {}) {
   valueSetFunction = (i: IItemStack) => {
     storage(storageIndex) = i
-    Debug.log(Level.WARN, "Set storage stacksize:" + i.stackSize)
+    Debug.log(Level.WARN, "Set storage stacksize:" + i.amount)
   }
   valueFunction = () => {
     storage(storageIndex)

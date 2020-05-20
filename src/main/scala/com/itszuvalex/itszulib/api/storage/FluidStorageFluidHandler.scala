@@ -13,7 +13,7 @@ class FluidStorageFluidHandler(private val handler: IFluidHandler) extends IFlui
 
   override def drain(resource: IFluidStack, doDrain: Boolean): IFluidStack = Converter.IFluidStackFromFluidStack(handler.drain(resource.toMinecraft, doDrain))
 
-  override def drainIStack(maxDrain: Int, doDrain: Boolean): IFluidStack = Converter.IFluidStackFromFluidStack(handler.drain(maxDrain, doDrain))
+  override def drainIStack(maxDrain: mL, doDrain: Boolean): IFluidStack = Converter.IFluidStackFromFluidStack(handler.drain(maxDrain, doDrain))
 
   override def length: Int = handler.getTankProperties.length
 

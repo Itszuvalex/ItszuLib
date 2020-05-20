@@ -26,11 +26,11 @@ class TestableItemStack(var testItem: Int, var testStack: Int, var testDamage: I
 
   override def itemID: Int = testItem
 
-  override def stackSize: Int = testStack
+  override def amount: Int = testStack
 
-  override def stackSize_=(size: Int): Unit = testStack = size
+  override def amount_=(amount: Int): Unit = testStack = amount
 
-  override def stackSizeMax: Int = testStackMax
+  override def amountMax: Int = testStackMax
 
   override def damage: Int = testDamage
 

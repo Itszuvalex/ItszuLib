@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api.storage
 
 import com.itszuvalex.itszulib.api.storage.PowerBatteryNBT._
+import com.itszuvalex.itszulib.api.storage.nbt.NBTInstanceSerializable
 import net.minecraft.nbt.NBTTagCompound
 
 /**
@@ -12,25 +13,27 @@ object PowerBatteryNBT {
   val POWER_MAX_TAG = "POWER_MAX"
 }
 
-class PowerBatteryNBT(private var nbt: NBTTagCompound) extends IBattery {
-  override def storage: Double = nbt.getDouble(POWER_TAG)
+class PowerBatteryNBT[N : NBTInstanceSerializable : Numeric](private var nbt: NBTTagCompound) extends IBattery[N] {
+  val nbts: NBTInstanceSerializable[N] = implicitly[NBTInstanceSerializable[N]]
+  val numeric: Numeric[N] = implicitly[Numeric[N]]
 
-  override def storage_=(amt: Double): Unit = nbt.setDouble(POWER_TAG, Math.min(maxStorage, amt))
+  override def amount: N = nbts.deserializeInstance(nbt, POWER_TAG)
 
-  override def maxStorage: Double = nbt.getDouble(POWER_MAX_TAG)
+  override def amount_=(amount: N): Unit = nbts.serialize(numeric.min(amountMax, amount), nbt, POWER_TAG)
 
-  override def maxStorage_=(max: Double): Unit = nbt.setDouble(POWER_MAX_TAG, max)
+  override def amountMax: N = nbts.deserializeInstance(nbt, POWER_MAX_TAG)
 
-  override def copy(): IBattery = PowerBattery(storage, maxStorage)
+  def amountMax_=(amountMax: N): Unit = nbts.serialize(amountMax, nbt, POWER_MAX_TAG)
+
+  override def copy(): IBattery[N] = PowerBattery(amount, amountMax)
 
   override def clear(): Unit = {
-    storage = 0
-    maxStorage = 0
+    amount = numeric.zero
   }
 
   override def writeToNBT(nbt: NBTTagCompound): Unit = {
-    nbt.setDouble(POWER_TAG, storage)
-    nbt.setDouble(POWER_MAX_TAG, maxStorage)
+    nbts.serialize(amount, nbt, POWER_TAG)
+    nbts.serialize(amountMax, nbt, POWER_MAX_TAG)
   }
 
   override def deserializeNBT(nbt: NBTTagCompound): Unit = {

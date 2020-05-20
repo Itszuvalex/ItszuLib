@@ -27,7 +27,7 @@ object InventoryUtils {
     if (item == null || item.isEmpty) {
       return true
     }
-    var amount = item.stackSize
+    var amount = item.amount
     if (restrictions != null) {
       util.Arrays.sort(restrictions)
     }
@@ -35,12 +35,12 @@ object InventoryUtils {
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) != null && compareItem(slots(i), item) == 0) {
           val slot = slots(i)
-          val room = slot.stackSizeMax - slot.stackSize
+          val room = slot.amountMax - slot.amount
           if (room < amount) {
-            slot.stackSize += room
+            slot.amount += room
             amount -= room
           } else {
-            slot.stackSize += amount
+            slot.amount += amount
             return true
           }
         }
@@ -50,7 +50,7 @@ object InventoryUtils {
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) == null) {
           slots(i) = item.copy()
-          slots(i).stackSize = amount
+          slots(i).amount = amount
           return true
         }
       }
@@ -102,10 +102,10 @@ object InventoryUtils {
     val f1 = rand.nextFloat * 0.8F + 0.1F
     val f2 = rand.nextFloat * 0.8F + 0.1F
 
-    while (item.stackSize > 0) {
+    while (item.amount > 0) {
       var k1 = rand.nextInt(21) + 10
-      if (k1 > item.stackSize) {
-        k1 = item.stackSize
+      if (k1 > item.amount) {
+        k1 = item.amount
       }
       val dstack = new ItemStack(item.serializeNBT())
       dstack.setCount(k1)
@@ -114,7 +114,7 @@ object InventoryUtils {
                                       (loc.getPos.getY.toFloat + f1).toDouble,
                                       (loc.getPos.getZ.toFloat + f2).toDouble,
                                       dstack)
-      item.stackSize -= k1
+      item.amount -= k1
       if (item.hasNbt) {
         entityItem.getItem.setTagCompound(item.nbt.copy)
       }
@@ -139,7 +139,7 @@ object InventoryUtils {
     if (item == null || item.isEmpty) {
       return true
     }
-    var amountLeftToRemove: Int = item.stackSize
+    var amountLeftToRemove: Int = item.amount
     if (amountLeftToRemove <= 0) return true
     if (restrictions != null) {
       util.Arrays.sort(restrictions)
@@ -148,7 +148,7 @@ object InventoryUtils {
       if (restrictions == null || !(util.Arrays.binarySearch(restrictions, i) >= 0)) {
         if (slots(i) != null && compareItem(slots(i), item) == 0) {
           val slot   = slots(i)
-          val amount = slot.stackSize
+          val amount = slot.amount
           if (amount <= amountLeftToRemove) {
             slots(i) = null
             amountLeftToRemove -= amount
@@ -156,7 +156,7 @@ object InventoryUtils {
               return true
             }
           } else {
-            slot.stackSize -= amountLeftToRemove
+            slot.amount -= amountLeftToRemove
             return true
           }
         }

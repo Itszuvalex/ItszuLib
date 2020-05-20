@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.api.wrappers
 
 import com.itszuvalex.itszulib.api.Overridable
 import com.itszuvalex.itszulib.api.core.{IModule, INBTObjectSerializer, ItemIdentifier}
+import com.itszuvalex.itszulib.api.storage.IStack
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -11,7 +12,7 @@ import net.minecraftforge.common.capabilities.{Capability, ICapabilitySerializab
   * Created by Chris on 4/17/2016.
   */
 object IItemStack {
-  val Empty: IItemStack = new IItemStack {
+  object Empty extends IItemStack {
     override def copy(): IItemStack = IItemStack.Empty
 
     override def damageMax: Int = 0
@@ -22,7 +23,7 @@ object IItemStack {
 
     override def isEmpty: Boolean = true
 
-    override def item = null
+    override def item: Item = null
 
     override def itemID: Int = 0
 
@@ -30,11 +31,11 @@ object IItemStack {
 
     override def nbt_=(nbt: NBTTagCompound): Unit = {}
 
-    override def stackSize: Int = 0
+    override def amount: Int = 0
 
-    override def stackSize_=(size: Int): Unit = {}
+    override def amount_=(amount: Int): Unit = {}
 
-    override def stackSizeMax: Int = 64
+    override def amountMax: Int = 64
 
     override def toMinecraft: ItemStack = ItemStack.EMPTY
 
@@ -72,17 +73,11 @@ object IItemStack {
   })
 }
 
-trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
+trait IItemStack extends IStack[Int] with ICapabilitySerializable[NBTTagCompound] {
 
   def item: Item
 
   def itemID: Int
-
-  def stackSize: Int
-
-  def stackSize_=(size: Int): Unit
-
-  def stackSizeMax: Int
 
   def damage: Int
 
@@ -101,8 +96,6 @@ trait IItemStack extends ICapabilitySerializable[NBTTagCompound] {
   def identifier: ItemIdentifier
 
   def isEmpty: Boolean
-
-  def room: Int = stackSizeMax - stackSize
 
   def copy(): IItemStack
 
