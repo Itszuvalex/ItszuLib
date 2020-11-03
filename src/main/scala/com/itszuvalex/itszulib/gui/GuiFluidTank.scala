@@ -5,6 +5,7 @@ import com.itszuvalex.itszulib.api.wrappers.Converter
 import com.itszuvalex.itszulib.gui.{GuiBase, GuiPanel}
 import com.itszuvalex.itszulib.render.RenderUtils
 import com.itszuvalex.itszulib.util.Color
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
@@ -94,7 +95,8 @@ class GuiFluidTank(
     if (storage(index).isEmpty) return
     if (storage(index).fluid == null) return
     if (storage(index).amount == 0) return
-    icon = RenderUtils.getDefaultTextureForBlock(storage(index).fluid.getBlock)
+    val resource = storage(index).fluid.getStill(storage(index).toMinecraft)
+    icon = Minecraft.getMinecraft.getTextureMapBlocks.getAtlasSprite(resource.toString)
     height = math.floor((storage(index).amount / storage.capacity(index).toDouble) * 64).toInt
     val topPx = screenY + 65 - height
 
