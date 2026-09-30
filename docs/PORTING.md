@@ -60,4 +60,21 @@ Legacy Scala/Java sources are kept under `src/main/scala` and `src/test/scala` a
 
 - [x] Branch `neoforge-26.1` from `develop`.
 - [x] Build: ModDevGradle 2.0.148, Gradle 9.2.1, Java 25, Kotlin 2.4.0 + Kotlin for Forge 6.3.0. `./gradlew build` and `./gradlew runGameTestServer` pass with a skeleton mod (1 JUnit test, 1 game test).
-- [ ] **Blocked on DECISIONS B1** (API shape) before porting framework code.
+- [x] B1 decided: ItszuLib becomes the Kotlin version of TechnoLich's framework (DECISIONS B1).
+- [x] Framework ported from technolich@f021246: 00594ed (Loc4, trackers, modules, storage, batteries, adapters, sided storage), 76501a4 (fragment core, colorable, ITEM scope, networks, dev block and game tests). 165 JUnit tests, 10 ItszuLib game tests (+1 vanilla) passing.
+- [x] Legacy Scala sources removed (still on `develop`). The inventory table above records what each legacy area was and where its replacement lives.
+- [ ] ItszuLib-specific additions (multiblock helpers, menu/screen bases) as Femtocraft needs them.
+
+## What happened to each legacy area
+
+| Legacy area | Outcome |
+|---|---|
+| `Loc4`, `OverridableFunction`, `logistics/*` (networks, `LocationTracker`) | Replaced by the TechnoLich versions (`api/utility`, `core/Networks.kt`), which descend from them |
+| `api/access/*`, `api/storage/*`, `core/traits/tile/TileInventory` | Replaced by `IItemStorage` family + `WrapperResourceHandlerIItemStorage` |
+| `@Saveable` + `DataUtils`, `NBTSerializable`, `NBTHelpers`, `TileDescriptionPacket` | Replaced by fragment scoped serialization (LEVEL/DESCRIPTION/ITEM) over Value I/O |
+| `TileEntityBase`, `TileContainer`, `core/traits/*` | Replaced by `BlockEntityCore` + fragments, `EntityBlockCore`; traits become fragments in Femtocraft |
+| `TileFluidTank`, `TileMultiFluidTank` | Not in TechnoLich; Femtocraft's fluids were placeholders (mapped to water), so no fluid fragment yet |
+| `api/multiblock/*`, `MultiBlockComponent` | To be added as fragments when Femtocraft's frames/cyber base are ported |
+| `container/*`, `gui/*` | To be replaced with `AbstractContainerMenu`/`AbstractContainerScreen` bases when Femtocraft's menus are ported; the 1.7.10 widget toolkit is not ported |
+| `network/*` messages | Dropped; Femtocraft registers its own payloads (`PayloadRegistrar`) as needed |
+| `player/*`, `PlayerUUIDTracker`, `InterModComms`, `command/*`, `configuration/*`, `pathfinding/*`, `render/*` (shaders, quad math), `testing/*` | Dropped: unused by Femtocraft's ported scope or superseded by vanilla/NeoForge (data attachments, `ModConfigSpec`, Brigadier, render pipeline) |

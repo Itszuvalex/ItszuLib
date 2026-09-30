@@ -40,7 +40,7 @@ Scala sources stay in `src/main/scala` / `src/test/scala` as reference while por
 
 ---
 
-## B1. BLOCKING — Shape of the ported ItszuLib API
+## B1. Shape of the ported ItszuLib API — DECIDED: adopt TechnoLich's framework (option 2)
 
 **Context.** ItszuLib's 2015–16 API is built around mechanisms that no longer exist (`IInventory`/`ISidedInventory`, `IFluidHandler`, `IExtendedEntityProperties`, block metadata, `SimpleNetworkWrapper`, immediate-mode GL). The same author's later mod, **technolich** (already ported to 26.1.2), re-designed several of the same concepts and is visibly descended from this code: `Loc4`, `OverridableFunction`→`Overideable`, `IItemStorage`, `LocationTracker`, `INetwork`/`TileNetwork`/`ManagerNetwork`→`NetworkManager`. Femtocraft (~17k lines) is written against ItszuLib's API, so whatever shape ItszuLib takes, Femtocraft is rewritten against it.
 
@@ -59,4 +59,16 @@ Scala sources stay in `src/main/scala` / `src/test/scala` as reference while por
 
 **Sub-decision inside all options:** `@Saveable` reflection. Keep it (annotate Kotlin backing fields with `@field:Saveable`, serialize through `ValueOutput`/codecs by field type) vs. explicit `save`/`load` overrides. Recommendation: keep it for option 1 or 3, since every Femtocraft tile uses it and it maps cleanly to Value I/O; it is replaced by fragments' own serialization in option 2.
 
-**Recommendation:** option 3.
+**Recommendation was** option 3.
+
+**Decision (maintainer, 2026-09-30): option 2.** ItszuLib is rewritten in Kotlin as TechnoLich's fragments/modules framework, and Femtocraft is rebuilt on fragments. The legacy 2016 ItszuLib APIs (`TileEntityBase`/`TileContainer`, `IItemAccess`, `@Saveable` reflection, trait mixins) are not ported.
+
+- **Source of truth:** `F:\Projects\technolich`, branch `neoforge-26.1`. The Kotlin port was synced to **technolich@f021246** in ItszuLib **76501a4** (stable pieces first in 00594ed). Concepts, names, save keys and serialization formats are unchanged; unit and game tests were ported alongside.
+- **One Kotlin framework:** TechnoLich is itself being moved to Kotlin, starting from a copy of ItszuLib 76501a4 with the package renamed. Fixes found in either repo should be applied to both.
+- **Kotlin idioms used:** `Optional<T>` returns became nullable `T?`; `Stream` became `Sequence`; simple accessors on `Loc4`, `IModule`, `Color` became properties; storage and battery classes are `open` like their Java originals. Registries (`Components.FRAGMENT_DATA` = `itszulib:fragment_data`, `Modules.COLORABLE` = `itszulib:colorable`) use ItszuLib's namespace.
+- **Deliberate differences from the Java:** `Loc4.distSqr` computes in doubles (the Java int arithmetic overflowed for coordinates about 46k apart; regression test `DistSqr_FarApartCoordinates_DoesNotOverflow`); `TileNetwork.clear()` also clears its location tracker; `TileNetworkNode` keeps its network in `currentNetwork` (a Kotlin property named `network` clashes with `getNetwork()`).
+- ItszuLib-specific parts that are not in TechnoLich (multiblock helpers, menu/screen bases) are added on top only as Femtocraft needs them.
+
+## B2. Femtocraft scope — DECIDED: gameplay logic + simple models (option 2)
+
+See `../Femtocraft/docs/DECISIONS.md` B2.
