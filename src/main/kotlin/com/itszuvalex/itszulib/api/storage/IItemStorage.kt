@@ -1,0 +1,175 @@
+package com.itszuvalex.itszulib.api.storage
+
+import com.itszuvalex.itszulib.api.adapters.IItemStack
+import com.itszuvalex.itszulib.api.utility.MCConstants
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.world.level.storage.ValueOutput
+import net.neoforged.neoforge.common.util.ValueIOSerializable
+import kotlin.math.min
+
+/**
+ * Slot-based item storage with default transfer logic. Persisted as one entry per non-empty slot, keyed by the slot
+ * index ("0", "1", ...), encoded with [IItemStack.codec].
+ */
+interface IItemStorage : ValueIOSerializable {
+    fun get(index: Int): IItemStack
+
+    fun size(): Int
+
+    /**
+     * Replaces a slot. Storages with a change listener notify it (see [setChanged]).
+     */
+    fun setSlot(index: Int, stack: IItemStack)
+
+    /**
+     * Replaces a slot without notifying any change listener. For callers that batch changes and call [setChanged]
+     * themselves, e.g. inside a NeoForge transaction, where side effects must wait for commit.
+     */
+    fun setSlotQuietly(index: Int, stack: IItemStack) = setSlot(index, stack)
+
+    fun canInsert(index: Int, stack: IItemStack): Boolean = true
+
+    fun maxStackSize(index: Int): Int = min(MCConstants.ITEMSTACK_MAX, get(index).stackSizeMax())
+
+    fun split(index: Int, amount: Int): IItemStack {
+        val slot = get(index)
+        val ret = slot.copy()
+        if (amount >= slot.stackSize()) {
+            setSlot(index, IItemStack.Empty)
+        } else {
+            slot.modifyStackSize(-amount)
+            setSlot(index, slot) // Trigger updates
+            ret.setStackSize(amount)
+        }
+        return ret
+    }
+
+    /**
+     * @param index Index to insert into
+     * @param stack Stack to insert
+     * @return IItemStack containing the leftovers from stack.
+     */
+    fun insert(index: Int, stack: IItemStack): IItemStack {
+        if (stack.isEmpty()) return stack
+
+        val max = min(stack.stackSizeMax(), maxStackSize(index))
+        val slot = get(index)
+        if (slot.isEmpty()) {
+            if (stack.stackSize() <= max) {
+                // Copy so the caller's later mutations can't reach into this storage.
+                setSlot(index, stack.copy())
+                return IItemStack.Empty
+            }
+
+            val sc = stack.copy()
+            sc.setStackSize(max)
+            val ret = stack.copy()
+            ret.modifyStackSize(-max)
+            setSlot(index, sc)
+            return ret
+        }
+
+        if (slot.isItemEqual(stack)) {
+            val room = max - slot.stackSize()
+            // The slot may already hold more than this insert allows (e.g. a smaller stack limit); insert nothing.
+            if (room <= 0) return stack
+            if (stack.stackSize() <= room) {
+                slot.modifyStackSize(stack.stackSize())
+                setSlot(index, slot)
+                return IItemStack.Empty
+            }
+
+            val slotcopy = slot.copy()
+            slotcopy.modifyStackSize(room)
+            val ret = stack.copy()
+            ret.modifyStackSize(-room)
+            setSlot(index, slotcopy)
+            return ret
+        }
+
+        return stack
+    }
+
+    /**
+     * @return Amount of [amount] that was not transferred.
+     */
+    fun transferSlotIntoStorageSlot(slot: Int, storage: IItemStorage, targetSlot: Int, amount: Int): Int {
+        var transferRemaining = amount
+        val inSlot = get(slot).copy()
+        val up = inSlot.copy()
+        inSlot.setStackSize(min(inSlot.stackSize(), transferRemaining))
+        val ins = storage.insert(targetSlot, inSlot)
+        val transfered = inSlot.stackSize() - ins.stackSize()
+        transferRemaining -= transfered
+        up.modifyStackSize(-transfered)
+        setSlot(slot, if (up.stackSize() <= 0) IItemStack.Empty else up)
+        return transferRemaining
+    }
+
+    /**
+     * Tops up matching non-empty slots first, then fills empty ones.
+     *
+     * @return Amount of [amount] that was not transferred.
+     */
+    fun transferSlotIntoStorage(slot: Int, storage: IItemStorage, amount: Int): Int {
+        var transferRemaining = amount
+        for (i in 0 until storage.size()) {
+            if (storage.get(i).isEmpty() || !storage.canInsert(i, get(slot))) continue
+            transferRemaining = transferSlotIntoStorageSlot(slot, storage, i, transferRemaining)
+            if (transferRemaining <= 0) return 0
+        }
+        if (get(slot).isEmpty()) return transferRemaining
+
+        for (i in 0 until storage.size()) {
+            if (!storage.get(i).isEmpty() || !storage.canInsert(i, get(slot))) continue
+            transferRemaining = transferSlotIntoStorageSlot(slot, storage, i, transferRemaining)
+            if (transferRemaining <= 0) break
+        }
+        return transferRemaining
+    }
+
+    /**
+     * @return Amount of [amount] that was not transferred.
+     */
+    fun transferIntoStorage(storage: IItemStorage, amount: Int): Int {
+        if (storage === this) return amount
+
+        var transferRemaining = amount
+        for (i in 0 until size()) {
+            if (get(i).isEmpty()) continue
+            transferRemaining = transferSlotIntoStorage(i, storage, transferRemaining)
+            if (transferRemaining <= 0) break
+        }
+        return transferRemaining
+    }
+
+    /**
+     * Replaces every slot. [serialize] omits empty slots, so a missing slot is cleared rather than kept.
+     */
+    override fun deserialize(input: ValueInput) {
+        for (i in 0 until size()) setSlot(i, input.read(i.toString(), IItemStack.codec()).orElse(IItemStack.Empty))
+    }
+
+    override fun serialize(output: ValueOutput) {
+        for (i in 0 until size()) {
+            val stack = get(i)
+            if (!stack.isEmpty()) output.store(i.toString(), IItemStack.codec(), stack)
+        }
+    }
+
+    fun isEmpty(): Boolean = (0 until size()).all { get(it).isEmpty() }
+
+    /**
+     * Notifies the storage's change listener, if any (e.g. the owning block entity's setChanged).
+     */
+    fun setChanged() {}
+
+    companion object {
+        @JvmField
+        val Empty: IItemStorage = object : IItemStorage {
+            override fun get(index: Int): IItemStack = IItemStack.Empty
+            override fun size(): Int = 0
+            override fun setSlot(index: Int, stack: IItemStack) {}
+        }
+    }
+}
