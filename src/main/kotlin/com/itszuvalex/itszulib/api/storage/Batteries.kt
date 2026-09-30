@@ -16,7 +16,7 @@ private const val POWER_MAX_KEY = "M"
  *
  * @param onChanged Run after every [setStorage] and [setChanged], e.g. the owning block entity's setChanged.
  */
-class PowerBattery @JvmOverloads constructor(
+open class PowerBattery @JvmOverloads constructor(
     private val maxPower: Double,
     private val onChanged: Runnable = Runnable {},
 ) : IBattery {
@@ -45,7 +45,7 @@ class PowerBattery @JvmOverloads constructor(
 /**
  * Battery stored in a live CompoundTag (keys `P` charge, `M` capacity), e.g. inside an item's custom data.
  */
-class PowerBatteryNBT(private val nbt: CompoundTag) : IBattery {
+open class PowerBatteryNBT(private val nbt: CompoundTag) : IBattery {
     constructor(nbt: CompoundTag, max: Double) : this(nbt) {
         setMaxStorage(max)
     }
@@ -72,7 +72,7 @@ class PowerBatteryNBT(private val nbt: CompoundTag) : IBattery {
 /**
  * Forwards everything to whatever battery [batterySupplier] returns at call time.
  */
-class DynamicIBattery(private val batterySupplier: () -> IBattery) : IBattery {
+open class DynamicIBattery(private val batterySupplier: () -> IBattery) : IBattery {
     override fun room(): Double = batterySupplier().room()
     override fun fill(amt: Double): Double = batterySupplier().fill(amt)
     override fun drain(amt: Double): Double = batterySupplier().drain(amt)
@@ -90,7 +90,7 @@ class DynamicIBattery(private val batterySupplier: () -> IBattery) : IBattery {
  * Energy is converted 1:1 and truncated to whole units.
  * Mutations open root transactions, so they must not be called while a transaction is open.
  */
-class BatteryEnergyHandler(private val handler: EnergyHandler) : IBattery {
+open class BatteryEnergyHandler(private val handler: EnergyHandler) : IBattery {
     override fun storage(): Double = handler.amountAsLong.toDouble()
 
     override fun setStorage(storage: Double) {

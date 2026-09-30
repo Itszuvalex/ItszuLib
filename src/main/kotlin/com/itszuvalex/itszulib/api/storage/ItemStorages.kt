@@ -18,7 +18,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction
  *
  * @param onChanged Run after every [setSlot] and [setChanged], e.g. the owning block entity's setChanged.
  */
-class ItemStorageArray @JvmOverloads constructor(
+open class ItemStorageArray @JvmOverloads constructor(
     items: Array<IItemStack?>,
     private val onChanged: Runnable = Runnable {},
 ) : IItemStorage {
@@ -46,7 +46,7 @@ class ItemStorageArray @JvmOverloads constructor(
 /**
  * View of selected [slots] of another storage.
  */
-class ItemStorageSlice(private val storage: IItemStorage, private val slots: IntArray) : IItemStorage {
+open class ItemStorageSlice(private val storage: IItemStorage, private val slots: IntArray) : IItemStorage {
     override fun get(index: Int): IItemStack = storage.get(slots[index])
 
     override fun size(): Int = slots.size
@@ -61,7 +61,7 @@ class ItemStorageSlice(private val storage: IItemStorage, private val slots: Int
 /**
  * Concatenation of several storages; index 0 is the first storage's slot 0.
  */
-class ItemStorageAggregate(private val storages: Array<IItemStorage>) : IItemStorage {
+open class ItemStorageAggregate(private val storages: Array<IItemStorage>) : IItemStorage {
     override fun get(index: Int): IItemStack = locate(index)?.let { (s, i) -> s.get(i) } ?: IItemStack.Empty
 
     override fun size(): Int = storages.sumOf { it.size() }
@@ -89,7 +89,7 @@ class ItemStorageAggregate(private val storages: Array<IItemStorage>) : IItemSto
 /**
  * Forwards everything to whatever storage [itemStorageSupplier] returns at call time.
  */
-class DynamicIItemStorage(private val itemStorageSupplier: () -> IItemStorage) : IItemStorage {
+open class DynamicIItemStorage(private val itemStorageSupplier: () -> IItemStorage) : IItemStorage {
     override fun get(index: Int): IItemStack = itemStorageSupplier().get(index)
     override fun size(): Int = itemStorageSupplier().size()
     override fun setSlot(index: Int, stack: IItemStack) = itemStorageSupplier().setSlot(index, stack)
@@ -113,7 +113,7 @@ class DynamicIItemStorage(private val itemStorageSupplier: () -> IItemStorage) :
 /**
  * Item storage backed by a live CompoundTag, one entry per slot.
  */
-class ItemStorageNBT private constructor(
+open class ItemStorageNBT private constructor(
     private val nbt: CompoundTag,
     private val size: Int,
     private val ops: DynamicOps<Tag>,
@@ -159,7 +159,7 @@ class ItemStorageNBT private constructor(
  * Item storage backed by a NeoForge item [ResourceHandler], e.g. another mod's inventory capability.
  * Mutations open root transactions, so they must not be called while a transaction is open.
  */
-class ItemStorageResourceHandler(private val handler: ResourceHandler<ItemResource>) : IItemStorage {
+open class ItemStorageResourceHandler(private val handler: ResourceHandler<ItemResource>) : IItemStorage {
     override fun get(index: Int): IItemStack {
         val resource = handler.getResource(index)
         if (resource.isEmpty) return IItemStack.Empty

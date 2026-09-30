@@ -26,7 +26,9 @@ import net.neoforged.neoforge.transfer.TransferPreconditions
 import net.neoforged.neoforge.transfer.access.ItemAccess
 import net.neoforged.neoforge.transfer.energy.EnergyHandler
 import net.neoforged.neoforge.transfer.item.ItemResource
-import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper
+import net.neoforged.neoforge.transfer.item.ItemStackResourceHandler
+import net.neoforged.neoforge.transfer.transaction.RootCommitJournal
+import java.util.Objects
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal
 import net.neoforged.neoforge.transfer.transaction.TransactionContext
 import kotlin.math.floor
@@ -132,7 +134,11 @@ class WrapperContainerIItemStorage(private val storage: IItemStorage) : Containe
     }
     override fun setChanged() = storage.setChanged()
     override fun canPlaceItem(slot: Int, stack: ItemStack): Boolean = storage.canInsert(slot, IItemStack.of(stack))
-    override fun stillValid(player: Player): Boolean = false
+    /**
+     * The wrapper doesn't know where its storage lives; menus over a block entity should check
+     * [Container.stillValidBlockEntity] themselves.
+     */
+    override fun stillValid(player: Player): Boolean = true
     override fun clearContent() {
         for (i in 0 until storage.size()) storage.setSlot(i, IItemStack.Empty)
     }
@@ -140,11 +146,59 @@ class WrapperContainerIItemStorage(private val storage: IItemStorage) : Containe
 
 /**
  * Exposes an [IItemStorage] as a NeoForge item [ResourceHandler], e.g. for the item BLOCK capability.
- * Transactions are handled by NeoForge's [VanillaContainerWrapper].
+ *
+ * Honours [IItemStorage.canInsert] and the per-slot [IItemStorage.maxStackSize]. Writes inside a transaction go through
+ * [IItemStorage.setSlotQuietly]; [IItemStorage.setChanged] runs once when the root transaction commits. Create one per
+ * storage and reuse it.
  */
-object WrapperResourceHandlerIItemStorage {
-    @JvmStatic
-    fun of(storage: IItemStorage): ResourceHandler<ItemResource> = VanillaContainerWrapper.of(WrapperContainerIItemStorage(storage))
+class WrapperResourceHandlerIItemStorage private constructor(private val storage: IItemStorage) : ResourceHandler<ItemResource> {
+    private val slots = ArrayList<SlotWrapper>()
+    private val changedJournal = RootCommitJournal { storage.setChanged() }
+
+    private fun slot(index: Int): SlotWrapper {
+        Objects.checkIndex(index, size())
+        while (slots.size <= index) slots.add(SlotWrapper(slots.size))
+        return slots[index]
+    }
+
+    override fun size(): Int = storage.size()
+
+    override fun insert(index: Int, resource: ItemResource, amount: Int, transaction: TransactionContext): Int =
+        slot(index).insert(0, resource, amount, transaction)
+
+    override fun extract(index: Int, resource: ItemResource, amount: Int, transaction: TransactionContext): Int =
+        slot(index).extract(0, resource, amount, transaction)
+
+    override fun getResource(index: Int): ItemResource = slot(index).getResource(0)
+
+    override fun getAmountAsLong(index: Int): Long = slot(index).getAmountAsLong(0)
+
+    override fun getCapacityAsLong(index: Int, resource: ItemResource): Long = slot(index).getCapacityAsLong(0, resource)
+
+    override fun isValid(index: Int, resource: ItemResource): Boolean = slot(index).isValid(0, resource)
+
+    private inner class SlotWrapper(private val index: Int) : ItemStackResourceHandler() {
+        override fun getStack(): ItemStack = storage.get(index).toMinecraft()
+
+        override fun setStack(stack: ItemStack) = storage.setSlotQuietly(index, IItemStack.of(stack))
+
+        override fun isValid(resource: ItemResource): Boolean = storage.canInsert(index, IItemStack.of(resource.toStack()))
+
+        override fun getCapacity(resource: ItemResource): Int {
+            val slotMax = storage.maxStackSize(index)
+            return if (resource.isEmpty) slotMax else min(slotMax, resource.maxStackSize)
+        }
+
+        override fun updateSnapshots(transaction: TransactionContext) {
+            super.updateSnapshots(transaction)
+            changedJournal.updateSnapshots(transaction)
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        fun of(storage: IItemStorage): ResourceHandler<ItemResource> = WrapperResourceHandlerIItemStorage(storage)
+    }
 }
 
 /**
