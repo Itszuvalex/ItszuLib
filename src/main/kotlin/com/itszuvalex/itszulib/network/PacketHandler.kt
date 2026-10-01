@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.network
 
 import com.itszuvalex.itszulib.menu.MenuActionPayload
 import com.itszuvalex.itszulib.menu.MenuSyncPayload
+import com.itszuvalex.itszulib.team.TeamSyncPayload
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent
 import net.neoforged.neoforge.network.registration.PayloadRegistrar
 
@@ -16,7 +17,7 @@ class PacketHandler(event: RegisterPayloadHandlersEvent, version: String) {
 }
 
 /**
- * ItszuLib's own payloads: menu value syncs (server to client) and menu actions (client to server).
+ * ItszuLib's own payloads: menu value syncs and team syncs (server to client), and menu actions (client to server).
  */
 object ItszuLibNetwork {
     /**
@@ -29,5 +30,6 @@ object ItszuLibNetwork {
         val handler = PacketHandler(event, VERSION)
         handler.registrar.playToClient(MenuSyncPayload.TYPE, MenuSyncPayload.STREAM_CODEC, MenuSyncPayload::handle)
         handler.registrar.playToServer(MenuActionPayload.TYPE, MenuActionPayload.STREAM_CODEC, MenuActionPayload::handle)
+        handler.registrar.playToClient(TeamSyncPayload.TYPE, TeamSyncPayload.STREAM_CODEC, TeamSyncPayload::handle)
     }
 }

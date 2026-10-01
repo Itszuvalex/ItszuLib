@@ -96,6 +96,24 @@ changed. `FragNetworkedWire` checks every face whose neighbour is loaded on load
 their flag and are joined when the neighbour loads). This fixes stale connections to blocks removed while the chunk was
 unloaded, at the cost of up to six neighbour lookups per wire per load.
 
+## D10. Teams and per-team data — DECIDED (maintainer, 2026-10-01)
+
+Research (and any other per-team data a mod registers) belongs to teams. Every player is always in exactly one team;
+a new player gets a solo team they own. Joining is by invite and accept and merges the joiner's data into the team
+(research: union); leaving or being removed gives the player a solo team with a copy; disbanding gives every member a
+copy. Roles: one owner, who created the team and alone promotes or demotes officers; officers, who invite and remove
+anyone but the owner; members. A basic first version, to be refined later.
+
+Default until decided: the owner cannot leave a shared team without handing ownership to another member first.
+Invites do not expire.
+
+Persistence deliberately avoids vanilla `SavedData`, whose load path replaces unreadable data with a fresh, empty
+instance that is later saved over the file. `TeamStore` decodes strictly, falls back to a backup, refuses to save when
+neither file reads, and writes through a verified temporary file and an atomic move (see `team/TeamStore.kt`).
+
+The code was written in TechnoLich first (technolich@8958584) and copied here with ItszuLib's namespace; the two copies
+are independent.
+
 ---
 
 ## B1. Shape of the ported ItszuLib API — DECIDED: adopt TechnoLich's framework (option 2)
