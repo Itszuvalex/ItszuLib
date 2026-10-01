@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib
 
 import com.itszuvalex.itszulib.api.adapters.IBlockEntity
+import com.itszuvalex.itszulib.api.adapters.IFluidStack
 import com.itszuvalex.itszulib.api.adapters.IItemStack
 import com.itszuvalex.itszulib.api.adapters.ILevel
 import com.itszuvalex.itszulib.api.adapters.IModule
@@ -23,6 +24,7 @@ import net.minecraft.world.level.storage.TagValueInput
 import net.minecraft.world.level.storage.TagValueOutput
 import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
+import net.neoforged.neoforge.fluids.FluidStack
 import org.junit.jupiter.api.Assertions
 import java.util.Optional
 
@@ -133,5 +135,40 @@ class TestableIItemStack(
         fun overrideCodec() = IItemStack.CODEC.setOverrideValue(CODEC)
 
         fun resetCodec() = IItemStack.CODEC.revert()
+    }
+}
+
+/**
+ * Registry-free [IFluidStack]: fluids are numbered, and stacks of the same number are the same fluid.
+ */
+class TestableIFluidStack(var testFluid: Int = 0, var testAmount: Int = 0) : IFluidStack {
+    override fun fluid(): Identifier = Identifier.fromNamespaceAndPath(ItszuLib.ID, "fluid${testFluid.toString().replace('-', 'n')}")
+    override fun amount(): Int = testAmount
+    override fun setAmount(amount: Int) {
+        testAmount = amount
+    }
+    override fun components(): DataComponentPatch = DataComponentPatch.EMPTY
+    override fun toMinecraft(): FluidStack = Assertions.fail("toMinecraft shouldn't be reached from test apis")
+    override fun isEmpty(): Boolean = testAmount <= 0
+    override fun copy(): IFluidStack = TestableIFluidStack(testFluid, testAmount)
+    override fun isFluidEqual(other: IFluidStack): Boolean {
+        if (isEmpty() || other.isEmpty()) return isEmpty() == other.isEmpty()
+        return other is TestableIFluidStack && other.testFluid == testFluid
+    }
+    override fun equals(other: Any?): Boolean = other is TestableIFluidStack && other.testFluid == testFluid && other.testAmount == testAmount
+    override fun hashCode(): Int = testFluid * 31 + testAmount
+    override fun toString(): String = "TestableIFluidStack[$testFluid x $testAmount]"
+
+    companion object {
+        val CODEC: Codec<IFluidStack> = RecordCodecBuilder.create<TestableIFluidStack> { instance ->
+            instance.group(
+                Codec.INT.fieldOf("Fluid").forGetter { it.testFluid },
+                Codec.INT.fieldOf("Amount").forGetter { it.testAmount },
+            ).apply(instance, ::TestableIFluidStack)
+        }.xmap({ it }, { it as? TestableIFluidStack ?: TestableIFluidStack() })
+
+        fun overrideCodec() = IFluidStack.CODEC.setOverrideValue(CODEC)
+
+        fun resetCodec() = IFluidStack.CODEC.revert()
     }
 }
