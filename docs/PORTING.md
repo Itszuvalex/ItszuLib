@@ -58,7 +58,7 @@ Not ported from 1.12.2, and why:
   Femtocraft v3, or replaced by `ModConfigSpec`/Brigadier (same as the 1.7.10 outcome below).
 - `api/utility/TileEntityRelocation`, `TileSave`: unused by Femtocraft v3.
 - `util/*` helpers that Femtocraft v3 uses (`PlayerUtils`, `ChatHelper`, `Comparators`): ported into Femtocraft or
-  replaced by vanilla calls where they are one-liners.
+  replaced by vanilla calls where they are one-liners. `StorageUtils` is ported (`util/StorageUtils`).
 
 ## History: the 1.7.10 port
 
@@ -155,6 +155,7 @@ Each has a regression test named in the last column.
 | `IFluidStorageModifiable.drainIStack` (`IFluidStorage.drain(maxDrain)`) | Picked the first tank by `canDrain` alone, so a fluid that `canDrainFluidType` refuses was drained anyway | The first tank must pass `canDrainFluidType` | `FluidStorageArrayTest.DrainAmount_RespectsCanDrainFluidType`, `DrainAmount_NothingDrainable_ReturnsEmpty` |
 | `MultiblockStatic.form` | Kept forming after a part refused (no module, or part of another multiblock), leaving a half-formed multiblock whose controller ran | All or nothing: every part is checked (`MultiBlockInfo.canForm`) before any joins | `MultiblockStaticTest.Form_PartWithoutModule_ReturnsFalseAndNoPartJoins`, `Form_PartMissing_ReturnsFalseAndNoPartJoins`, `Form_PartOfAnotherMultiblock_ReturnsFalseAndNoPartJoins` |
 | `PowerBattery` (port regression) | 1.12.2 clamped the charge to the capacity; the first port did not, so a save from a larger battery or a direct `setStorage` left it over capacity with negative room | Charge kept within `[0, max]` | `EnergyAdapterTest.PowerBattery_SetStorage_ClampsToCapacity`, `PowerBattery_Deserialize_OverCapacity_Clamped` |
+| `util/StorageUtils.removeItemsFromStorage` (ported for Femtocraft frames) | Never compared items: any items satisfied any request, and removing took whatever was in the storage | Only slots holding the requested item count | `StorageUtilsTest.RemoveItemsFromStorage_OtherItems_NotFoundAndNothingRemoved` |
 
 ### What happened to each 1.7.10 area
 

@@ -186,3 +186,47 @@ class HorizontalFacingTest {
         assertEquals(Direction.EAST, HorizontalFacing.mirror(east, Mirror.LEFT_RIGHT).getValue(HorizontalFacing.FACING))
     }
 }
+
+class StorageUtilsTest {
+    @org.junit.jupiter.api.BeforeEach
+    fun setup() = com.itszuvalex.itszulib.TestableIItemStack.overrideCodec()
+
+    @org.junit.jupiter.api.AfterEach
+    fun teardown() = com.itszuvalex.itszulib.TestableIItemStack.resetCodec()
+
+    private fun storage(vararg stacks: com.itszuvalex.itszulib.TestableIItemStack) =
+        com.itszuvalex.itszulib.api.storage.ItemStorageArray(stacks.size).also { s -> stacks.forEachIndexed { i, st -> s.setSlot(i, st) } }
+
+    /**
+     * 1.12.2 never compared items: ten of anything satisfied a request for ten diamonds, and removing took them.
+     */
+    @org.junit.jupiter.api.Test
+    fun RemoveItemsFromStorage_OtherItems_NotFoundAndNothingRemoved() {
+        val s = storage(com.itszuvalex.itszulib.TestableIItemStack(2, 10))
+        org.junit.jupiter.api.Assertions.assertFalse(StorageUtils.removeItemsFromStorage(s, listOf(com.itszuvalex.itszulib.TestableIItemStack(1, 5))))
+        org.junit.jupiter.api.Assertions.assertEquals(10, s.get(0).stackSize())
+    }
+
+    @org.junit.jupiter.api.Test
+    fun RemoveItemsFromStorage_SpreadOverSlots_RemovesExactly() {
+        val s = storage(com.itszuvalex.itszulib.TestableIItemStack(1, 3), com.itszuvalex.itszulib.TestableIItemStack(2, 4), com.itszuvalex.itszulib.TestableIItemStack(1, 5))
+        org.junit.jupiter.api.Assertions.assertTrue(StorageUtils.removeItemsFromStorage(s, listOf(com.itszuvalex.itszulib.TestableIItemStack(1, 6))))
+        org.junit.jupiter.api.Assertions.assertTrue(s.get(0).isEmpty())
+        org.junit.jupiter.api.Assertions.assertEquals(4, s.get(1).stackSize())
+        org.junit.jupiter.api.Assertions.assertEquals(2, s.get(2).stackSize())
+    }
+
+    @org.junit.jupiter.api.Test
+    fun StorageContainsItems_NotEnough_FalseAndUnchanged() {
+        val s = storage(com.itszuvalex.itszulib.TestableIItemStack(1, 3))
+        org.junit.jupiter.api.Assertions.assertFalse(StorageUtils.storageContainsItems(s, listOf(com.itszuvalex.itszulib.TestableIItemStack(1, 4))))
+        org.junit.jupiter.api.Assertions.assertEquals(3, s.get(0).stackSize())
+    }
+
+    @org.junit.jupiter.api.Test
+    fun RemoveItemsFromStorage_PartialAllowed_RemovesWhatIsThere() {
+        val s = storage(com.itszuvalex.itszulib.TestableIItemStack(1, 3))
+        org.junit.jupiter.api.Assertions.assertFalse(StorageUtils.removeItemsFromStorage(s, listOf(com.itszuvalex.itszulib.TestableIItemStack(1, 4)), removeIfNotAllFound = true))
+        org.junit.jupiter.api.Assertions.assertTrue(s.get(0).isEmpty())
+    }
+}
