@@ -4,26 +4,83 @@ Status log and inventory for the port on branch `neoforge-26.1`. Decisions live 
 
 ## Source branch
 
-Ported from `develop` (tip `2016-03-20 Add .gitlab-ci.yml`).
+The port first started from GitHub's `develop` (2016-03-20, Minecraft 1.7.10). GitHub turned out to be a stale
+mirror: the newer history (Forge 1.8.9 through 1.12.2, up to Nov 2020) is on GitLab. The port's source is now
+**`gitlab/develop-1.12.2-types`** (2020-11-03, "Maybe fix GuiFluidTank to work with Fluids without Blocks"), the
+branch Femtocraft's newest work (`develop-1.12.2-v3`) builds against.
 
-| Branch | Last commit | Relation to `develop` | Used? |
+`neoforge-26.1` records it as an ancestor with `git merge -s ours` (e08a911): the tree is unchanged, because the 26.1
+framework is the Kotlin port of TechnoLich's framework (DECISIONS B1), which itself descends from this 1.12.2 code.
+What the 1.12.2 branch adds over the framework is ported on top, listed in [1.12.2 features](#1122-features-to-port).
+See DECISIONS D2.
+
+| Branch (GitLab) | Last commit | Used? |
+|---|---|---|
+| `develop-1.12.2-types` | 2020-11-03 | **Yes** (merged `-s ours`; features ported below) |
+| `develop-1.12.2`, `develop`, `master` | 2020-04-26 / 2020-03-28 | No: behind `develop-1.12.2-types` |
+| `develop-1.12.2-indirectless_network`, `develop-1.12.2-sidedfix` | 2020-04-01 / 2017-11-09 | No: side branches |
+| `develop-1.11.2`, `develop-1.11`, `develop-1.10`, `develop-1.8.9` | 2016-2017 | No: older Minecraft versions |
+| `develop-customrender`, `develop-network`, `develop-refactoring` | 2015-2016 | No: 1.7.10 side branches (see the history below) |
+
+## 1.12.2 features to port
+
+`develop-1.12.2-types` is Scala on Forge 1.12.2: ~266 files, ~9.7k lines. Its "modules" (`TileEntityModule`,
+`TileEntityInternalModule`) are what the framework calls fragments, and its `ITileEntity`/`IWorld` wrappers are the
+framework's `IBlockEntity`/`ILevel` adapters. Most of it is already covered by the framework. This list is what the
+framework lacks, in the order it is ported. "Femtocraft v3" is the usage in Femtocraft `develop-1.12.2-v3`.
+
+| # | Feature | 1.12.2 source | Framework target | Femtocraft v3 needs it for | Status |
+|---|---|---|---|---|---|
+| F1 | Fluid stacks and storage | `api/wrappers/IFluidStack`, `WrapperVanillaFluidStack`, `api/storage/IFluidStorage`, `IFluidStorageModifiable`, `FluidStorageArray`, `FluidStorageModifiableSlice`, `Dynamic*` | `api/adapters/IFluidStack`, `api/storage/IFluidStorage` family (fill/drain algorithms kept), `WrapperResourceHandlerIFluidStorage` (NeoForge fluid `ResourceHandler`, transactional) | Liquifier, germination chamber, fluid repository | Planned |
+| F2 | Sided fluid configuration and automatic IO | `core/SidedFluidStorageConfiguration`, `ModuleIItemAutoIO`, `ModuleIFluidAutoIO`, `util/TileEntityUtils.checkDo*IO`, `Module*SidedConfiguration` | `SidedFluidStorageConfiguration`; `FragSidedConfiguration`, `FragItemAutoIO`, `FragFluidAutoIO` (push/pull through neighbours' `ResourceHandler` capabilities) | Every machine's side config GUI and auto IO | Planned |
+| F3 | Storage fragments and capability exposure | `ModuleIItemStorage`, `ModuleIFluidStorage`, `ModuleI*HandlerConverter` | `FragItemStorage`, `FragFluidStorage`: expose `Capabilities.Item/Fluid.BLOCK` per side (sided config aware) and save the storage | Every machine | Planned |
+| F4 | Multiblocks | `api/multiblock/*` (`IBlockPattern`, `BlockPatternStatic`, `IMultiblock`, `MultiblockStatic`, `MultiBlockInfo`, `MultiblockStateHolder`, `MultiblockUtils`, `Multiblock*StorageConfiguration`), `ModuleMultiblockInfo`, `TileEntityMultiblockTickableModule`, `ModuleMultiblock*` | `api/multiblock`: patterns with rotation, form/break protocol, `MultiBlockInfo` exposed through a `MULTIBLOCK` module by `FragMultiBlockInfo`, controller-held state, controller-forwarding storage and menu fragments | Frame, germination chamber, focusing chamber, reformer | Planned |
+| F5 | Menus and value sync | `container/ContainerBase`, `ContainerInv`, `container/sync/*` (`ISync`, `SyncInt/Long/Float/Double/StringArray/EnumAutomaticIOArray/IItemStack/IFluidStack`), `MessageSync` | `menu/MenuCore` (`AbstractContainerMenu`: storage slots, shift-click, typed syncs sent by a `MenuSyncPayload` with `StreamCodec`s) and `MenuActionPayload` (client to server: action id + data, for side config and similar buttons) | Every GUI | Planned |
+| F6 | Open a menu from a block | `ModuleGui`, `ModuleMultiblockGui`, `gui/ItszuGuiHandler` | `FragMenu` (opens a `MenuProvider` on use, writes the position for the client), multiblock variant forwards to the controller | Every GUI block | Planned |
+| F7 | Network messages | `network/PacketHandler`, `MessageBase`, `MessageUpdateNBT`, `MessageSync` | `network/PacketHandler` (as in TechnoLich) + the payloads in F5. `MessageUpdateNBT`'s job is done by the description packet; `MessageContainerUpdate` by `DataSlot`s | Femtocraft payloads | Planned |
+| F8 | Horizontal facing | `core/behaviors/BlockBehaviorHorizontalFacing`, `BlockBehaviors` | `HorizontalEntityBlockCore` (`FACING` state, placed facing the player, rotate/mirror) | Almost every machine | Planned |
+| F9 | Sided connections and wire networks | `ModuleSidedConnectable`, `ModuleSidedBlockableConnectable`, `ModuleNetworkedWire`, `logistics/IPersistedConnectableNetworkNode`, `util/FaceBitSet` | `util/FaceBitSet`, `core/frag/FragConnectable` (connected/blocked faces), `IPersistedConnectableNetworkNode`, `FragNetworkedWire` on `TileNetwork` | Power conduit, computation conduit, logistics conduit | Planned |
+| F10 | Power-driven task | `util/Task` | `util/Task` (progress, speed/efficiency scaling) | Machines' processing | Planned |
+| F11 | Screen helpers | `gui/GuiBase`, `GuiFluidTank`, `GuiProgress`, `GuiPanelTexture`, `GuiLabel` | `client/ScreenHelpers`: draw a fluid tank (fluid sprite + tint), progress bars, tooltips. The 1.12.2 widget toolkit (flow layouts, text box, panels) is not ported | Every screen | Planned |
+
+Not ported from 1.12.2, and why:
+
+- `container/sync` item/fluid slot syncs and `MessageIItemStackSyncClick`: 1.12.2 replaced vanilla slots with its own
+  synced slots. 26.1 menus keep vanilla `Slot`s over `WrapperContainerIItemStorage`, which already sync and handle
+  clicks (DECISIONS D6).
+- `MessageFluidSlotClick`, `MessageFluidTankUpdate`: commented out on the 1.12.2 branch.
+- `api/client/IPreviewable*`, `render/*` (OBJ renderer, `RenderUtils`, `TileEntityRenderCube`, shaders): dynamic
+  rendering is follow-up work (Femtocraft DECISIONS B2).
+- `initialization/*` (`BlockBuilder`, `InitializationManager`): `DeferredRegister` does this.
+- `implicits/*`, `api/Overridable`, `api/Burnable`, `ManagerCapabilities`/`DummyStorage`: Scala/Forge-capability
+  plumbing with Kotlin or NeoForge equivalents.
+- `configuration/*`, `command/*`, `pathfinding/*`, `xml/*`, `PlayerUUIDTracker`, `InterModComms`: unused by
+  Femtocraft v3, or replaced by `ModConfigSpec`/Brigadier (same as the 1.7.10 outcome below).
+- `api/utility/TileEntityRelocation`, `TileSave`: unused by Femtocraft v3.
+- `util/*` helpers that Femtocraft v3 uses (`PlayerUtils`, `ChatHelper`, `Comparators`): ported into Femtocraft or
+  replaced by vanilla calls where they are one-liners.
+
+## History: the 1.7.10 port
+
+The sections below describe the first pass, from GitHub `develop` (1.7.10). They are kept as the record of where
+each legacy area went.
+
+| Branch (GitHub) | Last commit | Relation to `develop` | Used? |
 |---|---|---|---|
-| `develop` | 2016-03-20 | — | **Yes** |
+| `develop` | 2016-03-20 | (base) | First pass |
 | `develop-refactoring` | 2016-03-20 | identical to `develop` (0 ahead / 0 behind) | same commit |
 | `develop-customrender` | 2016-03-02 | 3 ahead, 26 behind: a WIP VBO/OBJ loader ("no luck yet really") | No: modern MC has its own model pipeline (NeoForge OBJ loader) |
 | `develop-network` | 2015-09-25 | 1 ahead ("TileNetwork cleanup"), 51 behind | No: superseded by later `develop` network code |
 | `master` | 2021-04-26 | 2 ahead (README edits only), 30 behind | No |
 
-Every ItszuLib symbol Femtocraft (`develop-gui`) imports exists on `develop`, so the two branches are consistent.
-
-## What the original targets
+### What the 1.7.10 original targets
 
 - Minecraft **1.7.10**, Forge `10.13.4.1448`, ForgeGradle 1.2, Java 7.
 - Scala 2.11.8 (`modLanguage = "scala"`), ScalaTest/ScalaMock tests; a few Java files.
 - Published to a private Artifactory (`artifactory.itszuvalex.com`, dead) as `mod`, `api`, `src`, `deobf`, `scaladoc` jars. Femtocraft consumed `ItszuLib:1.7.10-0.1.0-6:deobf`.
 - ~9.5k lines: 142 Scala + 5 Java files in `src/main`, 14 test files.
 
-## Inventory and target mapping
+### 1.7.10 inventory and target mapping
 
 Legend: **Port** = same concept, new implementation; **Replace** = the vanilla/Forge mechanism is gone, use the modern equivalent; **Drop** = no longer meaningful. "technolich" means the same author's later framework in `F:\Projects\technolich` (already on 26.1.2), which descends from these classes.
 
@@ -63,9 +120,10 @@ Legacy Scala/Java sources are kept under `src/main/scala` and `src/test/scala` a
 - [x] B1 decided: ItszuLib becomes the Kotlin version of TechnoLich's framework (DECISIONS B1).
 - [x] Framework ported from technolich@f021246: 00594ed (Loc4, trackers, modules, storage, batteries, adapters, sided storage), 76501a4 (fragment core, colorable, ITEM scope, networks, dev block and game tests). 165 JUnit tests, 10 ItszuLib game tests (+1 vanilla) passing.
 - [x] Legacy Scala sources removed (still on `develop`). The inventory table above records what each legacy area was and where its replacement lives.
-- [ ] ItszuLib-specific additions (multiblock helpers, menu/screen bases) as Femtocraft needs them.
+- [x] Source moved to GitLab `develop-1.12.2-types`, recorded with `merge -s ours` (e08a911).
+- [ ] 1.12.2 features F1-F11 (table above).
 
-## What happened to each legacy area
+### What happened to each 1.7.10 area
 
 | Legacy area | Outcome |
 |---|---|

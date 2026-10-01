@@ -17,9 +17,24 @@ Each entry: context, options, trade-offs, recommendation, and status. **BLOCKING
 
 **Decision.** Kotlin 2.4.0 (JVM toolchain 25) with KFF 6.3.0 as a required dependency (`modLoader="kotlinforforge"`, `loaderVersion="[6.3,)"`). Players need the Kotlin for Forge mod installed alongside ItszuLib.
 
-## D2. Source branch: `develop` — DECIDED
+## D2. Source branch: GitLab `develop-1.12.2-types` — DECIDED (changed 2026-09-30)
 
-`develop` and `develop-refactoring` point at the same newest commit (2016-03-20). `develop-customrender` (WIP OBJ/VBO loader, 3 commits) and `develop-network` (1 cleanup commit, 51 behind) are older side branches; their content is either obsolete on modern Minecraft or superseded. `master` only adds README edits. See [PORTING.md](PORTING.md#source-branch).
+**First choice (superseded).** The port started from GitHub `develop` (2016-03-20, Minecraft 1.7.10), the newest branch
+on GitHub: `develop-refactoring` pointed at the same commit, `develop-customrender`/`develop-network` were older side
+branches and `master` only added README edits.
+
+**Why it changed.** The maintainer pointed out that GitHub is a stale mirror and the real history is on GitLab, where
+the newest branch is `develop-1.12.2-types` (2020-11-03, Minecraft 1.12.2, ~266 Scala files). Femtocraft's newest
+branch (`develop-1.12.2-v3`) builds against it.
+
+**What that changes.** Not the framework: B1 already replaced the legacy API with the Kotlin version of TechnoLich's
+framework, and TechnoLich descends from this same 1.12.2 code (its "modules" are the framework's fragments). So:
+
+- `neoforge-26.1` records `gitlab/develop-1.12.2-types` as an ancestor with `git merge -s ours` (e08a911). The tree is
+  unchanged; history now shows where the code comes from, and later merges from that branch would be no-ops.
+- The 1.12.2 features the framework lacks (fluid storage, multiblocks, menu sync, sided connections, ...) are ported on
+  top in the framework's style. The list is [PORTING.md, 1.12.2 features](PORTING.md#1122-features-to-port).
+- Changes to shared framework code (fragments, storage, networks, `Loc4`, wrappers) are reported so TechnoLich gets them.
 
 ## D3. Mod id, package, version, license — DECIDED (non-blocking)
 
@@ -37,6 +52,14 @@ Consequence: ItszuLib's dev-only content and game tests also load in Femtocraft'
 ## D5. Legacy sources — DECIDED (non-blocking)
 
 Scala sources stay in `src/main/scala` / `src/test/scala` as reference while porting (not compiled, since the Scala plugin is not applied) and are deleted area by area as the Kotlin replacement lands, so `git log` shows each area's old and new form.
+
+## D6. Menus keep vanilla slots — DECIDED (non-blocking)
+
+1.12.2 dropped vanilla `Slot` syncing in favour of its own `ISync` slots (`SyncItemStorageItemStack`,
+`MessageIItemStackSyncClick`). 26.1 menus keep vanilla `Slot`s over `WrapperContainerIItemStorage`: vanilla already
+syncs slot contents, handles every click type and drag, and works with recipe viewers. The `ISync` idea is kept for
+values that are not slots (power, progress, fluids, side configuration): `MenuCore.addSync` with a `StreamCodec`,
+sent by one payload.
 
 ---
 
