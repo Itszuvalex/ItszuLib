@@ -48,4 +48,7 @@ The fragment/module framework is shared with TechnoLich (DECISIONS B1). These ch
 - `PowerBattery.setStorage`/`setStorageQuietly`: clamp to `[0, maxStorage]` (R15).
 - `IBlockEntityBlockEventHandler.onLoad`/`onNeighborChanged` and `EntityBlockCore.useWithoutItem` (DECISIONS D8).
 
-ItszuLib-only code (fluid storage, multiblocks, menus, connectables) has no TechnoLich counterpart.
+ItszuLib-only code (fluid storage, multiblocks, menus, connectables, `StorageUtils`) has no TechnoLich counterpart.
+
+TechnoLich's Kotlin code (88b2ca5) was compared with this branch on 2026-10-01: it is a copy of ItszuLib's framework
+from before these fixes, with no fixes of its own to bring back.

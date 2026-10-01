@@ -9,7 +9,7 @@ ItszuLib is Itszuvalex's shared library mod. On this branch it is the **Kotlin v
 - **Minecraft 26.1.2 / NeoForge 26.1.2.112 / Java 25**, ModDevGradle (`net.neoforged.moddev` 2.0.148), Gradle 9.2.1.
 - Written in **Kotlin 2.4.0**, loaded through **Kotlin for Forge 6.3.0** (`thedarkcolour:kotlinforforge-neoforge`, `modLoader="kotlinforforge"`). KFF is a required runtime mod: it provides the language loader and the Kotlin stdlib, reflect, coroutines and serialization. Do not add a second copy of the stdlib (`kotlin.stdlib.default.dependency=false`).
 - Mod id `itszulib`, package `com.itszuvalex.itszulib`, GPL-2.0-or-later.
-- Being ported from Forge 1.7.10 / Scala 2.11 on branch `neoforge-26.1` (from `develop`). `master`/`develop` still hold the 1.7.10 code. Port status: [docs/PORTING.md](docs/PORTING.md). Decisions and open questions: [docs/DECISIONS.md](docs/DECISIONS.md).
+- Being ported from Forge 1.7.10 / Scala 2.11 on branch `neoforge-26.1` (from `develop`). `master`/`develop` still hold the 1.7.10 code. Port status: [docs/PORTING.md](docs/PORTING.md). Decisions and open questions: [docs/DECISIONS.md](docs/DECISIONS.md). Review findings (fixed and open) and the framework changes to mirror into TechnoLich: [docs/REVIEW.md](docs/REVIEW.md).
 
 ## Build and run
 
@@ -50,7 +50,7 @@ NeoForge's API changes a lot between versions and many online examples are stale
 5. **Kotlin for Forge**: https://github.com/thedarkcolour/KotlinForForge (branch `6.x` for 1.21.9–26.2).
 6. **Forge 1.7.10 era** (historical, for the legacy code's intent only).
 
-Framework source of truth: `../technolich` on branch `neoforge-26.1` (its `AGENTS.md` describes the same concepts). ItszuLib was synced to technolich@f021246.
+Framework source of truth: `../technolich` on branch `neoforge-26.1` (its `AGENTS.md` describes the same concepts). ItszuLib was synced to technolich@f021246; TechnoLich's Kotlin code at 88b2ca5 was compared on 2026-10-01 and is a copy of this code with nothing to bring back. Shared-framework changes made here since are listed in [docs/REVIEW.md](docs/REVIEW.md) for mirroring into TechnoLich.
 
 ## Source layout
 
@@ -85,7 +85,8 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          MenuActionPayload, IMenuHost, BlockMenus
 ├── network/               PacketHandler, ItszuLibNetwork (registers ItszuLib's payloads)
 ├── dev/                   Dev-only blocks, menu, screen and game tests (never registered in production)
-└── util/                  Color, InventoryUtils (item dropping), FaceBitSet, Task, Singleton
+└── util/                  Color, InventoryUtils (item dropping), StorageUtils (item counting/removal), FaceBitSet, Task,
+                           Singleton
 src/main/resources/        assets/itszulib/lang/en_us.json (screen helper strings), data/itszulib/structure/dev_5x3x5.nbt
 src/test/kotlin/...        JUnit tests + Testable* fakes that avoid vanilla objects (TestHelpers.kt, CoreTests.kt)
 ```
@@ -137,6 +138,13 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 - Registries: `DeferredRegister` in `object`s, registered from the mod object's `init`.
 - Use `@JvmField`/`@JvmStatic` on things Java code or reflection needs to see as plain fields/statics.
 - Nullability: Kotlin types carry it; prefer non-null returns and `?` only where NeoForge expects a nullable (capability providers).
+
+## Dependents
+
+Femtocraft (`../Femtocraft`, branch `neoforge-26.1`) includes this checkout as a Gradle composite build, so changes here
+are compiled into its next build without publishing, and ItszuLib's dev content and game tests also run in
+Femtocraft's `runGameTestServer`. After changing shared code, run Femtocraft's `./gradlew build runGameTestServer` too.
+Keep framework changes generic (TechnoLich shares the fragment/module code) and list each in `docs/REVIEW.md`.
 
 ## Dev content and game tests
 
