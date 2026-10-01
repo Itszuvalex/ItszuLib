@@ -59,6 +59,6 @@ from before these fixes, with no fixes of its own to bring back.
 
 Compared again at technolich@31457f7 (2026-10-01). TechnoLich has since taken R11, R12 and R15, renamed the storage
 and stack accessors to Kotlin properties, merged the fragment lifecycle hooks (`IFragmentLifecycle`), and added a
-controller-less multiblock subsystem (`Multiblocks.kt`) and teams. It has not addressed R19 (O2) and documents the
+controller-less multiblock subsystem (`Multiblocks.kt`) and teams (since brought here as `team/`). It has not addressed R19 (O2) and documents the
 root-transaction limitation (O4) the same way. Its multiblocks take a different route on O3: each member saves its own
 membership, so no member depends on another's chunk being loaded.
