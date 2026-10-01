@@ -156,6 +156,7 @@ Each has a regression test named in the last column.
 | `MultiblockStatic.form` | Kept forming after a part refused (no module, or part of another multiblock), leaving a half-formed multiblock whose controller ran | All or nothing: every part is checked (`MultiBlockInfo.canForm`) before any joins | `MultiblockStaticTest.Form_PartWithoutModule_ReturnsFalseAndNoPartJoins`, `Form_PartMissing_ReturnsFalseAndNoPartJoins`, `Form_PartOfAnotherMultiblock_ReturnsFalseAndNoPartJoins` |
 | `PowerBattery` (port regression) | 1.12.2 clamped the charge to the capacity; the first port did not, so a save from a larger battery or a direct `setStorage` left it over capacity with negative room | Charge kept within `[0, max]` | `EnergyAdapterTest.PowerBattery_SetStorage_ClampsToCapacity`, `PowerBattery_Deserialize_OverCapacity_Clamped` |
 | `util/StorageUtils.removeItemsFromStorage` (ported for Femtocraft frames) | Never compared items: any items satisfied any request, and removing took whatever was in the storage | Only slots holding the requested item count | `StorageUtilsTest.RemoveItemsFromStorage_OtherItems_NotFoundAndNothingRemoved` |
+| `menu/StorageSlot` (port regression) | Did not override `Slot.mayPlace`, which is always true, so clicks, hotbar swaps and shift-clicks put items into slots whose storage refused them (found through Femtocraft's nano pack, which could be swapped into itself and deleted) | `mayPlace` asks `IItemStorage.canInsert` | game test `menu_storage_slots_honour_can_insert` |
 
 ### What happened to each 1.7.10 area
 

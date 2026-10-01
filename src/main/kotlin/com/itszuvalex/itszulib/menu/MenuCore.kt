@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.menu
 
+import com.itszuvalex.itszulib.api.adapters.IItemStack
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.wrappers.WrapperContainerIItemStorage
 import net.minecraft.core.RegistryAccess
@@ -195,6 +196,8 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
  * A slot over one index of an [IItemStorage], honouring its per-slot limit and [IItemStorage.canInsert].
  */
 open class StorageSlot(@JvmField val storage: IItemStorage, container: Container, index: Int, x: Int, y: Int) : Slot(container, index, x, y) {
+    override fun mayPlace(stack: ItemStack): Boolean = storage.canInsert(containerSlot, IItemStack.of(stack))
+
     override fun getMaxStackSize(): Int = storage.maxStackSize(containerSlot)
 
     override fun getMaxStackSize(stack: ItemStack): Int = minOf(storage.maxStackSize(containerSlot), stack.maxStackSize)

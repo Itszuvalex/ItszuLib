@@ -4,7 +4,11 @@ import com.itszuvalex.itszulib.api.Modules
 import com.itszuvalex.itszulib.api.adapters.IFluidStack
 import com.itszuvalex.itszulib.api.adapters.IItemStack
 import com.itszuvalex.itszulib.core.HorizontalFacing
+import com.itszuvalex.itszulib.api.storage.ItemStorageArray
 import com.itszuvalex.itszulib.menu.MenuActionPayload
+import com.itszuvalex.itszulib.menu.MenuCore
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.gametest.framework.GameTestHelper
@@ -33,6 +37,7 @@ object DevMenuGameTests {
         test("menu_syncs_to_client_menu", DevGameTests.EMPTY_1, ::menuSyncsToClientMenu)
         test("menu_action_dispatch", DevGameTests.EMPTY_1, ::menuActionDispatch)
         test("menu_quick_move", DevGameTests.EMPTY_1, ::menuQuickMove)
+        test("menu_storage_slots_honour_can_insert", DevGameTests.EMPTY_1, ::menuSlotsHonourCanInsert)
         test("multiblock_menu_opens_controller", DevGameTests.EMPTY_5X3X5, ::multiblockMenuOpensController)
         test("horizontal_facing_placement_and_rotation", DevGameTests.EMPTY_1, ::horizontalFacing)
         test("sided_config_follows_facing", DevGameTests.EMPTY_1, ::sidedConfigFollowsFacing)
@@ -138,6 +143,38 @@ object DevMenuGameTests {
         val hotbar = (0 until 9).map { player.inventory.getItem(it) }
         helper.assertTrue(hotbar.any { it.`is`(Items.EMERALD) && it.count == 2 }, "emeralds not moved to the hotbar: $hotbar")
         helper.assertTrue(menu.slots[hotbarStart].container === player.inventory, "hotbar slots follow the main inventory")
+        helper.succeed()
+    }
+
+    /**
+     * Regression: `StorageSlot` did not override `Slot.mayPlace` (always true), so clicks, hotbar swaps and shift-clicks
+     * put items into slots whose storage refused them.
+     */
+    private fun menuSlotsHonourCanInsert(helper: GameTestHelper) {
+        val storage = object : ItemStorageArray(2) {
+            override fun canInsert(index: Int, stack: IItemStack): Boolean = !stack.toMinecraft().`is`(Items.DIAMOND)
+        }
+        val player = helper.makeMockPlayer(GameType.SURVIVAL)
+        val menu = object : MenuCore(DevContent.DEV_MENU.get(), 1, player) {
+            init {
+                addStorageSlots(storage, 0, 0)
+                addPlayerInventorySlots(player.inventory)
+            }
+
+            override fun stillValid(player: Player): Boolean = true
+        }
+        helper.assertTrue(!menu.slots[0].mayPlace(ItemStack(Items.DIAMOND)), "slot refuses what the storage refuses")
+        helper.assertTrue(menu.slots[0].mayPlace(ItemStack(Items.EMERALD)), "slot takes what the storage takes")
+
+        player.inventory.setItem(0, ItemStack(Items.DIAMOND, 3))
+        menu.clicked(0, 0, ContainerInput.SWAP, player)
+        helper.assertTrue(storage.get(0).isEmpty(), "hotbar swap refused")
+        menu.quickMoveStack(player, menu.blockSlotCount + 27)
+        helper.assertTrue(storage.get(0).isEmpty() && storage.get(1).isEmpty(), "shift-click refused")
+        menu.setCarried(ItemStack(Items.DIAMOND))
+        menu.clicked(1, 0, ContainerInput.PICKUP, player)
+        helper.assertTrue(storage.get(1).isEmpty(), "click refused")
+        helper.assertValueEqual(player.inventory.countItem(Items.DIAMOND) + menu.carried.count, 4, "no diamonds lost")
         helper.succeed()
     }
 

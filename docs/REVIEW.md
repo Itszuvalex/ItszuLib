@@ -25,6 +25,7 @@ Bugs inherited from 1.12.2 (or introduced by porting it). Every fix has a test t
 | R14 | `MultiblockStatic.form` | Partial formation when a part refused | All or nothing (`MultiBlockInfo.canForm`) | `MultiblockStaticTest.Form_*_ReturnsFalseAndNoPartJoins` |
 | R15 | `PowerBattery` | The port dropped 1.12.2's clamp to capacity | Charge kept within `[0, max]` | `EnergyAdapterTest.PowerBattery_*` |
 | R16 | `StorageUtils.removeItemsFromStorage` | Never compared items, so any items satisfied a request | Compares items | `StorageUtilsTest.RemoveItemsFromStorage_OtherItems_NotFoundAndNothingRemoved` |
+| R17 | `StorageSlot` | Never overrode `Slot.mayPlace` (always true): menu slots ignored `IItemStorage.canInsert` | `mayPlace` asks `canInsert` | game test `menu_storage_slots_honour_can_insert` |
 
 ## Open
 
