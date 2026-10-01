@@ -4,7 +4,12 @@ import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.adapters.IColorable
 import com.itszuvalex.itszulib.api.adapters.IModule
 import com.itszuvalex.itszulib.api.adapters.Module
+import com.itszuvalex.itszulib.api.multiblock.MultiBlockInfo
+import com.itszuvalex.itszulib.api.storage.IFluidStorage
+import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.core.BlockEntityCore
+import com.itszuvalex.itszulib.core.SidedFluidStorageConfiguration
+import com.itszuvalex.itszulib.core.SidedItemStorageConfiguration
 import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.registries.Registries
@@ -34,6 +39,42 @@ object Modules {
     @JvmField
     val COLORABLE: IModule<IColorable> =
         Module.registerModule(Identifier.fromNamespaceAndPath(ItszuLib.ID, "colorable"), Capabilities.COLORABLE)
+
+    /**
+     * A block entity's item storage, per side. Exposed by [com.itszuvalex.itszulib.core.frag.FragItemStorage], which
+     * also exposes NeoForge's item capability.
+     */
+    @JvmField
+    val ITEM_STORAGE: IModule<IItemStorage> = Module.registerModule(id("item_storage"), null)
+
+    /**
+     * A block entity's fluid storage, per side. Exposed by [com.itszuvalex.itszulib.core.frag.FragFluidStorage], which
+     * also exposes NeoForge's fluid capability.
+     */
+    @JvmField
+    val FLUID_STORAGE: IModule<IFluidStorage> = Module.registerModule(id("fluid_storage"), null)
+
+    /**
+     * Which item storage and automatic IO mode each face uses. When present, [ITEM_STORAGE] follows it per side.
+     */
+    @JvmField
+    val ITEM_STORAGE_CONFIGURABLE: IModule<SidedItemStorageConfiguration> =
+        Module.registerModule(id("item_storage_configurable"), null)
+
+    /**
+     * Which fluid storage and automatic IO mode each face uses. When present, [FLUID_STORAGE] follows it per side.
+     */
+    @JvmField
+    val FLUID_STORAGE_CONFIGURABLE: IModule<SidedFluidStorageConfiguration> =
+        Module.registerModule(id("fluid_storage_configurable"), null)
+
+    /**
+     * Multiblock membership of a block entity.
+     */
+    @JvmField
+    val MULTIBLOCK: IModule<MultiBlockInfo> = Module.registerModule(id("multiblock"), null)
+
+    private fun id(path: String): Identifier = Identifier.fromNamespaceAndPath(ItszuLib.ID, path)
 
     /**
      * Forces the built-in modules above to register.

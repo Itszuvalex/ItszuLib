@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.core
 
+import com.itszuvalex.itszulib.api.storage.IFluidStorage
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.utility.DirectionUtil
 import net.minecraft.core.Direction
@@ -19,35 +20,38 @@ enum class EnumAutomaticIO {
  *
  * Persisted as `"<faceOrdinal>" -> storage name` and `"io<faceOrdinal>" -> EnumAutomaticIO name`, where the face is
  * relative to a north-facing block.
+ *
+ * The per-face accessors are open so a subclass can override faces, e.g. a multiblock part hiding the faces that touch
+ * the rest of its multiblock.
  */
 abstract class SidedStorageConfiguration<T : Any>(
     private val defaults: (Direction) -> String,
     private val storages: Map<String, T>,
-    private val front: () -> Direction,
+    val front: () -> Direction,
 ) : ValueIOSerializable {
     private val storageSegments = Array(Direction.entries.size) { defaults(Direction.entries[it]) }
     private val automaticIO = Array(Direction.entries.size) { EnumAutomaticIO.NONE }
 
-    fun getStorageForGlobalFacing(direction: Direction): T? = storages[getStorageNameForAbsoluteFacing(direction)]
+    open fun getStorageForGlobalFacing(direction: Direction): T? = storages[getStorageNameForAbsoluteFacing(direction)]
 
-    fun getStorageForRelativeFacing(direction: Direction): T? = storages[getStorageNameForRelativeFacing(direction)]
+    open fun getStorageForRelativeFacing(direction: Direction): T? = storages[getStorageNameForRelativeFacing(direction)]
 
-    fun cycleRelativeFacingStorageForward(direction: Direction) = cycleRelativeFacingStorage(direction, true)
+    open fun cycleRelativeFacingStorageForward(direction: Direction) = cycleRelativeFacingStorage(direction, true)
 
-    fun cycleRelativeFacingStorageBackward(direction: Direction) = cycleRelativeFacingStorage(direction, false)
+    open fun cycleRelativeFacingStorageBackward(direction: Direction) = cycleRelativeFacingStorage(direction, false)
 
-    fun cycleRelativeFacingIOForward(direction: Direction) = cycleRelativeFacingIO(direction, true)
+    open fun cycleRelativeFacingIOForward(direction: Direction) = cycleRelativeFacingIO(direction, true)
 
-    fun cycleRelativeFacingIOBackward(direction: Direction) = cycleRelativeFacingIO(direction, false)
+    open fun cycleRelativeFacingIOBackward(direction: Direction) = cycleRelativeFacingIO(direction, false)
 
-    fun getStorageNameForRelativeFacing(direction: Direction): String = storageSegments[direction.ordinal]
+    open fun getStorageNameForRelativeFacing(direction: Direction): String = storageSegments[direction.ordinal]
 
-    fun getStorageNameForAbsoluteFacing(direction: Direction): String =
+    open fun getStorageNameForAbsoluteFacing(direction: Direction): String =
         storageSegments[DirectionUtil.getHorizontalRelativeDirectionFromAbsolute(direction, front()).ordinal]
 
-    fun getIOForRelativeFacing(direction: Direction): EnumAutomaticIO = automaticIO[direction.ordinal]
+    open fun getIOForRelativeFacing(direction: Direction): EnumAutomaticIO = automaticIO[direction.ordinal]
 
-    fun getIOForAbsoluteFacing(direction: Direction): EnumAutomaticIO =
+    open fun getIOForAbsoluteFacing(direction: Direction): EnumAutomaticIO =
         automaticIO[DirectionUtil.getHorizontalRelativeDirectionFromAbsolute(direction, front()).ordinal]
 
     private fun cycleRelativeFacingStorage(dir: Direction, forward: Boolean) {
@@ -94,8 +98,14 @@ abstract class SidedStorageConfiguration<T : Any>(
     }
 }
 
-class SidedItemStorageConfiguration(
+open class SidedItemStorageConfiguration(
     defaults: (Direction) -> String,
     storages: Map<String, IItemStorage>,
     front: () -> Direction,
 ) : SidedStorageConfiguration<IItemStorage>(defaults, storages, front)
+
+open class SidedFluidStorageConfiguration(
+    defaults: (Direction) -> String,
+    storages: Map<String, IFluidStorage>,
+    front: () -> Direction,
+) : SidedStorageConfiguration<IFluidStorage>(defaults, storages, front)
