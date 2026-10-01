@@ -121,6 +121,7 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 `IScopedSerialization` with `NBTSerializationScope` `LEVEL` (world save), `DESCRIPTION` (client sync), `ITEM` (stays with the block's item form through `itszulib:fragment_data`; survival drops need the loot table to `copy_components` it from the block entity). Each fragment writes into its own child keyed by `name()` under `frags`. Use `ValueOutput`/`ValueInput` and codecs, not raw `CompoundTag`.
 
 ### Items, storage, transfer adapters
+- `IItemStorage.insert` honours `canInsert` (a refused stack comes back whole); a storage's owner filling slots that refuse outside insertion (outputs) uses `insertUnchecked`. Slices and aggregates forward `canInsert`/`maxStackSize`.
 - `IItemStack` wraps `ItemStack`; persisted with `IItemStack.codec()` (overridable in tests via `TestableIItemStack.overrideCodec()`).
 - `IItemStorage`: slot-based, default transfer logic, saved as one entry per non-empty slot keyed by index. `IBattery`: double-based energy.
 - ItszuLib -> NeoForge: `WrapperResourceHandlerIItemStorage.of(storage)` (per-slot limits, commit-only notifications), `WrapperEnergyHandlerIBattery(battery)` (whole units). Create once per block entity.

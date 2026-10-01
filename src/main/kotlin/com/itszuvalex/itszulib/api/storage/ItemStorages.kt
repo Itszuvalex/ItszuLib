@@ -55,6 +55,10 @@ open class ItemStorageSlice(private val storage: IItemStorage, private val slots
 
     override fun setSlotQuietly(index: Int, stack: IItemStack) = storage.setSlotQuietly(slots[index], stack)
 
+    override fun canInsert(index: Int, stack: IItemStack): Boolean = storage.canInsert(slots[index], stack)
+
+    override fun maxStackSize(index: Int): Int = storage.maxStackSize(slots[index])
+
     override fun setChanged() = storage.setChanged()
 }
 
@@ -73,6 +77,10 @@ open class ItemStorageAggregate(private val storages: Array<IItemStorage>) : IIt
     override fun setSlotQuietly(index: Int, stack: IItemStack) {
         locate(index)?.let { (s, i) -> s.setSlotQuietly(i, stack) }
     }
+
+    override fun canInsert(index: Int, stack: IItemStack): Boolean = locate(index)?.let { (s, i) -> s.canInsert(i, stack) } ?: false
+
+    override fun maxStackSize(index: Int): Int = locate(index)?.let { (s, i) -> s.maxStackSize(i) } ?: 0
 
     override fun setChanged() = storages.forEach { it.setChanged() }
 
@@ -98,6 +106,7 @@ open class DynamicIItemStorage(private val itemStorageSupplier: () -> IItemStora
     override fun maxStackSize(index: Int): Int = itemStorageSupplier().maxStackSize(index)
     override fun split(index: Int, amount: Int): IItemStack = itemStorageSupplier().split(index, amount)
     override fun insert(index: Int, stack: IItemStack): IItemStack = itemStorageSupplier().insert(index, stack)
+    override fun insertUnchecked(index: Int, stack: IItemStack): IItemStack = itemStorageSupplier().insertUnchecked(index, stack)
     override fun transferSlotIntoStorageSlot(slot: Int, storage: IItemStorage, targetSlot: Int, amount: Int): Int =
         itemStorageSupplier().transferSlotIntoStorageSlot(slot, storage, targetSlot, amount)
     override fun transferSlotIntoStorage(slot: Int, storage: IItemStorage, amount: Int): Int =

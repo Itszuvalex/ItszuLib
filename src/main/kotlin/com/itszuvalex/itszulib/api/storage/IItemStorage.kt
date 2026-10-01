@@ -52,11 +52,23 @@ interface IItemStorage : ValueIOSerializable {
     }
 
     /**
+     * Inserts as much of [stack] as fits, if [canInsert] accepts it (1.12.2 never checked). A storage's owner filling
+     * slots that refuse outside insertion (e.g. output slots) uses [insertUnchecked].
+     *
      * @param index Index to insert into
      * @param stack Stack to insert
-     * @return IItemStack containing the leftovers from stack.
+     * @return IItemStack containing the leftovers from stack; all of it if [canInsert] refuses.
      */
     fun insert(index: Int, stack: IItemStack): IItemStack {
+        if (stack.isEmpty() || !canInsert(index, stack)) return stack
+        return insertUnchecked(index, stack)
+    }
+
+    /**
+     * [insert] without the [canInsert] check, for a storage's owner filling its own slots. Code acting for a player or
+     * another block uses [insert].
+     */
+    fun insertUnchecked(index: Int, stack: IItemStack): IItemStack {
         if (stack.isEmpty()) return stack
 
         val max = min(stack.stackSizeMax(), maxStackSize(index))
@@ -98,6 +110,7 @@ interface IItemStorage : ValueIOSerializable {
     }
 
     /**
+     * Moves up to [amount] items through [storage]'s [insert], so slots whose [canInsert] refuses them receive nothing.
      * Safe when [storage] is this storage or a view of it, even for the same slot: the source is re-read after the
      * insert. (1.12.2 wrote back a copy taken before the insert, which destroyed the items moved into the same slot.)
      *

@@ -27,15 +27,15 @@ Bugs inherited from 1.12.2 (or introduced by porting it). Every fix has a test t
 | R16 | `StorageUtils.removeItemsFromStorage` | Never compared items, so any items satisfied a request | Compares items | `StorageUtilsTest.RemoveItemsFromStorage_OtherItems_NotFoundAndNothingRemoved` |
 | R17 | `StorageSlot` | Never overrode `Slot.mayPlace` (always true): menu slots ignored `IItemStorage.canInsert` | `mayPlace` asks `canInsert` | game test `menu_storage_slots_honour_can_insert` |
 | R18 | `MenuCore` shift-click (was open finding O1) | Vanilla's `moveItemStackTo` and the port's `quickMoveStack` changed `Slot.getItem()` in place and only called `setChanged`. Behind a storage that returns copies from `get` (`ItemStorageNBT`, `ItemStorageResourceHandler`), merging into a slot lost the items and a partial move out of one duplicated them | `MenuCore` writes changed slots back with `Slot.set`; every other click path already wrote back | game test `menu_slots_over_copy_returning_storage` |
+| R19 | `IItemStorage.insert` (was open finding O2) | Never asked `canInsert`, and `transferSlotIntoStorageSlot` inserts through it, so any caller could put anything into a filtered slot. `ItemStorageSlice` and `ItemStorageAggregate` did not forward `canInsert` or `maxStackSize`, so a view of a filtered or limited storage accepted anything | `insert` returns the stack when `canInsert` refuses; `insertUnchecked` is the owner's way to fill slots that refuse outside insertion (e.g. outputs). Slices and aggregates forward both | `ItemStorageArrayTest.Insert_CanInsertRefuses_ReturnsStackUnchanged`, `InsertUnchecked_CanInsertRefuses_StillInserts`, `TransferSlotIntoStorageSlot_TargetRefuses_SourceKeepsItems`, `ItemStorageSliceTest.Slice_ForwardsCanInsertAndMaxStackSize`, `ItemStorageAggregateTest.Aggregate_ForwardsCanInsertAndMaxStackSize` |
 
 ## Open
 
 Not fixed; each needs a maintainer call or is a documented limitation. Numbers are kept when an item closes (O1 is
-R18; O5 was decided as DECISIONS D6).
+R18; O2 is R19; O5 was decided as DECISIONS D6).
 
 | # | Area | Finding | Current handling |
 |---|---|---|---|
-| O2 | `IItemStorage.insert` ignores `canInsert` | As in 1.12.2. Machines rely on it to fill their own output slots; automation goes through `WrapperResourceHandlerIItemStorage` and `transferSlotIntoStorage`, which do check | Kept; callers that act for a player or another block must check `canInsert` |
 | O3 | Shared multiblock state across chunks | `FragMultiblockState.get` on a part returns null while the controller's chunk is unloaded | Callers can reject such multiblocks with `IBlockPattern.overChunkBoundaries` |
 | O4 | `ItemStorageResourceHandler`, `BatteryEnergyHandler` | Open root transactions; calling them while a transaction is open throws | Documented on both classes |
 
@@ -45,6 +45,10 @@ The fragment/module framework is shared with TechnoLich (DECISIONS B1). These ch
 
 - `IItemStorage.split`: non-positive amounts return `IItemStack.Empty` (R12).
 - `IItemStorage.transferSlotIntoStorageSlot`: re-reads the source slot after the insert (R11).
+- `IItemStorage.insert`: returns the stack untouched when `canInsert` refuses; new `insertUnchecked` (the old
+  behaviour) for owners filling their own slots, also forwarded by `DynamicIItemStorage`. `ItemStorageSlice` and
+  `ItemStorageAggregate` forward `canInsert` and `maxStackSize` (R19). Owner code that fills slots refusing outside
+  insertion must switch to `insertUnchecked`.
 - `PowerBattery.setStorage`/`setStorageQuietly`: clamp to `[0, maxStorage]` (R15).
 - `IBlockEntityBlockEventHandler.onLoad`/`onNeighborChanged` and `EntityBlockCore.useWithoutItem` (DECISIONS D8).
 
@@ -52,3 +56,9 @@ ItszuLib-only code (fluid storage, multiblocks, menus, connectables, `StorageUti
 
 TechnoLich's Kotlin code (88b2ca5) was compared with this branch on 2026-10-01: it is a copy of ItszuLib's framework
 from before these fixes, with no fixes of its own to bring back.
+
+Compared again at technolich@31457f7 (2026-10-01). TechnoLich has since taken R11, R12 and R15, renamed the storage
+and stack accessors to Kotlin properties, merged the fragment lifecycle hooks (`IFragmentLifecycle`), and added a
+controller-less multiblock subsystem (`Multiblocks.kt`) and teams. It has not addressed R19 (O2) and documents the
+root-transaction limitation (O4) the same way. Its multiblocks take a different route on O3: each member saves its own
+membership, so no member depends on another's chunk being loaded.

@@ -350,8 +350,40 @@ abstract class ItemStorageTestBase {
     }
 }
 
+/** Slot 0 takes only item id 1, at most 2 per stack. */
+private class FilteredStorage : ItemStorageArray(2) {
+    override fun canInsert(index: Int, stack: IItemStack): Boolean = index != 0 || stack.isEmpty() || stack.isItemEqual(TestableIItemStack(1, 1))
+
+    override fun maxStackSize(index: Int): Int = if (index == 0) 2 else super.maxStackSize(index)
+}
+
 class ItemStorageArrayTest : ItemStorageTestBase() {
     override fun storageWithSize(size: Int): IItemStorage = ItemStorageArray(size)
+
+    @Test
+    fun Insert_CanInsertRefuses_ReturnsStackUnchanged() {
+        val storage = FilteredStorage()
+        val ret = storage.insert(0, TestableIItemStack(2, 3))
+        Assertions.assertEquals(3, ret.stackSize())
+        MCAssert.assertIItemStackEmpty(storage.get(0))
+    }
+
+    @Test
+    fun InsertUnchecked_CanInsertRefuses_StillInserts() {
+        val storage = FilteredStorage()
+        MCAssert.assertIItemStackEmpty(storage.insertUnchecked(0, TestableIItemStack(2, 2)))
+        Assertions.assertEquals(2, storage.get(0).stackSize())
+    }
+
+    @Test
+    fun TransferSlotIntoStorageSlot_TargetRefuses_SourceKeepsItems() {
+        val source = ItemStorageArray(1)
+        source.setSlot(0, TestableIItemStack(2, 3))
+        val target = FilteredStorage()
+        Assertions.assertEquals(3, source.transferSlotIntoStorageSlot(0, target, 0, 3))
+        Assertions.assertEquals(3, source.get(0).stackSize())
+        MCAssert.assertIItemStackEmpty(target.get(0))
+    }
 
     @Test
     fun Listener_SetSlotAndInsertNotify_QuietDoesNot() {
@@ -379,6 +411,15 @@ class ItemStorageArrayTest : ItemStorageTestBase() {
 }
 
 class ItemStorageAggregateTest : ItemStorageTestBase() {
+    @Test
+    fun Aggregate_ForwardsCanInsertAndMaxStackSize() {
+        val aggregate = ItemStorageAggregate(arrayOf(ItemStorageArray(1), FilteredStorage()))
+        Assertions.assertFalse(aggregate.canInsert(1, TestableIItemStack(2, 1)))
+        Assertions.assertTrue(aggregate.canInsert(1, TestableIItemStack(1, 1)))
+        Assertions.assertEquals(2, aggregate.maxStackSize(1))
+        Assertions.assertEquals(3, aggregate.insert(1, TestableIItemStack(2, 3)).stackSize())
+    }
+
     override fun storageWithSize(size: Int): IItemStorage {
         val size1 = ceil(size / 2f).toInt()
         val size2 = floor(size / 2f).toInt()
@@ -394,4 +435,13 @@ class ItemStorageNBTTest : ItemStorageTestBase() {
 
 class ItemStorageSliceTest : ItemStorageTestBase() {
     override fun storageWithSize(size: Int): IItemStorage = ItemStorageSlice(ItemStorageArray(size * 2), (1..size).toList().toIntArray())
+
+    @Test
+    fun Slice_ForwardsCanInsertAndMaxStackSize() {
+        val slice = ItemStorageSlice(FilteredStorage(), intArrayOf(1, 0))
+        Assertions.assertFalse(slice.canInsert(1, TestableIItemStack(2, 1)))
+        Assertions.assertTrue(slice.canInsert(0, TestableIItemStack(2, 1)))
+        Assertions.assertEquals(2, slice.maxStackSize(1))
+        Assertions.assertEquals(1, slice.insert(1, TestableIItemStack(1, 3)).stackSize())
+    }
 }
