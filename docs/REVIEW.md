@@ -26,18 +26,18 @@ Bugs inherited from 1.12.2 (or introduced by porting it). Every fix has a test t
 | R15 | `PowerBattery` | The port dropped 1.12.2's clamp to capacity | Charge kept within `[0, max]` | `EnergyAdapterTest.PowerBattery_*` |
 | R16 | `StorageUtils.removeItemsFromStorage` | Never compared items, so any items satisfied a request | Compares items | `StorageUtilsTest.RemoveItemsFromStorage_OtherItems_NotFoundAndNothingRemoved` |
 | R17 | `StorageSlot` | Never overrode `Slot.mayPlace` (always true): menu slots ignored `IItemStorage.canInsert` | `mayPlace` asks `canInsert` | game test `menu_storage_slots_honour_can_insert` |
+| R18 | `MenuCore` shift-click (was open finding O1) | Vanilla's `moveItemStackTo` and the port's `quickMoveStack` changed `Slot.getItem()` in place and only called `setChanged`. Behind a storage that returns copies from `get` (`ItemStorageNBT`, `ItemStorageResourceHandler`), merging into a slot lost the items and a partial move out of one duplicated them | `MenuCore` writes changed slots back with `Slot.set`; every other click path already wrote back | game test `menu_slots_over_copy_returning_storage` |
 
 ## Open
 
-Not fixed; each needs a maintainer call or is a documented limitation.
+Not fixed; each needs a maintainer call or is a documented limitation. Numbers are kept when an item closes (O1 is
+R18; O5 was decided as DECISIONS D6).
 
 | # | Area | Finding | Current handling |
 |---|---|---|---|
-| O1 | Menus over copy-returning storages | Vanilla menu code (`moveItemStackTo`, `quickMoveStack`) changes `Slot.getItem()` in place and then calls `setChanged`. `ItemStorageNBT` and `ItemStorageResourceHandler` return a fresh copy from `get`, so those edits are lost or duplicate items | Use live storages (`ItemStorageArray`, slices and aggregates of it) behind menu slots. Documented on `WrapperContainerIItemStorage` |
 | O2 | `IItemStorage.insert` ignores `canInsert` | As in 1.12.2. Machines rely on it to fill their own output slots; automation goes through `WrapperResourceHandlerIItemStorage` and `transferSlotIntoStorage`, which do check | Kept; callers that act for a player or another block must check `canInsert` |
 | O3 | Shared multiblock state across chunks | `FragMultiblockState.get` on a part returns null while the controller's chunk is unloaded | Callers can reject such multiblocks with `IBlockPattern.overChunkBoundaries` |
 | O4 | `ItemStorageResourceHandler`, `BatteryEnergyHandler` | Open root transactions; calling them while a transaction is open throws | Documented on both classes |
-| O5 | D6 (vanilla menu slots) | 1.12.2's synced-slot click handling is not ported | Awaiting maintainer sign-off ([DECISIONS.md](DECISIONS.md) D6) |
 
 ## Framework changes to mirror into TechnoLich
 

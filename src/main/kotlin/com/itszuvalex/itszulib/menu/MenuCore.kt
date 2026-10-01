@@ -179,10 +179,46 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
             val moved = if (index < hotbarStart) moveItemStackTo(stack, hotbarStart, end, false) else moveItemStackTo(stack, playerStart, hotbarStart, false)
             if (!moved) return ItemStack.EMPTY
         }
-        if (stack.isEmpty) slot.setByPlayer(ItemStack.EMPTY) else slot.setChanged()
+        // Write the source back rather than relying on the in-place shrink: the slot's storage may have returned a copy.
+        if (stack.isEmpty) slot.setByPlayer(ItemStack.EMPTY) else slot.set(stack)
         if (stack.count == original.count) return ItemStack.EMPTY
         slot.onTake(player, stack)
         return original
+    }
+
+    /**
+     * Vanilla's merge, except that a slot whose stack grew is written back with [Slot.set] instead of only
+     * [Slot.setChanged], so slots over storages that return copies from `get` keep the merged items (REVIEW O1).
+     */
+    override fun moveItemStackTo(itemStack: ItemStack, startSlot: Int, endSlot: Int, backwards: Boolean): Boolean {
+        var changed = false
+        val order = if (backwards) (endSlot - 1 downTo startSlot) else (startSlot until endSlot)
+        if (itemStack.isStackable) {
+            for (i in order) {
+                if (itemStack.isEmpty) break
+                val slot = slots[i]
+                val target = slot.item
+                if (target.isEmpty || !ItemStack.isSameItemSameComponents(itemStack, target)) continue
+                val max = slot.getMaxStackSize(target)
+                val moved = minOf(itemStack.count, max - target.count)
+                if (moved <= 0) continue
+                itemStack.shrink(moved)
+                slot.set(target.copyWithCount(target.count + moved))
+                changed = true
+            }
+        }
+        if (!itemStack.isEmpty) {
+            for (i in order) {
+                val slot = slots[i]
+                if (slot.item.isEmpty && slot.mayPlace(itemStack)) {
+                    slot.setByPlayer(itemStack.split(minOf(itemStack.count, slot.getMaxStackSize(itemStack))))
+                    slot.setChanged()
+                    changed = true
+                    break
+                }
+            }
+        }
+        return changed
     }
 
     companion object {

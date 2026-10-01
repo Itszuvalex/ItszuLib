@@ -5,6 +5,8 @@ import com.itszuvalex.itszulib.api.adapters.IFluidStack
 import com.itszuvalex.itszulib.api.adapters.IItemStack
 import com.itszuvalex.itszulib.core.HorizontalFacing
 import com.itszuvalex.itszulib.api.storage.ItemStorageArray
+import com.itszuvalex.itszulib.api.storage.ItemStorageNBT
+import net.minecraft.nbt.CompoundTag
 import com.itszuvalex.itszulib.menu.MenuActionPayload
 import com.itszuvalex.itszulib.menu.MenuCore
 import net.minecraft.world.entity.player.Player
@@ -38,6 +40,7 @@ object DevMenuGameTests {
         test("menu_action_dispatch", DevGameTests.EMPTY_1, ::menuActionDispatch)
         test("menu_quick_move", DevGameTests.EMPTY_1, ::menuQuickMove)
         test("menu_storage_slots_honour_can_insert", DevGameTests.EMPTY_1, ::menuSlotsHonourCanInsert)
+        test("menu_slots_over_copy_returning_storage", DevGameTests.EMPTY_1, ::menuOverCopyReturningStorage)
         test("multiblock_menu_opens_controller", DevGameTests.EMPTY_5X3X5, ::multiblockMenuOpensController)
         test("horizontal_facing_placement_and_rotation", DevGameTests.EMPTY_1, ::horizontalFacing)
         test("sided_config_follows_facing", DevGameTests.EMPTY_1, ::sidedConfigFollowsFacing)
@@ -175,6 +178,60 @@ object DevMenuGameTests {
         menu.clicked(1, 0, ContainerInput.PICKUP, player)
         helper.assertTrue(storage.get(1).isEmpty(), "click refused")
         helper.assertValueEqual(player.inventory.countItem(Items.DIAMOND) + menu.carried.count, 4, "no diamonds lost")
+        helper.succeed()
+    }
+
+    /**
+     * Regression (REVIEW O1): shift-click changed slot stacks in place and only called `setChanged`. Behind a storage
+     * whose `get` returns a copy (`ItemStorageNBT`), merging into a slot lost the items and moving out of one
+     * duplicated them. Every click type must conserve items over such a storage.
+     */
+    private fun menuOverCopyReturningStorage(helper: GameTestHelper) {
+        val storage = ItemStorageNBT(CompoundTag(), 3, helper.level.registryAccess())
+        val player = helper.makeMockPlayer(GameType.SURVIVAL)
+        val menu = object : MenuCore(DevContent.DEV_MENU.get(), 1, player) {
+            init {
+                addStorageSlots(storage, 0, 0)
+                addPlayerInventorySlots(player.inventory)
+            }
+
+            override fun stillValid(player: Player): Boolean = true
+        }
+        val mainStart = menu.blockSlotCount
+        fun total() = (0 until storage.size()).sumOf { storage.get(it).stackSize() } + player.inventory.countItem(Items.DIRT) + menu.carried.count
+
+        storage.setSlot(0, IItemStack.of(ItemStack(Items.DIRT, 10)))
+        player.inventory.setItem(9, ItemStack(Items.DIRT, 5))
+        menu.quickMoveStack(player, mainStart)
+        helper.assertValueEqual(storage.get(0).stackSize(), 15, "shift-click merged into the storage slot")
+        helper.assertValueEqual(total(), 15, "nothing lost merging")
+
+        menu.quickMoveStack(player, 0)
+        helper.assertTrue(storage.get(0).isEmpty(), "shift-click out emptied the storage slot")
+        helper.assertValueEqual(total(), 15, "nothing duplicated moving out")
+
+        // Partial move out: only 4 fit in the player's inventory, so 11 must stay in the slot.
+        storage.setSlot(0, IItemStack.of(ItemStack(Items.DIRT, 15)))
+        for (i in 0 until 36) player.inventory.setItem(i, ItemStack(Items.STONE))
+        player.inventory.setItem(9, ItemStack(Items.DIRT, 60))
+        menu.quickMoveStack(player, 0)
+        helper.assertValueEqual(storage.get(0).stackSize(), 11, "the rest stays in the storage slot")
+        helper.assertValueEqual(player.inventory.countItem(Items.DIRT), 64, "four moved")
+        for (i in 0 until 36) player.inventory.setItem(i, ItemStack.EMPTY)
+        storage.setSlot(0, IItemStack.Empty)
+
+        // Plain clicks: take all, place one, place the rest onto it, take half, swap with the hotbar, collect all.
+        storage.setSlot(1, IItemStack.of(ItemStack(Items.DIRT, 8)))
+        menu.clicked(1, 0, ContainerInput.PICKUP, player)
+        menu.clicked(2, 1, ContainerInput.PICKUP, player)
+        menu.clicked(2, 0, ContainerInput.PICKUP, player)
+        helper.assertValueEqual(storage.get(2).stackSize(), 8, "placed onto the same item")
+        menu.clicked(2, 1, ContainerInput.PICKUP, player)
+        helper.assertValueEqual(storage.get(2).stackSize(), 4, "took half")
+        menu.clicked(1, 0, ContainerInput.PICKUP, player)
+        menu.clicked(1, 0, ContainerInput.SWAP, player)
+        menu.clicked(2, 0, ContainerInput.PICKUP_ALL, player)
+        helper.assertValueEqual(total(), 8, "clicks conserve items")
         helper.succeed()
     }
 

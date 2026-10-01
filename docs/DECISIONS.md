@@ -55,7 +55,7 @@ load in the consuming mod's dev runs.
 
 Scala sources stay in `src/main/scala` / `src/test/scala` as reference while porting (not compiled, since the Scala plugin is not applied) and are deleted area by area as the Kotlin replacement lands, so `git log` shows each area's old and new form.
 
-## D6. Menus keep vanilla slots — DECIDED, AWAITING MAINTAINER SIGN-OFF
+## D6. Menus keep vanilla slots — DECIDED (maintainer, 2026-10-01)
 
 1.12.2 dropped vanilla `Slot` syncing in favour of its own `ISync` slots (`SyncItemStorageItemStack`,
 `MessageIItemStackSyncClick`). 26.1 menus keep vanilla `Slot`s over `WrapperContainerIItemStorage`: vanilla already
@@ -64,8 +64,13 @@ values that are not slots (power, progress, fluids, side configuration): `MenuCo
 sent by one payload.
 
 Implemented in F5 (`menu/MenuCore`, `MenuSync`, `MenuSyncPayload`). 1.12.2 screens used `SyncItemStorageItemStack`
-for every slot; on 26.1 those are plain `StorageSlot`/`OutputSlot`s. The maintainer has not yet confirmed that losing
-1.12.2's synced-slot click handling (`MessageIItemStackSyncClick`) is acceptable; until then this is the default.
+for every slot; on 26.1 those are plain `StorageSlot`/`OutputSlot`s.
+
+The maintainer confirmed vanilla slots on 2026-10-01. What 1.12.2's synced slots offered over vanilla: clicks went
+through the `IItemStorage` API, so storages that return copies from `get` worked, and slots were not tied to the
+menu's fixed slot list (scrolling or paged views, slots larger than an item's stack size). The first is now covered on
+vanilla slots: `StorageSlot` honours `canInsert` (REVIEW R17) and `MenuCore` writes changed slots back (R18). Paged
+views or oversized slots would need a dedicated slot or widget type; nothing uses them yet.
 
 ## D7. Menu actions go through one payload to the open menu — DECIDED (non-blocking)
 
