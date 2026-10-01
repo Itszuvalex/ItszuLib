@@ -69,7 +69,7 @@ data class MenuSyncPayload(val containerId: Int, val entries: List<Entry>) : Cus
  * Client to server: a button or similar control in a [MenuCore]'s screen was used. [action] and [data] mean whatever
  * the menu's [MenuCore.handleAction] makes of them (e.g. "cycle the storage on face [data] forward").
  *
- * Replaces Femtocraft 1.12.2's per-control messages, which named a block by position and were applied without checking
+ * Replaces 1.12.2's per-control messages, which named a block by position and were applied without checking
  * that the sender had that block's menu open. This payload only reaches the sender's open menu, and only while
  * [AbstractContainerMenu.stillValid].
  */

@@ -4,7 +4,7 @@ Guidance for coding agents (Claude Code, Codex, etc.) and humans working in this
 
 ## What this is
 
-ItszuLib is Itszuvalex's shared library mod. On this branch it is the **Kotlin version of TechnoLich's block entity framework**: block entities composed of fragments, a module/capability layer, scoped serialization, item/energy storage abstractions with NeoForge transfer-API adapters, and block entity networks. Femtocraft (`../Femtocraft`) is built on it. TechnoLich (`../technolich`) is being moved onto the same Kotlin code; keep the two in sync (see [docs/DECISIONS.md](docs/DECISIONS.md) B1).
+ItszuLib is Itszuvalex's shared library mod. On this branch it is the **Kotlin version of TechnoLich's block entity framework**: block entities composed of fragments, a module/capability layer, scoped serialization, item/energy storage abstractions with NeoForge transfer-API adapters, and block entity networks. It is a standalone framework: it knows nothing about the mods built on it. TechnoLich (`../technolich`) is a separate mod that currently borrows a copy of this framework code and evolves on its own (see [docs/DECISIONS.md](docs/DECISIONS.md) B1).
 
 - **Minecraft 26.1.2 / NeoForge 26.1.2.112 / Java 25**, ModDevGradle (`net.neoforged.moddev` 2.0.148), Gradle 9.2.1.
 - Written in **Kotlin 2.4.0**, loaded through **Kotlin for Forge 6.3.0** (`thedarkcolour:kotlinforforge-neoforge`, `modLoader="kotlinforforge"`). KFF is a required runtime mod: it provides the language loader and the Kotlin stdlib, reflect, coroutines and serialization. Do not add a second copy of the stdlib (`kotlin.stdlib.default.dependency=false`).
@@ -139,12 +139,11 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 - Use `@JvmField`/`@JvmStatic` on things Java code or reflection needs to see as plain fields/statics.
 - Nullability: Kotlin types carry it; prefer non-null returns and `?` only where NeoForge expects a nullable (capability providers).
 
-## Dependents
+## Consumers
 
-Femtocraft (`../Femtocraft`, branch `neoforge-26.1`) includes this checkout as a Gradle composite build, so changes here
-are compiled into its next build without publishing, and ItszuLib's dev content and game tests also run in
-Femtocraft's `runGameTestServer`. After changing shared code, run Femtocraft's `./gradlew build runGameTestServer` too.
-Keep framework changes generic (TechnoLich shares the fragment/module code) and list each in `docs/REVIEW.md`.
+Keep this repo independent of any mod built on it: no mod-specific code, names or docs here. Mods consume it as
+`com.itszuvalex.itszulib:itszulib` (DECISIONS D4), often as a Gradle composite build of a sibling checkout. Keep
+framework changes generic, and list changes to the code TechnoLich borrowed in `docs/REVIEW.md` so it can take them.
 
 ## Dev content and game tests
 

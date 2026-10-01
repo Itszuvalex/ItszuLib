@@ -49,7 +49,7 @@ open class Task @JvmOverloads constructor(var baseGoal: Double = 0.0, var minTic
     }
 
     /**
-     * Draws up to one tick's worth of energy from [battery] (port of Femtocraft 1.12.2's `BatteryPoweredTask`).
+     * Draws up to one tick's worth of energy from [battery] (port of 1.12.2's `BatteryPoweredTask`).
      *
      * @return Energy used.
      */

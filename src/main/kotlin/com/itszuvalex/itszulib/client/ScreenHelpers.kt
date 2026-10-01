@@ -11,7 +11,7 @@ import kotlin.math.roundToInt
 
 /**
  * Drawing helpers for container screens: fluid tanks, progress bars and their tooltips. Port of the parts of ItszuLib
- * 1.12.2's GUI toolkit that Femtocraft's screens use (`GuiFluidTank`, `GuiProgress`, tooltips); the widget toolkit
+ * 1.12.2's GUI toolkit that machine screens use (`GuiFluidTank`, `GuiProgress`, tooltips); the widget toolkit
  * itself (panels, flow layouts, text boxes) is not ported, since 26.1 screens have their own widgets.
  *
  * Client only. Coordinates are in the graphics' current pose (screen coordinates, or relative to the screen's corner
