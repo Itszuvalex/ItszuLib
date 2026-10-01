@@ -184,28 +184,49 @@ abstract class FragAutoIO<S : Any, R : Resource>(
     var ticks = 0
         private set
 
+    private val handlers = IdentityHashMap<S, ResourceHandler<R>>()
+
     protected abstract fun wrap(storage: S): ResourceHandler<R>
+
+    /**
+     * Moves up to [amount] from [from] to [to] in a root transaction.
+     *
+     * @return The amount moved.
+     */
+    protected open fun move(from: ResourceHandler<R>, to: ResourceHandler<R>, amount: Int): Int =
+        ResourceHandlerUtil.move(from, to, { true }, amount, null)
 
     override fun tick(level: ILevel, blockPos: BlockPos, blockState: BlockState) {
         if (level.isClientSide()) return
         ticks = incrementTicks(ticks, ticksPerOperation())
         if (ticks != 0) return
         val config = host?.blockEntity()?.getModule(configModule, null) ?: return
-        val mcLevel = level.toMinecraft()
-        var input = amountPerOperation()
-        var output = amountPerOperation()
+        val amount = amountPerOperation()
+        var input = amount
+        var output = amount
         for (face in Direction.entries) {
             val io = config.getIOForAbsoluteFacing(face)
             if (io == EnumAutomaticIO.NONE) continue
-            val ours = config.getStorageForGlobalFacing(face)?.let(::wrap) ?: continue
-            val neighbour = mcLevel.getCapability(capability, blockPos.relative(face), face.opposite) ?: continue
-            if (io == EnumAutomaticIO.INPUT && input > 0) {
-                input -= ResourceHandlerUtil.move(neighbour, ours, { true }, input, null)
-            } else if (io == EnumAutomaticIO.OUTPUT && output > 0) {
-                output -= ResourceHandlerUtil.move(ours, neighbour, { true }, output, null)
-            }
+            if (io == EnumAutomaticIO.INPUT && input <= 0 || io == EnumAutomaticIO.OUTPUT && output <= 0) continue
+            val ours = config.getStorageForGlobalFacing(face)?.let(::handler) ?: continue
+            val neighbour = neighbour(level, blockPos.relative(face), face.opposite) ?: continue
+            if (io == EnumAutomaticIO.INPUT) input -= move(neighbour, ours, input)
+            else output -= move(ours, neighbour, output)
         }
-        if (input != amountPerOperation() || output != amountPerOperation()) markDirty()
+        if (input != amount || output != amount) markDirty()
+    }
+
+    /**
+     * @return The NeoForge handler over [storage], one cached instance per storage (as [FragStorage.handler] does).
+     */
+    fun handler(storage: S): ResourceHandler<R> = handlers.getOrPut(storage) { wrap(storage) }
+
+    /**
+     * @return The neighbour's handler on [side], or null. Never loads a chunk.
+     */
+    protected open fun neighbour(level: ILevel, pos: BlockPos, side: Direction): ResourceHandler<R>? {
+        if (!level.isLoaded(pos)) return null
+        return level.toMinecraft().getCapability(capability, pos, side)
     }
 
     override fun name(): String = name
@@ -237,6 +258,12 @@ class FragItemAutoIO @JvmOverloads constructor(
     name, Modules.ITEM_STORAGE_CONFIGURABLE, NeoCapabilities.Item.BLOCK, ticksPerOperation, amountPerOperation,
 ) {
     override fun wrap(storage: IItemStorage): ResourceHandler<ItemResource> = WrapperResourceHandlerIItemStorage.of(storage)
+
+    /**
+     * Stacks onto matching items before filling empty slots, as 1.12.2's `transferIntoStorage` did.
+     */
+    override fun move(from: ResourceHandler<ItemResource>, to: ResourceHandler<ItemResource>, amount: Int): Int =
+        ResourceHandlerUtil.moveStacking(from, to, { true }, amount, null)
 
     companion object {
         const val NAME = "ItemAutoIO"

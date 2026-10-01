@@ -43,11 +43,31 @@ object DevGameTests {
     private val TEST_FUNCTIONS: DeferredRegister<Consumer<GameTestHelper>> =
         DeferredRegister.create(Registries.TEST_FUNCTION, ItszuLib.ID)
 
-    private val TESTS = mutableListOf<DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>>>()
+    private val TESTS = mutableListOf<Pair<DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>>, Identifier>>()
 
-    private fun test(name: String, body: (GameTestHelper) -> Unit) {
-        TESTS += TEST_FUNCTIONS.register(name) { -> Consumer<GameTestHelper> { body(it) } }
+    /**
+     * Vanilla's 1x1x1 structure.
+     */
+    @JvmField
+    val EMPTY_1: Identifier = Identifier.withDefaultNamespace("empty")
+
+    /**
+     * An empty 5x3x5 structure (`data/itszulib/structure/dev_5x3x5.nbt`) for tests that need neighbours.
+     */
+    @JvmField
+    val EMPTY_5X3X5: Identifier = Identifier.fromNamespaceAndPath(ItszuLib.ID, "dev_5x3x5")
+
+    /**
+     * Registers a game test named [name] that runs [body] in [structure].
+     */
+    fun test(name: String, structure: Identifier, body: (GameTestHelper) -> Unit) {
+        TESTS += TEST_FUNCTIONS.register(name) { -> Consumer<GameTestHelper> { body(it) } } to structure
     }
+
+    /**
+     * Registers a game test named [name] that runs [body] in [EMPTY_1].
+     */
+    fun test(name: String, body: (GameTestHelper) -> Unit) = test(name, EMPTY_1, body)
 
     init {
         test("mod_loaded") { helper ->
@@ -63,6 +83,8 @@ object DevGameTests {
         test("inventory_change_marks_dirty", ::inventoryChangeMarksDirty)
         test("item_scope_components_round_trip", ::itemScopeComponentsRoundTrip)
         test("resource_handler_per_slot_limit", ::resourceHandlerPerSlotLimit)
+        DevStorageGameTests.register(::test)
+        DevMenuGameTests.register(::test)
     }
 
     fun register(modBus: IEventBus) {
@@ -72,10 +94,10 @@ object DevGameTests {
 
     private fun registerTests(event: RegisterGameTestsEvent) {
         val environment = event.registerEnvironment(Identifier.fromNamespaceAndPath(ItszuLib.ID, "default"))
-        TESTS.forEach { test ->
+        TESTS.forEach { (test, structure) ->
             event.registerTest(
                 test.id,
-                FunctionGameTestInstance(test.key, TestData(environment, Identifier.withDefaultNamespace("empty"), 100, 0, true)),
+                FunctionGameTestInstance(test.key, TestData(environment, structure, 100, 0, true)),
             )
         }
     }

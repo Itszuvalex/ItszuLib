@@ -11,7 +11,15 @@ import com.itszuvalex.itszulib.core.EntityBlockCore
 import com.itszuvalex.itszulib.core.frag.FragColorable
 import com.itszuvalex.itszulib.core.frag.FragDropInventory
 import com.itszuvalex.itszulib.core.frag.InternalBlockEntityFragment
+import com.itszuvalex.itszulib.api.adapters.IModule
+import com.itszuvalex.itszulib.api.adapters.Module
+import com.itszuvalex.itszulib.menu.BlockMenus
 import net.minecraft.core.BlockPos
+import net.neoforged.api.distmarker.Dist
+import net.neoforged.fml.loading.FMLEnvironment
+import net.minecraft.resources.Identifier
+import net.minecraft.world.inventory.MenuType
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -43,12 +51,51 @@ object DevContent {
     val DEV_FRAG_BLOCK_ENTITY: DeferredHolder<BlockEntityType<*>, BlockEntityType<DevFragBlockEntity>> =
         BLOCK_ENTITY_TYPES.register("dev_frag_block") { -> BlockEntityType(::DevFragBlockEntity, DEV_FRAG_BLOCK.get()) }
 
+    @JvmField
+    val DEV_MACHINE_BLOCK: DeferredBlock<DevMachineBlock> = BLOCKS.registerBlock("dev_machine", ::DevMachineBlock)
+
+    @JvmField
+    val DEV_MACHINE_BLOCK_ENTITY: DeferredHolder<BlockEntityType<*>, BlockEntityType<DevMachineBlockEntity>> =
+        BLOCK_ENTITY_TYPES.register("dev_machine") { -> BlockEntityType(::DevMachineBlockEntity, DEV_MACHINE_BLOCK.get()) }
+
+    @JvmField
+    val DEV_MULTIBLOCK_BLOCK: DeferredBlock<DevMultiblockBlock> = BLOCKS.registerBlock("dev_multiblock", ::DevMultiblockBlock)
+
+    @JvmField
+    val DEV_MULTIBLOCK_BLOCK_ENTITY: DeferredHolder<BlockEntityType<*>, BlockEntityType<DevMultiblockBlockEntity>> =
+        BLOCK_ENTITY_TYPES.register("dev_multiblock") { -> BlockEntityType(::DevMultiblockBlockEntity, DEV_MULTIBLOCK_BLOCK.get()) }
+
+    @JvmField
+    val DEV_WIRE_BLOCK: DeferredBlock<DevWireBlock> = BLOCKS.registerBlock("dev_wire", ::DevWireBlock)
+
+    @JvmField
+    val DEV_WIRE_BLOCK_ENTITY: DeferredHolder<BlockEntityType<*>, BlockEntityType<DevWireBlockEntity>> =
+        BLOCK_ENTITY_TYPES.register("dev_wire") { -> BlockEntityType(::DevWireBlockEntity, DEV_WIRE_BLOCK.get()) }
+
+    /**
+     * Network node module of [DevWire].
+     */
+    @JvmField
+    val DEV_WIRE_MODULE: IModule<DevWire> = Module.registerModule(Identifier.fromNamespaceAndPath(ItszuLib.ID, "dev_wire"), null)
+
+    @JvmField
+    val MENUS: DeferredRegister<MenuType<*>> = DeferredRegister.create(Registries.MENU, ItszuLib.ID)
+
+    @JvmField
+    val DEV_MENU: DeferredHolder<MenuType<*>, MenuType<DevMenu>> = MENUS.register("dev_menu") { ->
+        IMenuTypeExtension.create { id, inventory, buf -> DevMenu(id, inventory, BlockMenus.blockEntity<BlockEntityCore>(inventory, buf)) }
+    }
+
     fun register(modBus: IEventBus) {
         BLOCKS.register(modBus)
         BLOCK_ENTITY_TYPES.register(modBus)
+        MENUS.register(modBus)
+        if (FMLEnvironment.getDist() == Dist.CLIENT) DevClient.register(modBus)
         DevGameTests.register(modBus)
         modBus.addListener { event: RegisterCapabilitiesEvent ->
             ModuleCapabilities.registerBlockEntity(event, DEV_FRAG_BLOCK_ENTITY.get())
+            ModuleCapabilities.registerBlockEntity(event, DEV_MACHINE_BLOCK_ENTITY.get())
+            ModuleCapabilities.registerBlockEntity(event, DEV_MULTIBLOCK_BLOCK_ENTITY.get())
         }
     }
 }

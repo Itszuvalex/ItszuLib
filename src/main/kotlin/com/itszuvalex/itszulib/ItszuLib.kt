@@ -7,6 +7,7 @@ import com.itszuvalex.itszulib.api.utility.ChunkCoord
 import com.itszuvalex.itszulib.api.utility.LazySingleSidedHolder
 import com.itszuvalex.itszulib.core.NetworkManager
 import com.itszuvalex.itszulib.dev.DevContent
+import com.itszuvalex.itszulib.network.ItszuLibNetwork
 import com.mojang.logging.LogUtils
 import net.minecraft.world.level.Level
 import net.neoforged.fml.LogicalSide
@@ -40,6 +41,7 @@ object ItszuLib {
         // Built-in modules must exist before RegisterCapabilitiesEvent
         Modules.init()
         Components.register(MOD_BUS)
+        MOD_BUS.addListener(ItszuLibNetwork::register)
 
         if (!FMLEnvironment.isProduction()) {
             DevContent.register(MOD_BUS)

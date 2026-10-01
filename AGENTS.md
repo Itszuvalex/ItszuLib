@@ -56,28 +56,37 @@ Framework source of truth: `../technolich` on branch `neoforge-26.1` (its `AGENT
 
 ```
 src/main/kotlin/com/itszuvalex/itszulib/
-├── ItszuLib.kt            @Mod object (KFF): module init, data components, dev content (non-production only),
-│                          server tick / chunk unload / server stop -> NETWORK_MANAGER
+├── ItszuLib.kt            @Mod object (KFF): module init, data components, payload registration, dev content
+│                          (non-production only), server tick / chunk unload / server stop -> NETWORK_MANAGER
 ├── api/
-│   ├── Api.kt             Capabilities (COLORABLE), Modules (COLORABLE; Modules.init()), Components
-│   │                      (FRAGMENT_DATA = itszulib:fragment_data), ModuleCapabilities (registers a BlockEntityCore
-│   │                      type's modules + STANDARD NeoForge caps)
+│   ├── Api.kt             Capabilities (COLORABLE), Modules (COLORABLE, ITEM/FLUID_STORAGE, *_STORAGE_CONFIGURABLE,
+│   │                      MULTIBLOCK, MENU; Modules.init()), Components (FRAGMENT_DATA = itszulib:fragment_data),
+│   │                      ModuleCapabilities (registers a BlockEntityCore type's modules + STANDARD NeoForge caps)
 │   ├── adapters/          Engine-facing interfaces: IModule/Module, IModuleProvider, IBlockEntity, ILevel,
-│   │                      IItemStack, IBattery, IColorable
-│   ├── storage/           IItemStorage + implementations (Array, Slice, Aggregate, NBT, Dynamic,
-│   │                      ResourceHandler-backed); IBattery implementations (PowerBattery, PowerBatteryNBT,
-│   │                      DynamicIBattery, EnergyHandler-backed)
+│   │                      IItemStack, IFluidStack, IBattery, IColorable
+│   ├── multiblock/        MultiBlockInfo, IBlockPattern/BlockPatternStatic, IMultiblock/MultiblockStatic,
+│   │                      MultiblockUtils, Multiblock{Item,Fluid}StorageConfiguration
+│   ├── storage/           IItemStorage and IFluidStorage + implementations (Array, Slice, Aggregate, NBT, Dynamic,
+│   │                      ResourceHandler-backed); IBattery implementations
 │   ├── utility/           Loc4 (+Level/ILevel/Indirect), ChunkCoord, LocationTracker, DirectionUtil, module
 │   │                      capability maps, IScopedSerialization + NBTSerializationScope, Overideable, sided holders
 │   └── wrappers/          Vanilla/NeoForge <-> ItszuLib adapters (WrapperLevel, WrapperBlockEntity,
-│                          WrapperVanillaItemStack, WrapperContainerIItemStorage,
-│                          WrapperResourceHandlerIItemStorage, WrapperEnergyHandlerIBattery, WrapperCache)
+│                          WrapperVanillaItemStack/FluidStack, WrapperContainerIItemStorage,
+│                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
+├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath. Client only.
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
-│   │                      BlockEntityFragmentCollection + fragment interfaces (Fragments.kt), networks
-│   │                      (Networks.kt), SidedStorageConfiguration
-│   └── frag/              Fragment base classes, FragColorable, FragDropInventory
-├── dev/                   Dev-only block + game tests (never registered in production)
-└── util/                  Color, InventoryUtils (item dropping), Singleton
+│   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
+│   │                      (Fragments.kt), networks (Networks.kt), Sided{Item,Fluid}StorageConfiguration
+│   └── frag/              Fragment base classes; FragColorable, FragDropInventory; storage fragments
+│                          (FragItem/FluidStorage, FragSidedConfiguration, FragItem/FluidAutoIO); multiblock fragments
+│                          (FragMultiBlockInfo, FragMultiblockState, FragMultiblockTickable); FragMenu;
+│                          FragConnectable, FragNetworkedWire
+├── menu/                  MenuCore (slots, shift-click, syncs), MenuSync/MenuSyncs, MenuSyncPayload,
+│                          MenuActionPayload, IMenuHost, BlockMenus
+├── network/               PacketHandler, ItszuLibNetwork (registers ItszuLib's payloads)
+├── dev/                   Dev-only blocks, menu, screen and game tests (never registered in production)
+└── util/                  Color, InventoryUtils (item dropping), FaceBitSet, Task, Singleton
+src/main/resources/        assets/itszulib/lang/en_us.json (screen helper strings), data/itszulib/structure/dev_5x3x5.nbt
 src/test/kotlin/...        JUnit tests + Testable* fakes that avoid vanilla objects (TestHelpers.kt, CoreTests.kt)
 ```
 
@@ -131,7 +140,13 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 
 ## Dev content and game tests
 
-`dev/DevContent.kt` registers `itszulib:dev_frag_block` (colorable, 1-slot inventory exposed via `Capabilities.Item.BLOCK`, drops on break) only when `!FMLEnvironment.isProduction()`. `dev/DevGameTests.kt` registers test functions (`Registries.TEST_FUNCTION`) and test instances (`RegisterGameTestsEvent`) on vanilla's 1x1x1 `minecraft:empty` structure. Add a test with `test("name") { helper -> ...; helper.succeed() }`. Current tests: mod loaded, capability/module lookup, level save/load, client update tag, item capability insert with rollback, drops on break, level lookup returns the core, inventory change marks dirty, ITEM-scope component round trip, per-slot resource handler limits. `GameTestHelper#assertValueEqual(expected, actual, name)` takes the expected value first.
+`dev/DevContent.kt` registers dev blocks only when `!FMLEnvironment.isProduction()`:
+
+- `itszulib:dev_frag_block`: colorable, 1-slot inventory exposed via `Capabilities.Item.BLOCK`, drops on break.
+- `itszulib:dev_machine` (`dev/DevStorageContent.kt`): 2-slot inventory (slot 0 "input", slot 1 "output") and a 4000 mB tank, each behind a sided configuration (`FragSidedConfiguration`), exposed per side by `FragItemStorage`/`FragFluidStorage`, with item and fluid auto IO every tick.
+- `itszulib:dev_multiblock`: one part of a two-block multiblock (`DevMultiblockBlock.PATTERN`: controller + the block east of it) with `FragMultiBlockInfo`, a `FragMultiblockState` tick counter and a `MultiblockSidedItemStorageConfiguration`.
+
+`dev/DevGameTests.kt` registers test functions (`Registries.TEST_FUNCTION`) and test instances (`RegisterGameTestsEvent`). Add a test with `test("name") { helper -> ...; helper.succeed() }` (vanilla's 1x1x1 `minecraft:empty` structure) or `test("name", DevGameTests.EMPTY_5X3X5) { ... }` for tests that need neighbours (`data/itszulib/structure/dev_5x3x5.nbt`, an empty 5x3x5 structure). Framework tests live in `DevGameTests`; storage, sided configuration, auto IO and multiblock tests in `DevStorageGameTests`. `GameTestHelper#assertValueEqual(actual, expected, name)` takes the actual value first.
 
 ## Testing conventions
 

@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.core
 
 import com.itszuvalex.itszulib.api.Components
+import com.itszuvalex.itszulib.api.Modules
 import com.itszuvalex.itszulib.api.adapters.IBlockEntity
 import com.itszuvalex.itszulib.api.adapters.ILevel
 import com.itszuvalex.itszulib.api.adapters.IModule
@@ -33,6 +34,11 @@ import net.minecraft.world.level.storage.TagValueInput
 import net.minecraft.world.level.storage.TagValueOutput
 import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.redstone.Orientation
+import net.minecraft.world.phys.BlockHitResult
 import net.neoforged.fml.LogicalSide
 import net.neoforged.neoforge.capabilities.BlockCapability
 
@@ -154,6 +160,15 @@ open class BlockEntityCore(type: BlockEntityType<*>, pos: BlockPos, state: Block
     override fun onRemove(level: ILevel, pos: BlockPos, blockStatePrev: BlockState) =
         fragList.onRemove(level, pos, blockStatePrev)
 
+    override fun onLoad() {
+        super<BlockEntity>.onLoad()
+        level?.let { onLoad(ILevel.of(it), worldPosition) }
+    }
+
+    override fun onLoad(level: ILevel, pos: BlockPos) = fragList.onLoad(level, pos)
+
+    override fun onNeighborChanged(level: ILevel, pos: BlockPos) = fragList.onNeighborChanged(level, pos)
+
     companion object {
         private val LOGGER = LogUtils.getLogger()
         const val FRAG_KEY = "frags"
@@ -168,7 +183,25 @@ abstract class TickableBlockEntityCore(type: BlockEntityType<*>, pos: BlockPos, 
 abstract class EntityBlockCore<T : BlockEntity>(
     properties: BlockBehaviour.Properties,
     protected val typeSupplier: () -> BlockEntityType<T>,
-) : Block(properties), EntityBlock
+) : Block(properties), EntityBlock {
+    /**
+     * Opens the menu the block entity exposes through [Modules.MENU] on the clicked face, if any.
+     */
+    override fun useWithoutItem(state: BlockState, level: Level, pos: BlockPos, player: Player, hitResult: BlockHitResult): InteractionResult {
+        val menu = (level.getBlockEntity(pos) as? IBlockEntity)?.getModule(Modules.MENU, hitResult.direction)
+            ?: return super.useWithoutItem(state, level, pos, player, hitResult)
+        if (player is ServerPlayer) player.openMenu(menu, menu.menuPos())
+        return InteractionResult.SUCCESS
+    }
+
+    /**
+     * Forwards to the block entity's [IBlockEntityBlockEventHandler.onNeighborChanged].
+     */
+    override fun neighborChanged(state: BlockState, level: Level, pos: BlockPos, block: Block, orientation: Orientation?, movedByPiston: Boolean) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston)
+        (level.getBlockEntity(pos) as? IBlockEntityBlockEventHandler)?.onNeighborChanged(ILevel.of(level), pos)
+    }
+}
 
 abstract class TickableEntityBlockCore<T : TickableBlockEntityCore>(
     properties: BlockBehaviour.Properties,

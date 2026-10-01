@@ -34,9 +34,15 @@ class FragMultiBlockInfo @JvmOverloads constructor(val info: MultiBlockInfo = Mu
      */
     fun controller(): IBlockEntity? {
         val be = host?.blockEntity() ?: return null
-        val level = be.toMinecraft().level ?: return null
-        return MultiblockUtils.controller(ILevel.of(level), info)
+        val level = levelOf(be) ?: return null
+        return MultiblockUtils.controller(level, info)
     }
+
+    /**
+     * Finds the level of the owning block entity. A seam for unit tests, which have no vanilla level.
+     */
+    @JvmField
+    var levelOf: (IBlockEntity) -> ILevel? = { be -> be.toMinecraft().level?.let(ILevel::of) }
 
     /**
      * @return [module] as exposed by this multiblock's controller (side-less), if formed and loaded.
@@ -79,12 +85,16 @@ class FragMultiblockState<S : ValueIOSerializable>(
      * @return The multiblock's state, or null if not formed or the controller is not loaded.
      */
     fun get(): S? {
+        if (!isFormedController()) dropStale()
         if (!info.info.isFormed) return null
         if (info.info.isController) return local()
-        return info.controller()?.let(holderOf)?.local()
+        return info.controller()?.let(holderOf)?.controllerLocal()
     }
 
-    fun hasState(): Boolean = state != null
+    fun hasState(): Boolean {
+        if (!isFormedController()) dropStale()
+        return state != null
+    }
 
     /**
      * Runs [action] on the state if this block is the controller.
@@ -92,10 +102,26 @@ class FragMultiblockState<S : ValueIOSerializable>(
      * @return True if it ran.
      */
     fun doIfController(action: (S) -> Unit): Boolean {
-        if (!info.info.isFormed || !info.info.isController) return false
+        if (!isFormedController()) {
+            dropStale()
+            return false
+        }
         action(local())
         return true
     }
+
+    private fun isFormedController(): Boolean = info.info.isFormed && info.info.isController
+
+    /**
+     * A block that is no longer a formed multiblock's controller forgets the state it held. Only a controller saves
+     * its state, so keeping it would make a re-formed multiblock's state depend on whether the chunk was reloaded in
+     * between (1.12.2 kept it in memory until then).
+     */
+    private fun dropStale() {
+        state = null
+    }
+
+    private fun controllerLocal(): S? = if (isFormedController()) local() else null
 
     private fun local(): S = state ?: factory().also { state = it }
 

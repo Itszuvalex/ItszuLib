@@ -53,13 +53,42 @@ Consequence: ItszuLib's dev-only content and game tests also load in Femtocraft'
 
 Scala sources stay in `src/main/scala` / `src/test/scala` as reference while porting (not compiled, since the Scala plugin is not applied) and are deleted area by area as the Kotlin replacement lands, so `git log` shows each area's old and new form.
 
-## D6. Menus keep vanilla slots — DECIDED (non-blocking)
+## D6. Menus keep vanilla slots — DECIDED, AWAITING MAINTAINER SIGN-OFF
 
 1.12.2 dropped vanilla `Slot` syncing in favour of its own `ISync` slots (`SyncItemStorageItemStack`,
 `MessageIItemStackSyncClick`). 26.1 menus keep vanilla `Slot`s over `WrapperContainerIItemStorage`: vanilla already
 syncs slot contents, handles every click type and drag, and works with recipe viewers. The `ISync` idea is kept for
 values that are not slots (power, progress, fluids, side configuration): `MenuCore.addSync` with a `StreamCodec`,
 sent by one payload.
+
+Implemented in F5 (`menu/MenuCore`, `MenuSync`, `MenuSyncPayload`). Femtocraft's v3 screens used `SyncItemStorageItemStack`
+for every slot; on 26.1 those are plain `StorageSlot`/`OutputSlot`s. The maintainer has not yet confirmed that losing
+1.12.2's synced-slot click handling (`MessageIItemStackSyncClick`) is acceptable; until then this is the default.
+
+## D7. Menu actions go through one payload to the open menu — DECIDED (non-blocking)
+
+Femtocraft 1.12.2 had one message per control (`MessageSidedInventoryConfigChange`, `...IOChange`, fluid and nanite
+variants), each naming a block by position and applied by the server without checking that the sender had that block's
+menu open or was near it. 26.1 has one `MenuActionPayload(containerId, action, data)`: the server routes it only to the
+sender's open `MenuCore` with that container id, and only while `stillValid(player)`; the menu decides what the action
+means. Vanilla's `ServerboundContainerButtonClickPacket` does the same for a single int; the payload adds `data`.
+
+## D8. Framework hooks added for F6 and F9 — DECIDED (non-blocking), mirror into TechnoLich
+
+Two generic hooks were needed so fragments can react to the world without each block class forwarding calls:
+
+- `IBlockEntityBlockEventHandler.onLoad(level, pos)` and `onNeighborChanged(level, pos)` (default no-ops), forwarded by
+  `BlockEntityFragmentCollection`; `BlockEntityCore.onLoad()` (NeoForge's deferred load hook) and
+  `EntityBlockCore.neighborChanged` call them. 26.1's `neighborChanged` no longer says which neighbour changed, so the
+  hook has no neighbour position.
+- `EntityBlockCore.useWithoutItem` opens the `Modules.MENU` host the block entity exposes on the clicked face.
+
+## D9. Wires reconcile their faces on load — DECIDED (non-blocking)
+
+1.12.2 wires trusted their saved connection flags on load and only checked neighbours when placed or when a neighbour
+changed. `FragNetworkedWire` checks every face whose neighbour is loaded on load too (faces towards unloaded chunks keep
+their flag and are joined when the neighbour loads). This fixes stale connections to blocks removed while the chunk was
+unloaded, at the cost of up to six neighbour lookups per wire per load.
 
 ---
 

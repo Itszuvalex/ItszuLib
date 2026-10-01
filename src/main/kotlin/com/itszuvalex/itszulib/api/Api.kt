@@ -8,6 +8,7 @@ import com.itszuvalex.itszulib.api.multiblock.MultiBlockInfo
 import com.itszuvalex.itszulib.api.storage.IFluidStorage
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.core.BlockEntityCore
+import com.itszuvalex.itszulib.menu.IMenuHost
 import com.itszuvalex.itszulib.core.SidedFluidStorageConfiguration
 import com.itszuvalex.itszulib.core.SidedItemStorageConfiguration
 import net.minecraft.core.Direction
@@ -73,6 +74,13 @@ object Modules {
      */
     @JvmField
     val MULTIBLOCK: IModule<MultiBlockInfo> = Module.registerModule(id("multiblock"), null)
+
+    /**
+     * The menu a block opens when used, per clicked face. Exposed by [com.itszuvalex.itszulib.core.frag.FragMenu];
+     * [com.itszuvalex.itszulib.core.EntityBlockCore] opens it.
+     */
+    @JvmField
+    val MENU: IModule<IMenuHost> = Module.registerModule(id("menu"), null)
 
     private fun id(path: String): Identifier = Identifier.fromNamespaceAndPath(ItszuLib.ID, path)
 

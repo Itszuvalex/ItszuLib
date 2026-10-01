@@ -27,6 +27,19 @@ interface IBlockEntityBlockEventHandler {
      * entity).
      */
     fun onRemove(level: ILevel, pos: BlockPos, blockStatePrev: BlockState)
+
+    /**
+     * Both sides, once the block entity is in a loaded level: after placement, and when its chunk loads (NeoForge's
+     * `BlockEntity#onLoad`, which runs once the chunk's block entities are all registered, so neighbours in the same
+     * chunk can be looked up).
+     */
+    fun onLoad(level: ILevel, pos: BlockPos) {}
+
+    /**
+     * Both sides, when a neighbouring block changed (`Block#neighborChanged`; 26.1 no longer says which neighbour).
+     * Only blocks extending [EntityBlockCore] forward this.
+     */
+    fun onNeighborChanged(level: ILevel, pos: BlockPos) {}
 }
 
 fun interface IBlockEntityTickable {
@@ -151,4 +164,8 @@ class BlockEntityFragmentCollection(private val host: IFragmentHost) :
 
     override fun onRemove(level: ILevel, pos: BlockPos, blockStatePrev: BlockState) =
         modList.forEach { it.onRemove(level, pos, blockStatePrev) }
+
+    override fun onLoad(level: ILevel, pos: BlockPos) = modList.forEach { it.onLoad(level, pos) }
+
+    override fun onNeighborChanged(level: ILevel, pos: BlockPos) = modList.forEach { it.onNeighborChanged(level, pos) }
 }

@@ -200,7 +200,11 @@ object MultiblockUtils {
     @JvmStatic
     fun isFacingInMultiblock(level: ILevel, pos: BlockPos, facing: Direction, info: MultiBlockInfo): Boolean {
         val controller = info.controller ?: return false
-        val other = level.getIBlockEntity(pos.relative(facing))?.getModule(Modules.MULTIBLOCK, null) ?: return false
+        val neighbour = pos.relative(facing)
+        // Never load a chunk to answer this (1.12.2 looked up with force = false): a block entity lookup in an
+        // unloaded chunk loads it synchronously on the server.
+        if (!level.isLoaded(neighbour)) return false
+        val other = level.getIBlockEntity(neighbour)?.getModule(Modules.MULTIBLOCK, null) ?: return false
         return other.controller == controller
     }
 
@@ -212,45 +216,65 @@ object MultiblockUtils {
 }
 
 /**
- * Sided item configuration of a multiblock part: faces touching the rest of the same multiblock expose
- * [emptyStorage]'s storage (normally an empty one), do no automatic IO and cannot be reconfigured. Port of ItszuLib
- * 1.12.2's `MultiblockSidedItemStorageConfiguration`.
+ * Decides which faces of a multiblock part touch the rest of its multiblock. Shared by
+ * [MultiblockSidedItemStorageConfiguration] and [MultiblockSidedFluidStorageConfiguration].
  */
-open class MultiblockSidedItemStorageConfiguration(
+class MultiblockFaces(
     private val level: () -> ILevel?,
     private val pos: () -> BlockPos,
     private val info: MultiBlockInfo,
+    private val front: () -> Direction,
+) {
+    fun internal(absolute: Direction): Boolean = level()?.let { MultiblockUtils.isFacingInMultiblock(it, pos(), absolute, info) } ?: false
+
+    fun internalRelative(relative: Direction): Boolean = internal(DirectionUtil.getAbsoluteDirectionFromHorizontalRelative(relative, front()))
+}
+
+/**
+ * Sided item configuration of a multiblock part: faces touching the rest of the same multiblock expose
+ * [emptyStorage]'s storage (normally an empty one), do no automatic IO and cannot be reconfigured. Port of ItszuLib
+ * 1.12.2's `MultiblockSidedItemStorageConfiguration`.
+ *
+ * Relative and absolute queries agree: an internal face reports [emptyStorage] and [EnumAutomaticIO.NONE] either way
+ * (1.12.2 only overrode the absolute queries, so a screen showed the stored setting of a face that did nothing).
+ */
+open class MultiblockSidedItemStorageConfiguration(
+    level: () -> ILevel?,
+    pos: () -> BlockPos,
+    info: MultiBlockInfo,
     private val emptyStorage: String,
     defaults: (Direction) -> String,
     storages: Map<String, IItemStorage>,
     front: () -> Direction,
 ) : SidedItemStorageConfiguration(defaults, storages, front) {
-    private fun internal(absolute: Direction): Boolean =
-        level()?.let { MultiblockUtils.isFacingInMultiblock(it, pos(), absolute, info) } ?: false
-
-    private fun internalRelative(relative: Direction): Boolean =
-        internal(DirectionUtil.getAbsoluteDirectionFromHorizontalRelative(relative, front()))
+    private val faces = MultiblockFaces(level, pos, info, front)
 
     override fun getStorageNameForAbsoluteFacing(direction: Direction): String =
-        if (internal(direction)) emptyStorage else super.getStorageNameForAbsoluteFacing(direction)
+        if (faces.internal(direction)) emptyStorage else super.getStorageNameForAbsoluteFacing(direction)
+
+    override fun getStorageNameForRelativeFacing(direction: Direction): String =
+        if (faces.internalRelative(direction)) emptyStorage else super.getStorageNameForRelativeFacing(direction)
 
     override fun getIOForAbsoluteFacing(direction: Direction): EnumAutomaticIO =
-        if (internal(direction)) EnumAutomaticIO.NONE else super.getIOForAbsoluteFacing(direction)
+        if (faces.internal(direction)) EnumAutomaticIO.NONE else super.getIOForAbsoluteFacing(direction)
+
+    override fun getIOForRelativeFacing(direction: Direction): EnumAutomaticIO =
+        if (faces.internalRelative(direction)) EnumAutomaticIO.NONE else super.getIOForRelativeFacing(direction)
 
     override fun cycleRelativeFacingStorageForward(direction: Direction) {
-        if (!internalRelative(direction)) super.cycleRelativeFacingStorageForward(direction)
+        if (!faces.internalRelative(direction)) super.cycleRelativeFacingStorageForward(direction)
     }
 
     override fun cycleRelativeFacingStorageBackward(direction: Direction) {
-        if (!internalRelative(direction)) super.cycleRelativeFacingStorageBackward(direction)
+        if (!faces.internalRelative(direction)) super.cycleRelativeFacingStorageBackward(direction)
     }
 
     override fun cycleRelativeFacingIOForward(direction: Direction) {
-        if (!internalRelative(direction)) super.cycleRelativeFacingIOForward(direction)
+        if (!faces.internalRelative(direction)) super.cycleRelativeFacingIOForward(direction)
     }
 
     override fun cycleRelativeFacingIOBackward(direction: Direction) {
-        if (!internalRelative(direction)) super.cycleRelativeFacingIOBackward(direction)
+        if (!faces.internalRelative(direction)) super.cycleRelativeFacingIOBackward(direction)
     }
 }
 
@@ -258,39 +282,41 @@ open class MultiblockSidedItemStorageConfiguration(
  * Fluid counterpart of [MultiblockSidedItemStorageConfiguration].
  */
 open class MultiblockSidedFluidStorageConfiguration(
-    private val level: () -> ILevel?,
-    private val pos: () -> BlockPos,
-    private val info: MultiBlockInfo,
+    level: () -> ILevel?,
+    pos: () -> BlockPos,
+    info: MultiBlockInfo,
     private val emptyStorage: String,
     defaults: (Direction) -> String,
     storages: Map<String, IFluidStorage>,
     front: () -> Direction,
 ) : SidedFluidStorageConfiguration(defaults, storages, front) {
-    private fun internal(absolute: Direction): Boolean =
-        level()?.let { MultiblockUtils.isFacingInMultiblock(it, pos(), absolute, info) } ?: false
-
-    private fun internalRelative(relative: Direction): Boolean =
-        internal(DirectionUtil.getAbsoluteDirectionFromHorizontalRelative(relative, front()))
+    private val faces = MultiblockFaces(level, pos, info, front)
 
     override fun getStorageNameForAbsoluteFacing(direction: Direction): String =
-        if (internal(direction)) emptyStorage else super.getStorageNameForAbsoluteFacing(direction)
+        if (faces.internal(direction)) emptyStorage else super.getStorageNameForAbsoluteFacing(direction)
+
+    override fun getStorageNameForRelativeFacing(direction: Direction): String =
+        if (faces.internalRelative(direction)) emptyStorage else super.getStorageNameForRelativeFacing(direction)
 
     override fun getIOForAbsoluteFacing(direction: Direction): EnumAutomaticIO =
-        if (internal(direction)) EnumAutomaticIO.NONE else super.getIOForAbsoluteFacing(direction)
+        if (faces.internal(direction)) EnumAutomaticIO.NONE else super.getIOForAbsoluteFacing(direction)
+
+    override fun getIOForRelativeFacing(direction: Direction): EnumAutomaticIO =
+        if (faces.internalRelative(direction)) EnumAutomaticIO.NONE else super.getIOForRelativeFacing(direction)
 
     override fun cycleRelativeFacingStorageForward(direction: Direction) {
-        if (!internalRelative(direction)) super.cycleRelativeFacingStorageForward(direction)
+        if (!faces.internalRelative(direction)) super.cycleRelativeFacingStorageForward(direction)
     }
 
     override fun cycleRelativeFacingStorageBackward(direction: Direction) {
-        if (!internalRelative(direction)) super.cycleRelativeFacingStorageBackward(direction)
+        if (!faces.internalRelative(direction)) super.cycleRelativeFacingStorageBackward(direction)
     }
 
     override fun cycleRelativeFacingIOForward(direction: Direction) {
-        if (!internalRelative(direction)) super.cycleRelativeFacingIOForward(direction)
+        if (!faces.internalRelative(direction)) super.cycleRelativeFacingIOForward(direction)
     }
 
     override fun cycleRelativeFacingIOBackward(direction: Direction) {
-        if (!internalRelative(direction)) super.cycleRelativeFacingIOBackward(direction)
+        if (!faces.internalRelative(direction)) super.cycleRelativeFacingIOBackward(direction)
     }
 }

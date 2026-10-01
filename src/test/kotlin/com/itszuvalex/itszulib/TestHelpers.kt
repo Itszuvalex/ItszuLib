@@ -61,19 +61,34 @@ object TestIO {
     fun read(tag: CompoundTag): ValueInput = TagValueInput.create(ProblemReporter.DISCARDING, RegistryAccess.EMPTY, tag)
 }
 
-class TestableLevel(private val dimension: Identifier) : ILevel {
+class TestableLevel(private val dimension: Identifier = TestableLoc4.DEFAULT_DIM) : ILevel {
     private val blockEntityMap = HashMap<BlockPos, IBlockEntity>()
 
-    override fun isClientSide(): Boolean = false
+    /**
+     * Positions whose chunk counts as unloaded. Looking up a block entity there fails the test, because a real level
+     * would load the chunk to answer.
+     */
+    val unloaded = HashSet<BlockPos>()
+
+    var clientSide = false
+
+    override fun isClientSide(): Boolean = clientSide
     override fun dimension(): ResourceKey<Level> = MCAssert.failVanillaClass("dimension")
     override fun dimensionLocation(): Identifier = dimension
     override fun toMinecraft(): Level = MCAssert.failVanillaClass("toMinecraft")
-    override fun isLoaded(pos: BlockPos): Boolean = true
-    override fun getIBlockEntity(pos: BlockPos): IBlockEntity? = blockEntityMap[pos]
+    override fun isLoaded(pos: BlockPos): Boolean = pos !in unloaded
+    override fun getIBlockEntity(pos: BlockPos): IBlockEntity? {
+        if (pos in unloaded) Assertions.fail<Unit>("Looked up a block entity in an unloaded chunk at $pos")
+        return blockEntityMap[pos]
+    }
     override fun setIBlockEntity(entity: IBlockEntity) {
         blockEntityMap[entity.getBlockPos()] = entity
     }
     override fun setBlockEntity(entity: BlockEntity) = MCAssert.failVanillaClass("setBlockEntity")
+
+    fun removeIBlockEntity(pos: BlockPos) {
+        blockEntityMap.remove(pos)
+    }
 }
 
 class TestableIItemStack(
@@ -170,5 +185,32 @@ class TestableIFluidStack(var testFluid: Int = 0, var testAmount: Int = 0) : IFl
         fun overrideCodec() = IFluidStack.CODEC.setOverrideValue(CODEC)
 
         fun resetCodec() = IFluidStack.CODEC.revert()
+    }
+}
+
+/**
+ * A fragment-hosting block entity without vanilla objects: fragments added to [fragList] are reachable through
+ * [getModule], and dirty/sync requests are counted. Placed into [level] on construction.
+ */
+class TestableCoreBlockEntity(private val pos: BlockPos, val level: TestableLevel = TestableLevel()) :
+    IBlockEntity, com.itszuvalex.itszulib.core.IFragmentHost {
+    val fragList = com.itszuvalex.itszulib.core.BlockEntityFragmentCollection(this)
+    var dirtyCount = 0
+    var syncCount = 0
+
+    init {
+        level.setIBlockEntity(this)
+    }
+
+    override fun getBlockPos(): BlockPos = pos
+    override fun toMinecraft(): BlockEntity = MCAssert.failVanillaClass("toMinecraft")
+    override fun <T : Any> getModule(module: IModule<T>, side: Direction?): T? = fragList.getModule(module, side)
+    override fun blockEntity(): IBlockEntity = this
+    override fun markDirty() {
+        dirtyCount++
+    }
+    override fun markDirtyAndSync() {
+        dirtyCount++
+        syncCount++
     }
 }

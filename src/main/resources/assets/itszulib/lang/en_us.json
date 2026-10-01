@@ -1,0 +1,5 @@
+{
+  "gui.itszulib.tank.empty": "Empty",
+  "gui.itszulib.tank.amount": "%s / %s mB",
+  "gui.itszulib.energy": "%s / %s %s"
+}
