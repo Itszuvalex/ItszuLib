@@ -112,6 +112,33 @@ class FluidStorageArrayTest {
         assertTank(storage, 1, 1, 100)
     }
 
+    // 1.12.2 picked the first tank to drain by canDrain alone, so a tank whose fluid canDrainFluidType refuses was
+    // drained anyway.
+    @Test
+    fun DrainAmount_RespectsCanDrainFluidType() {
+        val storage = object : FluidStorageArray(2, 1000) {
+            override fun canDrainFluidType(index: Int, resource: IFluidStack): Boolean =
+                (resource as TestableIFluidStack).testFluid != 1 && super.canDrainFluidType(index, resource)
+        }
+        storage.set(0, fluid(1, 100))
+        storage.set(1, fluid(2, 100))
+        val drained = storage.drain(50, true) as TestableIFluidStack
+        Assertions.assertEquals(2, drained.testFluid)
+        Assertions.assertEquals(50, drained.testAmount)
+        assertTank(storage, 0, 1, 100)
+        assertTank(storage, 1, 2, 50)
+    }
+
+    @Test
+    fun DrainAmount_NothingDrainable_ReturnsEmpty() {
+        val storage = object : FluidStorageArray(1, 1000) {
+            override fun canDrainFluidType(index: Int, resource: IFluidStack): Boolean = false
+        }
+        storage.set(0, fluid(1, 100))
+        Assertions.assertTrue(storage.drain(50, true).isEmpty())
+        assertTank(storage, 0, 1, 100)
+    }
+
     @Test
     fun Fill_UsesPerTankCapacity() {
         val storage = FluidStorageArray(intArrayOf(100, 500))

@@ -189,23 +189,44 @@ class MultiblockStaticTest {
         assertFalse(b.info.isController)
     }
 
+    // 1.12.2 kept forming after a part refused, leaving a half-formed multiblock whose controller ran while a part
+    // belonged to nothing, or to another multiblock.
     @Test
-    fun Form_PartWithoutModule_ReturnsFalseButOthersStillJoin() {
+    fun Form_PartWithoutModule_ReturnsFalseAndNoPartJoins() {
         val level = TestableLevel()
         val (_, a) = part(level, ORIGIN)
         TestableCoreBlockEntity(EAST_OF_ORIGIN, level)
         assertFalse(MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE))
-        assertTrue(a.info.isFormed)
+        assertFalse(a.info.isFormed)
     }
 
     @Test
-    fun Form_PartOfAnotherMultiblock_ReturnsFalse() {
+    fun Form_PartMissing_ReturnsFalseAndNoPartJoins() {
         val level = TestableLevel()
-        part(level, ORIGIN)
+        val (_, a) = part(level, ORIGIN)
+        assertFalse(MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE))
+        assertFalse(a.info.isFormed)
+    }
+
+    @Test
+    fun Form_PartOfAnotherMultiblock_ReturnsFalseAndNoPartJoins() {
+        val level = TestableLevel()
+        val (_, a) = part(level, ORIGIN)
         val (_, b) = part(level, EAST_OF_ORIGIN)
         b.info.form(EAST_OF_ORIGIN, BlockPos(9, 9, 9))
         assertFalse(MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE))
+        assertFalse(a.info.isFormed)
         assertEquals(BlockPos(9, 9, 9), b.info.controller)
+    }
+
+    @Test
+    fun Form_AlreadyFormedBySameController_Succeeds() {
+        val level = TestableLevel()
+        part(level, ORIGIN)
+        part(level, EAST_OF_ORIGIN)
+        val mb = MultiblockStatic(TWO_WIDE)
+        assertTrue(mb.form(level, ORIGIN, TWO_WIDE))
+        assertTrue(mb.form(level, ORIGIN, TWO_WIDE))
     }
 
     @Test

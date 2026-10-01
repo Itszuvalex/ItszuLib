@@ -78,4 +78,24 @@ class EnergyAdapterTest {
         battery.setStorage(10.0)
         Assertions.assertEquals(10.0, battery.storage())
     }
+
+    // 1.12.2's PowerBattery clamped its charge to the capacity; the port did not, so a save from a larger battery (or a
+    // direct setStorage) left it over capacity with negative room.
+    @Test
+    fun PowerBattery_SetStorage_ClampsToCapacity() {
+        val battery = PowerBattery(100.0)
+        battery.setStorage(150.0)
+        Assertions.assertEquals(100.0, battery.storage())
+        battery.setStorage(-5.0)
+        Assertions.assertEquals(0.0, battery.storage())
+    }
+
+    @Test
+    fun PowerBattery_Deserialize_OverCapacity_Clamped() {
+        val tag = com.itszuvalex.itszulib.TestIO.write { PowerBattery(500.0).also { b -> b.setStorage(400.0) }.serialize(it) }
+        val battery = PowerBattery(100.0)
+        battery.deserialize(com.itszuvalex.itszulib.TestIO.read(tag))
+        Assertions.assertEquals(100.0, battery.storage())
+        Assertions.assertEquals(0.0, battery.room())
+    }
 }

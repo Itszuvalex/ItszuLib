@@ -84,13 +84,14 @@ interface IFluidStorage : ValueIOSerializable {
 
     /**
      * Drains up to [maxDrain] of whatever the first drainable non-empty tank holds, topping up from further tanks
-     * holding the same fluid.
+     * holding the same fluid. A tank is drainable if [canDrainFluidType] allows its fluid (1.12.2 checked only
+     * [canDrain] for the first tank).
      *
      * @return The fluid drained (or that would be drained, if not [doDrain]); [IFluidStack.Empty] if none.
      */
     fun drain(maxDrain: Int, doDrain: Boolean): IFluidStack {
         if (maxDrain <= 0) return IFluidStack.Empty
-        val first = (0 until size()).firstOrNull { canDrain(it) && !get(it).isEmpty() } ?: return IFluidStack.Empty
+        val first = (0 until size()).firstOrNull { !get(it).isEmpty() && canDrainFluidType(it, get(it)) } ?: return IFluidStack.Empty
         val stack = get(first)
         val fluid = stack.copy()
         val fromFirst = min(maxDrain, stack.amount())

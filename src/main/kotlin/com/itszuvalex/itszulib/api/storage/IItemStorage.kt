@@ -31,7 +31,14 @@ interface IItemStorage : ValueIOSerializable {
 
     fun maxStackSize(index: Int): Int = min(MCConstants.ITEMSTACK_MAX, get(index).stackSizeMax())
 
+    /**
+     * Removes up to [amount] items from the slot.
+     *
+     * @return The removed items; [IItemStack.Empty] if [amount] is not positive (1.12.2 grew the slot for a negative
+     * amount).
+     */
     fun split(index: Int, amount: Int): IItemStack {
+        if (amount <= 0) return IItemStack.Empty
         val slot = get(index)
         val ret = slot.copy()
         if (amount >= slot.stackSize()) {
@@ -91,19 +98,24 @@ interface IItemStorage : ValueIOSerializable {
     }
 
     /**
+     * Safe when [storage] is this storage or a view of it, even for the same slot: the source is re-read after the
+     * insert. (1.12.2 wrote back a copy taken before the insert, which destroyed the items moved into the same slot.)
+     *
      * @return Amount of [amount] that was not transferred.
      */
     fun transferSlotIntoStorageSlot(slot: Int, storage: IItemStorage, targetSlot: Int, amount: Int): Int {
-        var transferRemaining = amount
-        val inSlot = get(slot).copy()
-        val up = inSlot.copy()
-        inSlot.setStackSize(min(inSlot.stackSize(), transferRemaining))
-        val ins = storage.insert(targetSlot, inSlot)
-        val transfered = inSlot.stackSize() - ins.stackSize()
-        transferRemaining -= transfered
-        up.modifyStackSize(-transfered)
-        setSlot(slot, if (up.stackSize() <= 0) IItemStack.Empty else up)
-        return transferRemaining
+        if (amount <= 0) return amount
+        val source = get(slot)
+        if (source.isEmpty()) return amount
+        val moving = source.copy()
+        moving.setStackSize(min(moving.stackSize(), amount))
+        val transferred = moving.stackSize() - storage.insert(targetSlot, moving).stackSize()
+        if (transferred <= 0) return amount
+        // Re-read: the insert may have changed this slot (same storage and slot, or a view of it).
+        val after = get(slot).copy()
+        after.modifyStackSize(-transferred)
+        setSlot(slot, if (after.stackSize() <= 0) IItemStack.Empty else after)
+        return amount - transferred
     }
 
     /**

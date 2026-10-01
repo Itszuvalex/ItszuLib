@@ -60,6 +60,11 @@ class MultiBlockInfo : ValueIOSerializable {
     }
 
     /**
+     * @return True if [form] would accept [controller]: not formed, or already part of that multiblock.
+     */
+    fun canForm(controller: BlockPos): Boolean = !isFormed || controller == controllerPos
+
+    /**
      * Leaves the multiblock controlled at [controller].
      *
      * @return False if part of a different multiblock.
@@ -153,10 +158,10 @@ interface IMultiblock {
     val pattern: IBlockPattern
 
     /**
-     * Assumes [pat] matches at [pos].
+     * Assumes [pat] matches at [pos]. All or nothing: if any block has no multiblock module or already belongs to
+     * another multiblock, no block joins (1.12.2 still joined the others, leaving a half-formed multiblock).
      *
-     * @return True if every block of the pattern joined. False if any block has no multiblock module or already belongs
-     * to another multiblock; the other blocks still join.
+     * @return True if every block of the pattern joined.
      */
     fun form(level: ILevel, pos: BlockPos, pat: IBlockPattern): Boolean
 
@@ -176,8 +181,12 @@ interface IMultiblock {
 open class MultiblockStatic(private val blockPattern: IBlockPattern) : IMultiblock {
     override val pattern: IBlockPattern get() = blockPattern
 
-    override fun form(level: ILevel, pos: BlockPos, pat: IBlockPattern): Boolean =
-        forEachInfo(level, pos, pat) { at, info -> info.form(at, pos) }
+    override fun form(level: ILevel, pos: BlockPos, pat: IBlockPattern): Boolean {
+        val parts = pat.blocksInMatch(pos).map { at -> at to level.getIBlockEntity(at)?.getModule(Modules.MULTIBLOCK, null) }
+        if (parts.any { (_, info) -> info == null || !info.canForm(pos) }) return false
+        parts.forEach { (at, info) -> info!!.form(at, pos) }
+        return true
+    }
 
     override fun breakMultiblock(level: ILevel, pos: BlockPos, pat: IBlockPattern): Boolean =
         forEachInfo(level, pos, pat) { _, info -> info.breakFrom(pos) }

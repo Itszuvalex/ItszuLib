@@ -46,6 +46,50 @@ abstract class ItemStorageTestBase {
 
     private fun state() = TestState()
 
+    private fun total(storage: IItemStorage) = (0 until storage.size()).sumOf { storage.get(it).stackSize() }
+
+    // 1.12.2 wrote back a copy of the source taken before the insert, so moving a slot into itself (or into a view of
+    // the same slot) replaced the merged stack with the leftover and destroyed the items.
+    @Test
+    fun TransferSlotIntoStorageSlot_SameSlot_KeepsItems() {
+        val state = state()
+        val remaining = state.storage.transferSlotIntoStorageSlot(2, state.storage, 2, 10)
+        Assertions.assertEquals(10, state.storage.get(2).stackSize())
+        Assertions.assertEquals(0, remaining)
+    }
+
+    @Test
+    fun TransferSlotIntoStorage_IntoItself_KeepsItems() {
+        val storage = storageWithSize(1)
+        storage.setSlot(0, TestableIItemStack(1, 10))
+        storage.transferSlotIntoStorage(0, storage, 10)
+        Assertions.assertEquals(10, storage.get(0).stackSize())
+    }
+
+    @Test
+    fun TransferSlotIntoStorageSlot_AliasingView_KeepsItems() {
+        val storage = storageWithSize(2)
+        storage.setSlot(1, TestableIItemStack(1, 10))
+        val view = ItemStorageSlice(storage, intArrayOf(1))
+        storage.transferSlotIntoStorageSlot(1, view, 0, 10)
+        Assertions.assertEquals(10, total(storage))
+    }
+
+    // 1.12.2 subtracted a negative amount, growing the slot.
+    @Test
+    fun Split_NegativeAmount_ChangesNothing() {
+        val state = state()
+        MCAssert.assertIItemStackEmpty(state.storage.split(2, -5))
+        Assertions.assertEquals(10, state.storage.get(2).stackSize())
+    }
+
+    @Test
+    fun Split_Zero_ReturnsEmpty() {
+        val state = state()
+        MCAssert.assertIItemStackEmpty(state.storage.split(2, 0))
+        Assertions.assertEquals(10, state.storage.get(2).stackSize())
+    }
+
     @Test
     fun SetSlot_SetsSlot() {
         val storage = storageWithSize(1)

@@ -12,7 +12,8 @@ private const val POWER_KEY = "P"
 private const val POWER_MAX_KEY = "M"
 
 /**
- * In-memory battery with a fixed capacity. Persists only the current charge (key `P`).
+ * In-memory battery with a fixed capacity. Persists only the current charge (key `P`). The charge is kept within
+ * `[0, maxPower]`, as in 1.12.2, so a save from a larger battery loads clamped.
  *
  * @param onChanged Run after every [setStorage] and [setChanged], e.g. the owning block entity's setChanged.
  */
@@ -25,12 +26,12 @@ open class PowerBattery @JvmOverloads constructor(
     override fun storage(): Double = curPower
 
     override fun setStorage(storage: Double) {
-        curPower = storage
+        curPower = storage.coerceIn(0.0, maxPower)
         onChanged.run()
     }
 
     override fun setStorageQuietly(storage: Double) {
-        curPower = storage
+        curPower = storage.coerceIn(0.0, maxPower)
     }
 
     override fun setChanged() = onChanged.run()

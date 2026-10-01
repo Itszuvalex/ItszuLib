@@ -113,6 +113,11 @@ class WrapperVanillaItemStack(private val stack: ItemStack) : IItemStack {
 
 /**
  * Presents an [IItemStorage] as a vanilla [Container], for menus and for NeoForge's [VanillaContainerWrapper].
+ *
+ * Vanilla menu code changes the stack returned by [getItem] in place and then calls [setChanged], so the storage must
+ * return its live stacks from [IItemStorage.get] (as [com.itszuvalex.itszulib.api.storage.ItemStorageArray] does).
+ * Storages that return copies (`ItemStorageNBT`, `ItemStorageResourceHandler`) lose or duplicate items behind menu
+ * slots.
  */
 class WrapperContainerIItemStorage(private val storage: IItemStorage) : Container {
     override fun getContainerSize(): Int = storage.size()

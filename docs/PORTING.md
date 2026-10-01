@@ -127,6 +127,8 @@ Legacy Scala/Java sources are kept under `src/main/scala` and `src/test/scala` a
 - [x] F5-F11 (menus and syncs, menu fragments, payloads, horizontal facing, connectables and wire networks, Task,
   screen helpers), with JUnit and game tests. Dev content: `itszulib:dev_machine` now faces the player and opens
   `DevMenu`; `itszulib:dev_wire` forms `DevWireNetwork`s.
+- [x] Review of the ported code for bugs inherited from 1.12.2: five more fixed, each with a regression test that fails
+  on the old code (last five rows of the table below). Open findings are in [REVIEW.md](REVIEW.md).
 
 ### 1.12.2 bugs fixed
 
@@ -148,6 +150,11 @@ Each has a regression test named in the last column.
 | `ModuleNetworkedWire.checkFacingForConnection` | Force-loaded neighbour chunks | Unloaded neighbours are left alone | `FragNetworkedWireTest.NeighbourUnloaded_FlagKeptThenJoinedOnLoad` |
 | `Task` | Goal 0 and 0 ticks: 0 / 0 made progress NaN and the task never completed; negative power undid progress | At least one tick; negative power contributes nothing | `TaskTest.FreeInstantTask_CompletesAfterAContribution`, `Contribute_NegativePower_DoesNothing` |
 | `SidedStorageConfiguration` cycling and loading | An unknown current key cycled backward to the second-to-last key; missing saved keys became `""`; storage order depended on map iteration | Unknown keys start from the ends; missing or unknown data falls back to the defaults; keys are sorted | `SidedStorageConfigurationTest.CycleRelativeFacingStorage_CurrentKeyUnknown_StartFromEnds`, `Deserialize_MissingOrUnknownData_FallBackWithoutThrowing` |
+| `IItemStorage.transferSlotIntoStorageSlot` | Wrote back a copy of the source taken before the insert: moving a slot into itself, or into a view of the same storage, replaced the merged stack with the leftover and destroyed the items | Re-reads the source after the insert | `ItemStorage*Test.TransferSlotIntoStorageSlot_SameSlot_KeepsItems`, `TransferSlotIntoStorage_IntoItself_KeepsItems`, `TransferSlotIntoStorageSlot_AliasingView_KeepsItems` (every storage type) |
+| `IItemStorage.split` | A negative amount grew the slot (created items); 0 returned a zero-sized copy | Non-positive amounts return `IItemStack.Empty` and change nothing | `ItemStorage*Test.Split_NegativeAmount_ChangesNothing`, `Split_Zero_ReturnsEmpty` |
+| `IFluidStorageModifiable.drainIStack` (`IFluidStorage.drain(maxDrain)`) | Picked the first tank by `canDrain` alone, so a fluid that `canDrainFluidType` refuses was drained anyway | The first tank must pass `canDrainFluidType` | `FluidStorageArrayTest.DrainAmount_RespectsCanDrainFluidType`, `DrainAmount_NothingDrainable_ReturnsEmpty` |
+| `MultiblockStatic.form` | Kept forming after a part refused (no module, or part of another multiblock), leaving a half-formed multiblock whose controller ran | All or nothing: every part is checked (`MultiBlockInfo.canForm`) before any joins | `MultiblockStaticTest.Form_PartWithoutModule_ReturnsFalseAndNoPartJoins`, `Form_PartMissing_ReturnsFalseAndNoPartJoins`, `Form_PartOfAnotherMultiblock_ReturnsFalseAndNoPartJoins` |
+| `PowerBattery` (port regression) | 1.12.2 clamped the charge to the capacity; the first port did not, so a save from a larger battery or a direct `setStorage` left it over capacity with negative room | Charge kept within `[0, max]` | `EnergyAdapterTest.PowerBattery_SetStorage_ClampsToCapacity`, `PowerBattery_Deserialize_OverCapacity_Clamped` |
 
 ### What happened to each 1.7.10 area
 
@@ -157,8 +164,8 @@ Each has a regression test named in the last column.
 | `api/access/*`, `api/storage/*`, `core/traits/tile/TileInventory` | Replaced by `IItemStorage` family + `WrapperResourceHandlerIItemStorage` |
 | `@Saveable` + `DataUtils`, `NBTSerializable`, `NBTHelpers`, `TileDescriptionPacket` | Replaced by fragment scoped serialization (LEVEL/DESCRIPTION/ITEM) over Value I/O |
 | `TileEntityBase`, `TileContainer`, `core/traits/*` | Replaced by `BlockEntityCore` + fragments, `EntityBlockCore`; traits become fragments in Femtocraft |
-| `TileFluidTank`, `TileMultiFluidTank` | Not in TechnoLich; Femtocraft's fluids were placeholders (mapped to water), so no fluid fragment yet |
-| `api/multiblock/*`, `MultiBlockComponent` | To be added as fragments when Femtocraft's frames/cyber base are ported |
-| `container/*`, `gui/*` | To be replaced with `AbstractContainerMenu`/`AbstractContainerScreen` bases when Femtocraft's menus are ported; the 1.7.10 widget toolkit is not ported |
+| `TileFluidTank`, `TileMultiFluidTank` | Replaced by the 1.12.2 fluid storage (F1) and `FragFluidStorage` (F3) |
+| `api/multiblock/*`, `MultiBlockComponent` | Replaced by the 1.12.2 multiblocks (F4): `api/multiblock`, `FragMultiBlockInfo`, `FragMultiblockState` |
+| `container/*`, `gui/*` | Replaced by `menu/MenuCore` (F5, F6) and `client/ScreenHelpers` (F11); the widget toolkit is not ported |
 | `network/*` messages | Dropped; Femtocraft registers its own payloads (`PayloadRegistrar`) as needed |
 | `player/*`, `PlayerUUIDTracker`, `InterModComms`, `command/*`, `configuration/*`, `pathfinding/*`, `render/*` (shaders, quad math), `testing/*` | Dropped: unused by Femtocraft's ported scope or superseded by vanilla/NeoForge (data attachments, `ModConfigSpec`, Brigadier, render pipeline) |
