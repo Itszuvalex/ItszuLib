@@ -8,6 +8,10 @@ import com.itszuvalex.itszulib.api.utility.LazySingleSidedHolder
 import com.itszuvalex.itszulib.core.NetworkManager
 import com.itszuvalex.itszulib.dev.DevContent
 import com.itszuvalex.itszulib.network.ItszuLibNetwork
+import com.itszuvalex.itszulib.team.Research
+import com.itszuvalex.itszulib.team.TeamDataTypes
+import com.itszuvalex.itszulib.team.TeamEvents
+import com.itszuvalex.itszulib.team.TeamManager
 import com.mojang.logging.LogUtils
 import net.minecraft.world.level.Level
 import net.neoforged.fml.LogicalSide
@@ -37,11 +41,19 @@ object ItszuLib {
     @JvmField
     val NETWORK_MANAGER = LazySingleSidedHolder(::NetworkManager, LogicalSide.SERVER)
 
+    /**
+     * Teams and their per-team data, loaded when the server starts and saved with the overworld. See [TeamManager].
+     */
+    @JvmField
+    val TEAMS = TeamManager()
+
     init {
         // Built-in modules must exist before RegisterCapabilitiesEvent
         Modules.init()
         Components.register(MOD_BUS)
         MOD_BUS.addListener(ItszuLibNetwork::register)
+        TeamDataTypes.register(Research.TYPE)
+        TeamEvents.register()
 
         if (!FMLEnvironment.isProduction()) {
             DevContent.register(MOD_BUS)

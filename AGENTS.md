@@ -84,6 +84,9 @@ src/main/kotlin/com/itszuvalex/itszulib/
 ├── menu/                  MenuCore (slots, shift-click, syncs), MenuSync/MenuSyncs, MenuSyncPayload,
 │                          MenuActionPayload, IMenuHost, BlockMenus
 ├── network/               PacketHandler, ItszuLibNetwork (registers ItszuLib's payloads)
+├── team/                  Teams and per-team data: Team/TeamState (rules + invariants), TeamDataType + Research,
+│                          TeamCodec, TeamStore (file persistence), TeamManager, TeamNetwork (sync + lifecycle),
+│                          TeamCommands (/itszulib team, /itszulib research)
 ├── dev/                   Dev-only blocks, menu, screen and game tests (never registered in production)
 └── util/                  Color, InventoryUtils (item dropping), StorageUtils (item counting/removal), FaceBitSet, Task,
                            Singleton
@@ -128,6 +131,11 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 
 ### Networks
 `INetwork`/`TileNetwork` group `INetworkNode`s (by `Loc4`) into server-side networks in `ItszuLib.NETWORK_MANAGER`, ticked from `ServerTickEvent.Pre/Post`. Nodes are found through the network module on the block entity (`TileNetwork#networkModule`). Chunk unloads drop that chunk's nodes as a batch; block entities must re-add their node when they load. Splits explore iteratively.
+
+### Teams and per-team data
+Every player is always in exactly one team (a new player gets a solo team they own). Mods register per-team data with `TeamDataTypes.register(TeamDataType(id, codec, empty, merge, copy))` during mod construction; ItszuLib registers `Research.TYPE` (`itszulib:research`, a set of unlocked ids merged by union). Joining (invite and accept) merges the joiner's data into the team; leaving or being removed gives the player a solo team with a copy; disbanding gives every member a copy. Roles: owner (promote/demote officers, hand over ownership, rename, disband; cannot leave a shared team without handing it over), officers (invite, revoke, remove anyone but the owner), members. Read `ItszuLib.TEAMS.state`; change only through `ItszuLib.TEAMS.change { state -> newState }` on the server thread.
+
+Data integrity (do not weaken): `TeamState` is immutable and checks its invariants on construction, so an operation yields a valid state or changes nothing. Persistence is `TeamStore`, not vanilla `SavedData` (vanilla replaces unreadable saved data with a fresh empty instance and later saves it over the file): strict decoding, fallback to `teams.dat.bak` with the bad file moved aside, refusal to save for the session if neither file reads, and temp-file + read-back + atomic-move saves. Unregistered data types are kept raw. Stored at `<world>/data/itszulib/teams.dat`; clients get their own team through `TeamSyncPayload` (only connections that negotiated it). The same system exists in TechnoLich under its own namespace; see DECISIONS D10.
 
 ### Engine seams for testing
 `ILevel`, `IBlockEntity`, `IItemStack` and `Overideable` let logic be unit tested without a game. Tests use `TestableLevel`, `TestableIItemStack`, `TestableLoc4`, `TestableNetwork*`, `TestableFragmentHost`; `MCAssert.failVanillaClass` marks methods tests must not reach.
