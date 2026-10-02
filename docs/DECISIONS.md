@@ -186,8 +186,18 @@ clicked. `ComponentScreen.extraAreas()` reports the tab column and the open pane
 (`compat/jei/ItszuLibJeiPlugin`, compiled against JEI's API only and loaded only when JEI is installed) hands them to
 JEI for every `ComponentScreen`, so JEI keeps clear of them.
 
-The dev machine uses all of it (`DevScreen`: tank and energy gauges, the "IO" tab). Not done: textured styles, layout
-helpers beyond fixed positions, and a 3D view of multiblocks (each member shows its own block).
+The dev machine uses all of it (`DevScreen`: tank and energy gauges, the "IO" tab). Not done: textured styles and layout
+helpers beyond fixed positions.
+
+**Addendum (maintainer, 2026-10-02): multiblocks in the side configuration view.** A member of a formed multiblock
+showed only its own block, so configuring a structure meant opening each member's screen. Now the menu's side
+configuration covers the structure: `MenuSideConfig.members()` is the block entity plus the other loaded members with
+the same structure id, `ACTION_SIDE_CONFIG` data carries the member's offset from the menu's block (6 bits per axis,
+signed; data without one means the menu's own block, as before), and the server refuses offsets that are not a
+member. `SideConfigPanel` draws the whole structure, centred and scaled to fit however it is turned, with every
+member's outer faces shaded by its own configuration; faces between members are not drawn (multiblock configurations
+lock them). Neighbours outside the structure are not shown in this view. The dev multiblock's menu has it (game test
+`multiblock_side_config_reaches_every_member`).
 
 ## D13. Tech trees: datapack technologies, team research with progress — DECIDED (maintainer, 2026-10-02)
 

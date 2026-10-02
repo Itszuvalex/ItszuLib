@@ -124,8 +124,9 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
 
     /**
      * Lets this menu's screen edit [blockEntity]'s sided configurations of [modes] (those it has) through
-     * [ACTION_SIDE_CONFIG]. Call on both sides with the same modes. [onChanged] runs on the server after a change;
-     * by default it saves and syncs the block entity.
+     * [ACTION_SIDE_CONFIG], and those of the other members of its formed multiblock. Call on both sides with the same
+     * modes. [onChanged] runs on the server after a change, with the block entity whose configuration changed; by
+     * default it saves and syncs it.
      */
     @JvmOverloads
     fun enableSideConfig(
@@ -134,7 +135,7 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
         onChanged: (BlockEntity) -> Unit = MenuSideConfig::markDirtyAndSync,
     ): MenuSideConfig? {
         if (blockEntity == null) return null
-        sideConfig = MenuSideConfig(blockEntity, modes) { onChanged(blockEntity) }.takeIf { it.modes.isNotEmpty() }
+        sideConfig = MenuSideConfig(blockEntity, modes, onChanged).takeIf { it.modes.isNotEmpty() }
         return sideConfig
     }
 

@@ -149,7 +149,8 @@ Controller-less, with shared state (DECISIONS D11). `MultiblockShape.register(id
 ### Screens
 Build machine screens on `ComponentScreen` (DECISIONS D12): place components in `addComponents()` (`EnergyGauge`,
 `FluidGauge`, `ProgressBar`, `Label` or your own `ScreenComponent`), add `SidePanel`s for content behind a tab. A menu
-that calls `enableSideConfig(blockEntity[, modes])` gets the 3D side configuration panel automatically; modes default
+that calls `enableSideConfig(blockEntity[, modes])` gets the 3D side configuration panel automatically (for a formed
+multiblock member it shows and configures the whole structure); modes default
 to item, fluid and energy (`SideConfigModes`), and a mode's `SideConfigCycler` decides what a click changes. Sync
 energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLib's own menu actions use negative ids
 (`MenuCore.ACTION_SIDE_CONFIG`); give yours non-negative ids and handle them in `handleAction`. Screens draw in a theme

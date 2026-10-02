@@ -8,6 +8,7 @@ import com.itszuvalex.itszulib.api.utility.DirectionUtil
 import com.itszuvalex.itszulib.core.BlockEntityCore
 import com.itszuvalex.itszulib.core.EnumAutomaticIO
 import com.itszuvalex.itszulib.core.SidedStorageConfiguration
+import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
@@ -99,26 +100,55 @@ object SideConfigModes {
 /**
  * A menu's side configuration support (see [MenuCore.enableSideConfig]): the block entity, the modes it has (in the
  * order given, so both sides agree on indices), and the [MenuCore.ACTION_SIDE_CONFIG] action that cycles one face.
- * Screens read the configurations from the client block entity, which syncs them.
+ * When the block entity is a member of a formed multiblock ([Modules.MULTIBLOCK_MEMBER]), the action reaches every
+ * loaded member of the structure ([members]), so one screen configures the whole structure. Screens read the
+ * configurations from the client block entities, which sync them. [onChanged] runs for the block entity whose
+ * configuration changed.
  */
-class MenuSideConfig(@JvmField val blockEntity: BlockEntity, modes: List<SideConfigMode>, private val onChanged: () -> Unit) {
+class MenuSideConfig(@JvmField val blockEntity: BlockEntity, modes: List<SideConfigMode>, private val onChanged: (BlockEntity) -> Unit) {
     @JvmField
     val modes: List<SideConfigMode> = modes.filter { configuration(it) != null }
 
     fun configuration(mode: SideConfigMode): SidedStorageConfiguration<*>? = (blockEntity as? IBlockEntity)?.getModule(mode.module, null)
 
     /**
+     * The configuration of [mode] on the member at [pos] (one of [members]), or null.
+     */
+    fun configuration(mode: SideConfigMode, pos: BlockPos): SidedStorageConfiguration<*>? =
+        if (pos == blockEntity.blockPos) configuration(mode) else (memberAt(pos) as? IBlockEntity)?.getModule(mode.module, null)
+
+    /**
+     * The blocks this side configuration covers: the block entity's own position first, then the other loaded members
+     * of its formed multiblock (same structure id), in shape order. Just the block entity's position when it is not in
+     * a formed structure.
+     */
+    fun members(): List<BlockPos> {
+        val own = blockEntity.blockPos
+        val membership = (blockEntity as? IBlockEntity)?.getModule(Modules.MULTIBLOCK_MEMBER, null)?.membership ?: return listOf(own)
+        val level = blockEntity.level ?: return listOf(own)
+        val anchor = own.subtract(membership.offset)
+        return listOf(own) + membership.shape.positions(anchor).filter { pos ->
+            pos != own && level.isLoaded(pos) &&
+                (level.getBlockEntity(pos) as? IBlockEntity)?.getModule(Modules.MULTIBLOCK_MEMBER, null)?.membership?.structureId == membership.structureId
+        }
+    }
+
+    private fun memberAt(pos: BlockPos): BlockEntity? =
+        if (pos == blockEntity.blockPos) blockEntity else if (pos in members()) blockEntity.level?.getBlockEntity(pos) else null
+
+    /**
      * Server side: applies [ACTION_SIDE_CONFIG] data from [data].
      *
-     * @return False for a bad face or mode.
+     * @return False for a bad face, mode or member.
      */
     fun handle(data: Int): Boolean {
         val face = data and FACE_MASK
         if (face >= Direction.entries.size) return false
         val mode = modes.getOrNull((data shr MODE_SHIFT) and MODE_MASK) ?: return false
-        val config = configuration(mode) ?: return false
+        val target = memberAt(blockEntity.blockPos.offset(offset(data))) ?: return false
+        val config = (target as? IBlockEntity)?.getModule(mode.module, null) ?: return false
         mode.cycler.cycle(config, Direction.from3DDataValue(face), data and BACKWARD != 0)
-        onChanged()
+        onChanged(target)
         return true
     }
 
@@ -127,13 +157,39 @@ class MenuSideConfig(@JvmField val blockEntity: BlockEntity, modes: List<SideCon
         private const val MODE_SHIFT = 3
         private const val MODE_MASK = 255
         private const val BACKWARD = 1 shl 11
+        private const val OFFSET_SHIFT = 12
+        private const val OFFSET_BITS = 6
+        private const val OFFSET_MASK = (1 shl OFFSET_BITS) - 1
 
         /**
-         * Action data: cycle [face] of the configuration of mode index [mode] (into [modes]).
+         * How far (in blocks, along each axis) a member may be from the menu's block entity to be configured through
+         * it: `-MAX_OFFSET - 1 .. MAX_OFFSET`.
+         */
+        const val MAX_OFFSET = (1 shl (OFFSET_BITS - 1)) - 1
+
+        /**
+         * Action data: cycle [face] of the configuration of mode index [mode] (into [modes]) on the member at
+         * [member] relative to the menu's block entity.
          */
         @JvmStatic
-        fun data(face: Direction, mode: Int, backward: Boolean): Int =
-            face.get3DDataValue() or ((mode and MODE_MASK) shl MODE_SHIFT) or (if (backward) BACKWARD else 0)
+        @JvmOverloads
+        fun data(face: Direction, mode: Int, backward: Boolean, member: BlockPos = BlockPos.ZERO): Int {
+            require(listOf(member.x, member.y, member.z).all { it in -MAX_OFFSET - 1..MAX_OFFSET }) { "Member offset $member out of range" }
+            val offset = (member.x and OFFSET_MASK) or ((member.y and OFFSET_MASK) shl OFFSET_BITS) or ((member.z and OFFSET_MASK) shl (2 * OFFSET_BITS))
+            return face.get3DDataValue() or ((mode and MODE_MASK) shl MODE_SHIFT) or (if (backward) BACKWARD else 0) or (offset shl OFFSET_SHIFT)
+        }
+
+        /**
+         * The member offset in action [data].
+         */
+        @JvmStatic
+        fun offset(data: Int): BlockPos {
+            fun axis(i: Int): Int {
+                val v = (data ushr (OFFSET_SHIFT + i * OFFSET_BITS)) and OFFSET_MASK
+                return if (v > MAX_OFFSET) v - (1 shl OFFSET_BITS) else v
+            }
+            return BlockPos(axis(0), axis(1), axis(2))
+        }
 
         /**
          * Saves and syncs a [BlockEntityCore] (the default after a change).

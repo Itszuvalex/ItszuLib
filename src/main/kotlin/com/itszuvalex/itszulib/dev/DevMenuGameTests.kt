@@ -43,6 +43,7 @@ object DevMenuGameTests {
         test("menu_storage_slots_honour_can_insert", DevGameTests.EMPTY_1, ::menuSlotsHonourCanInsert)
         test("menu_slots_over_copy_returning_storage", DevGameTests.EMPTY_1, ::menuOverCopyReturningStorage)
         test("multiblock_menu_opens_on_any_part", DevGameTests.EMPTY_5X3X5, ::multiblockMenuOpensOnAnyPart)
+        test("multiblock_side_config_reaches_every_member", DevGameTests.EMPTY_5X3X5, ::multiblockSideConfig)
         test("horizontal_facing_placement_and_rotation", DevGameTests.EMPTY_1, ::horizontalFacing)
         test("sided_config_follows_facing", DevGameTests.EMPTY_1, ::sidedConfigFollowsFacing)
         test("wire_network_forms_and_splits", DevGameTests.EMPTY_5X3X5, ::wireNetwork)
@@ -285,6 +286,40 @@ object DevMenuGameTests {
                 helper.assertTrue(wing.counter() === core.counter(), "the part's menu does not read the shared state")
                 helper.succeed()
             }
+        }
+    }
+
+    /**
+     * A formed member's menu configures every member of its structure: the action's member offset picks the member,
+     * faces between members stay locked, and offsets outside the structure are refused.
+     */
+    private fun multiblockSideConfig(helper: GameTestHelper) {
+        helper.setBlock(CENTER, DevContent.DEV_MULTIBLOCK_BLOCK.get())
+        helper.setBlock(CENTER.east(), DevContent.DEV_MULTIBLOCK_BLOCK.get())
+        val core = helper.getBlockEntity(CENTER, DevMultiblockBlockEntity::class.java)
+        val wing = helper.getBlockEntity(CENTER.east(), DevMultiblockBlockEntity::class.java)
+        helper.runAfterDelay(2) {
+            val player = helper.makeMockPlayer(GameType.SURVIVAL)
+            player.setPos(Vec3.atCenterOf(helper.absolutePos(CENTER).above()))
+            val menu = DevMenu(11, player.inventory, core)
+            val side = menu.sideConfig!!
+            helper.assertValueEqual(side.members(), listOf(core.blockPos, wing.blockPos), "members")
+            fun act(face: Direction, member: BlockPos) =
+                MenuActionPayload.dispatch(menu, MenuActionPayload(11, MenuCore.ACTION_SIDE_CONFIG, com.itszuvalex.itszulib.menu.MenuSideConfig.data(face, 0, false, member)), player)
+            val wingConfig = wing.itemConfig.configuration
+            val coreConfig = core.itemConfig.configuration
+            helper.assertTrue(act(Direction.EAST, BlockPos(1, 0, 0)), "wing's outer face handled")
+            helper.assertValueEqual(wingConfig.getIOForAbsoluteFacing(Direction.EAST), com.itszuvalex.itszulib.core.EnumAutomaticIO.INPUT, "wing's outer face cycled")
+            helper.assertValueEqual(coreConfig.getIOForAbsoluteFacing(Direction.EAST), com.itszuvalex.itszulib.core.EnumAutomaticIO.NONE, "core's inner face untouched")
+            act(Direction.WEST, BlockPos(1, 0, 0))
+            helper.assertValueEqual(wingConfig.getIOForAbsoluteFacing(Direction.WEST), com.itszuvalex.itszulib.core.EnumAutomaticIO.NONE, "inner face stays locked")
+            helper.assertFalse(act(Direction.UP, BlockPos(0, 1, 0)), "offset outside the structure")
+            helper.assertFalse(act(Direction.UP, BlockPos(-1, 0, 0)), "offset to a non-member")
+
+            helper.destroyBlock(CENTER.east())
+            helper.assertValueEqual(side.members(), listOf(core.blockPos), "members after the structure broke")
+            helper.assertFalse(act(Direction.EAST, BlockPos(1, 0, 0)), "former member")
+            helper.succeed()
         }
     }
 
