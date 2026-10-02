@@ -3,6 +3,8 @@ name: Build
 on:
   push:
     branches: [main]
+    # A version tag builds a release: same checks, then the jars go on the tag's GitHub release.
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -16,6 +18,8 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: self-hosted
     timeout-minutes: 60
+    permissions:
+      contents: write # attach jars to releases
     steps:
       - uses: actions/checkout@v4
 
@@ -37,11 +41,10 @@ jobs:
       - name: Game tests
         run: ./gradlew runGameTestServer --stacktrace "-Porg.gradle.java.installations.paths=${{ steps.jdk21.outputs.path }},${{ steps.jdk25.outputs.path }}"
 
-      - uses: actions/upload-artifact@v4
-        if: always()
+      # Everything else is validation only: nothing is uploaded.
+      - name: Attach jars to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
         with:
-          name: itszulib
-          path: |
-            build/libs/*.jar
-            build/reports/tests/
-          if-no-files-found: ignore
+          files: build/libs/*.jar
+          fail_on_unmatched_files: true
