@@ -101,8 +101,8 @@ writes. Teams are stored this way.
 ### Tech trees
 
 Technologies are datapack entries (tree, prerequisites, cost, icon, optional position) synced to clients. Research
-belongs to teams, with partial progress; mods decide what produces progress and gate content with one call on either
-side. A layered layout places each tree automatically, and `TechTreeView` draws it in any screen with tooltips,
+belongs to teams, with partial progress and a research queue whose first available entry is the team's focus; mods
+decide what produces progress and gate content with one call on either side. A layered layout places each tree automatically, and `TechTreeView` draws it in any screen with tooltips,
 panning and selection.
 
 *For:* research and progression that pack makers can edit.

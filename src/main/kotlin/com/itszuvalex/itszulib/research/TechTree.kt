@@ -57,6 +57,46 @@ class Technologies(val all: Map<Identifier, Technology>) {
         all[id]?.prerequisites?.filterNot { all.containsKey(it) && isResearched(it, research) } ?: emptyList()
 
     /**
+     * What to research to get [id]: its unresearched prerequisites, all the way down, each after its own
+     * prerequisites, then [id] itself. Empty if [id] is researched, unknown, or can never become available (an
+     * unknown prerequisite, or a cycle).
+     */
+    fun pathTo(id: Identifier, research: Research): List<Identifier> {
+        val path = LinkedHashSet<Identifier>()
+        val visiting = HashSet<Identifier>()
+        fun visit(t: Identifier): Boolean {
+            if (isResearched(t, research) || t in path) return true
+            val tech = all[t] ?: return false
+            if (!visiting.add(t)) return false
+            if (!tech.prerequisites.all(::visit)) return false
+            visiting -= t
+            path += t
+            return true
+        }
+        return if (visit(id)) path.toList() else emptyList()
+    }
+
+    /**
+     * The team's focus in [tree]: the first queued technology of that tree it can research now.
+     */
+    fun focus(tree: Identifier, research: Research): Identifier? =
+        research.queue.firstOrNull { all[it]?.tree == tree && state(it, research) == TechnologyState.AVAILABLE }
+
+    /**
+     * [research] with [id] off the queue, and with it every queued technology that needs it (directly or through
+     * others), since they could not be researched before it.
+     */
+    fun unqueue(id: Identifier, research: Research): Research {
+        val removed = HashSet<Identifier>().apply { add(id) }
+        fun needs(t: Identifier, seen: MutableSet<Identifier> = HashSet()): Boolean {
+            if (!seen.add(t)) return false
+            return all[t]?.prerequisites.orEmpty().any { (it in removed && !isResearched(it, research)) || needs(it, seen) }
+        }
+        for (t in research.queue) if (t != id && needs(t)) removed += t
+        return research.unqueue(removed)
+    }
+
+    /**
      * Datapack mistakes: prerequisites that do not exist (the technology can never become available) and
      * prerequisite cycles (neither can any technology on one). Empty when the tree is sound.
      */
@@ -92,7 +132,8 @@ class Technologies(val all: Map<Identifier, Technology>) {
  * Tech trees: technologies loaded from datapacks into the [KEY] registry, synced to clients, and researched per team.
  * A team's research is [Research] team data (shared by its members; a solo player's team is theirs alone). Mods decide
  * what produces research progress (a machine, an item, an advancement) and pass it to [addProgress]; the technology
- * unlocks when its progress reaches its cost.
+ * unlocks when its progress reaches its cost. Teams also keep a queue of what to research next ([queue], [unqueue]);
+ * a machine that researches for a team usually works on its [focus].
  *
  * Changes go through [ItszuLib.TEAMS], which syncs the team to its members, so add progress in batches (say once a
  * second) rather than every tick.
@@ -169,6 +210,45 @@ object TechTree {
         }
         if (unlocks) NeoForge.EVENT_BUS.post(TechnologyResearchedEvent(server, team, technology))
         return used
+    }
+
+    /**
+     * Queues [technology] for [team], after whatever unresearched prerequisites it needs that are not queued yet
+     * ([Technologies.pathTo]). Server thread only.
+     *
+     * @return True if the queue changed.
+     */
+    @JvmStatic
+    fun queue(server: MinecraftServer, team: UUID, technology: Identifier): Boolean {
+        val research = ItszuLib.TEAMS.state.team(team)?.get(Research.TYPE) ?: return false
+        val updated = research.enqueue(of(server.registryAccess()).pathTo(technology, research))
+        if (updated == research) return false
+        ItszuLib.TEAMS.change { state -> state.update(team, Research.TYPE) { updated } }
+        return true
+    }
+
+    /**
+     * Takes [technology] off [team]'s queue, with the queued technologies that need it ([Technologies.unqueue]).
+     * Server thread only.
+     *
+     * @return True if the queue changed.
+     */
+    @JvmStatic
+    fun unqueue(server: MinecraftServer, team: UUID, technology: Identifier): Boolean {
+        val research = ItszuLib.TEAMS.state.team(team)?.get(Research.TYPE) ?: return false
+        val updated = of(server.registryAccess()).unqueue(technology, research)
+        if (updated == research) return false
+        ItszuLib.TEAMS.change { state -> state.update(team, Research.TYPE) { updated } }
+        return true
+    }
+
+    /**
+     * [team]'s focus in [tree] ([Technologies.focus]): what a machine researching for the team should work on.
+     */
+    @JvmStatic
+    fun focus(server: MinecraftServer, team: UUID, tree: Identifier): Identifier? {
+        val research = ItszuLib.TEAMS.state.team(team)?.get(Research.TYPE) ?: return null
+        return of(server.registryAccess()).focus(tree, research)
     }
 
     /**

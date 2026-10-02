@@ -109,6 +109,12 @@ Persistence deliberately avoids vanilla `SavedData`, whose load path replaces un
 instance that is later saved over the file. `TeamStore` decodes strictly, falls back to a backup, refuses to save when
 neither file reads, and writes through a verified temporary file and an atomic move (see `team/TeamStore.kt`).
 
+**Addendum (maintainer, 2026-10-02): membership events.** Mods need to react when players change team (a machine that
+works for its owner's team, a claim that should follow its owner). After any change to `ItszuLib.TEAMS`, each player
+whose team differs gets a `TeamMembershipChangedEvent` on the game bus: joining, leaving, removal, each member of a
+disbanded team, and a new player's first solo team (`from` null). It is posted after the change, so team data has been
+merged (joining) or copied (leaving). The diff is `TeamState.membershipChanges(old, new)`, testable without a game.
+
 ## D11. Multiblocks: controller-less, with home-held state — DECIDED (maintainer, 2026-10-02)
 
 The 1.12.2 port kept multiblock state on a controller block; a part in another chunk lost its state, menu and
@@ -218,6 +224,22 @@ keeps only the mechanism.
 
 Not done: costs other than one number (items, several resources), per-technology rewards, and research screens beyond
 the component.
+
+**Addendum (maintainer, 2026-10-02): a team research queue.** A mod asked for one shared research focus per team that
+every research machine works on, chosen from anywhere, instead of each machine keeping its own choice. That is generic,
+so it lives here:
+
+- `Research` gained `queue`: technologies to research next, in order (no duplicates, nothing unlocked). Unlocking takes
+  a technology off it; merging puts the team's queue first, then the joiner's additions; the codec reads saves without
+  one.
+- `Technologies.pathTo(id, research)` is what getting `id` takes (unresearched prerequisites, each after its own, then
+  `id`; empty if unreachable). `TechTree.queue(server, team, id)` appends that path, so queueing a far technology
+  queues its prerequisites first. `TechTree.unqueue` removes a technology and the queued ones that need it.
+- `Technologies.focus(tree, research)` / `TechTree.focus(server, team, tree)` is the first queued technology of a tree
+  the team can research now: what a machine should work on. A queue can span trees; each tree has its own focus.
+- `TechTreeView` shows queue places as badges and in tooltips, and takes right-clicks (`onAlternate`), so a screen can
+  queue on click and unqueue on right-click.
+- Commands: `/itszulib research queue|unqueue <player> <id>`.
 
 ## D14. Crash-safe server data stores, generalised from teams — DECIDED (maintainer, 2026-10-02)
 

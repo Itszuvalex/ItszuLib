@@ -56,56 +56,85 @@ object TeamDataTypes {
 }
 
 /**
- * The research a team has unlocked, and its partial progress towards technologies not yet unlocked (see
- * [com.itszuvalex.itszulib.research.TechTree]). Only grows: joining a team unions research and keeps the larger
- * progress, leaving copies it.
+ * The research a team has unlocked, its partial progress towards technologies not yet unlocked, and the queue of what
+ * it wants researched next (see [com.itszuvalex.itszulib.research.TechTree]). Unlocks and progress only grow: joining a
+ * team unions research and keeps the larger progress, leaving copies it. The team's queue comes first when joining.
  *
  * @param progress Positive amounts only, and never for an unlocked id.
+ * @param queue Technologies to research next, in order: no duplicates and nothing unlocked. Machines usually work on
+ * the first one they can ([com.itszuvalex.itszulib.research.Technologies.focus]).
  */
 data class Research @JvmOverloads constructor(
     val unlocked: Set<Identifier>,
     val progress: Map<Identifier, Long> = emptyMap(),
+    val queue: List<Identifier> = emptyList(),
 ) {
     init {
-        problem(unlocked, progress)?.let { throw IllegalArgumentException(it) }
+        problem(unlocked, progress, queue)?.let { throw IllegalArgumentException(it) }
     }
 
     fun has(id: Identifier): Boolean = id in unlocked
 
     fun progressOf(id: Identifier): Long = progress[id] ?: 0L
 
-    fun unlock(id: Identifier): Research = if (has(id)) this else Research(unlocked + id, progress - id)
+    /**
+     * Unlocks [id], dropping its progress and taking it off the queue.
+     */
+    fun unlock(id: Identifier): Research = if (has(id)) this else Research(unlocked + id, progress - id, queue - id)
 
     /**
      * Sets the progress towards [id] (an unlocked id keeps none; 0 or less clears it).
      */
     fun withProgress(id: Identifier, amount: Long): Research = when {
         has(id) -> this
-        amount <= 0L -> if (id in progress) Research(unlocked, progress - id) else this
-        else -> Research(unlocked, progress + (id to amount))
+        amount <= 0L -> if (id in progress) Research(unlocked, progress - id, queue) else this
+        else -> Research(unlocked, progress + (id to amount), queue)
     }
+
+    /**
+     * Replaces the queue, dropping duplicates (the first stays) and unlocked ids.
+     */
+    fun withQueue(ids: List<Identifier>): Research = Research(unlocked, progress, ids.distinct().filterNot(::has))
+
+    /**
+     * Appends [ids] not already queued or unlocked, in order.
+     */
+    fun enqueue(ids: List<Identifier>): Research = withQueue(queue + ids)
+
+    /**
+     * Takes [ids] off the queue.
+     */
+    fun unqueue(ids: Collection<Identifier>): Research = if (ids.none { it in queue }) this else Research(unlocked, progress, queue - ids.toSet())
+
+    /** 0-based place of [id] in the queue, or -1. */
+    fun queuePosition(id: Identifier): Int = queue.indexOf(id)
 
     companion object {
         @JvmField
         val EMPTY = Research(emptySet())
 
-        private fun problem(unlocked: Set<Identifier>, progress: Map<Identifier, Long>): String? = when {
+        private fun problem(unlocked: Set<Identifier>, progress: Map<Identifier, Long>, queue: List<Identifier>): String? = when {
             progress.values.any { it <= 0L } -> "Research progress must be positive: $progress"
             progress.keys.any { it in unlocked } -> "Research progress kept for unlocked research: ${progress.keys.filter { it in unlocked }}"
+            queue.size != queue.toSet().size -> "Research queue has duplicates: $queue"
+            queue.any { it in unlocked } -> "Research queue holds unlocked research: ${queue.filter { it in unlocked }}"
             else -> null
         }
 
-        private val RECORD: Codec<Research> = RecordCodecBuilder.create<Pair<List<Identifier>, Map<Identifier, Long>>> { i ->
+        private data class Fields(val unlocked: List<Identifier>, val progress: Map<Identifier, Long>, val queue: List<Identifier>)
+
+        private val RECORD: Codec<Research> = RecordCodecBuilder.create<Fields> { i ->
             i.group(
-                Identifier.CODEC.listOf().optionalFieldOf("unlocked", emptyList()).forGetter { it.first },
-                Codec.unboundedMap(Identifier.CODEC, Codec.LONG).optionalFieldOf("progress", emptyMap()).forGetter { it.second },
-            ).apply(i, ::Pair)
+                Identifier.CODEC.listOf().optionalFieldOf("unlocked", emptyList()).forGetter(Fields::unlocked),
+                Codec.unboundedMap(Identifier.CODEC, Codec.LONG).optionalFieldOf("progress", emptyMap()).forGetter(Fields::progress),
+                Identifier.CODEC.listOf().optionalFieldOf("queue", emptyList()).forGetter(Fields::queue),
+            ).apply(i, ::Fields)
         }.comapFlatMap(
-            { (unlocked, progress) ->
-                val set = unlocked.toSet()
-                problem(set, progress)?.let { DataResult.error { it } } ?: DataResult.success(Research(set, progress))
+            { f ->
+                val set = f.unlocked.toSet()
+                problem(set, f.progress, f.queue)?.let { DataResult.error { it } } ?: DataResult.success(Research(set, f.progress, f.queue))
             },
-            { it.unlocked.sorted() to it.progress.toSortedMap() },
+            { Fields(it.unlocked.sorted(), it.progress.toSortedMap(), it.queue) },
         )
 
         /** Saves from before progress existed: a plain list of unlocked ids. */
@@ -114,6 +143,9 @@ data class Research @JvmOverloads constructor(
         @JvmField
         val CODEC: Codec<Research> = Codec.withAlternative(RECORD, UNLOCKED_ONLY)
 
+        /**
+         * Unions unlocks, keeps the larger progress, and queues the team's queue then the joiner's additions.
+         */
         @JvmStatic
         fun merge(team: Research, joining: Research): Research {
             val unlocked = team.unlocked + joining.unlocked
@@ -121,7 +153,7 @@ data class Research @JvmOverloads constructor(
             for ((id, amount) in team.progress.entries + joining.progress.entries) {
                 if (id !in unlocked) progress.merge(id, amount, ::maxOf)
             }
-            return Research(unlocked, progress)
+            return Research(unlocked, progress, (team.queue + joining.queue).distinct().filterNot(unlocked::contains))
         }
 
         @JvmField

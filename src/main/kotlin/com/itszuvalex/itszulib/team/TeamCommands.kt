@@ -20,7 +20,7 @@ import net.minecraft.server.players.NameAndId
 import java.util.UUID
 
 /**
- * `/itszulib team ...` for players, and `/itszulib research ...` for operators. A basic interface over
+ * `/itszulib team ...` for players, and `/itszulib research unlock|progress|queue|unqueue ...` for operators. A basic interface over
  * [TeamState]'s operations; refused requests report the rule's message and change nothing.
  */
 object TeamCommands {
@@ -73,6 +73,20 @@ object TeamCommands {
                                     Commands.argument("research", IdentifierArgument.id()).suggests(::technologies).then(
                                         Commands.argument("amount", LongArgumentType.longArg(1)).executes(::progress),
                                     ),
+                                ),
+                            ),
+                        )
+                        .then(
+                            Commands.literal("queue").then(
+                                Commands.argument("player", EntityArgument.player()).then(
+                                    Commands.argument("research", IdentifierArgument.id()).suggests(::technologies).executes { queue(it, true) },
+                                ),
+                            ),
+                        )
+                        .then(
+                            Commands.literal("unqueue").then(
+                                Commands.argument("player", EntityArgument.player()).then(
+                                    Commands.argument("research", IdentifierArgument.id()).suggests(::technologies).executes { queue(it, false) },
                                 ),
                             ),
                         ),
@@ -149,6 +163,18 @@ object TeamCommands {
         val now = ItszuLib.TEAMS.state.team(team.id)?.get(Research.TYPE)
         val done = now?.has(id) == true
         ctx.source.sendSuccess({ Component.literal(if (done) "Added $used: $id is researched by team ${team.name}." else "Added $used: $id is at ${now?.progressOf(id)} / ${techs[id]?.cost}.") }, true)
+        return 1
+    }
+
+    private fun queue(ctx: CommandContext<CommandSourceStack>, add: Boolean): Int {
+        val target = EntityArgument.getPlayer(ctx, "player")
+        val id = IdentifierArgument.getId(ctx, "research")
+        val team = ItszuLib.TEAMS.state.teamOf(target.uuid) ?: return fail(ctx, "That player is not in a team yet.")
+        val server = ctx.source.server
+        val changed = if (add) TechTree.queue(server, team.id, id) else TechTree.unqueue(server, team.id, id)
+        if (!changed) return fail(ctx, if (add) "Nothing to queue for $id (unknown, researched, unreachable or already queued)." else "$id is not queued.")
+        val queue = ItszuLib.TEAMS.state.team(team.id)?.get(Research.TYPE)?.queue.orEmpty()
+        ctx.source.sendSuccess({ Component.literal("Team ${team.name}'s research queue: ${queue.joinToString().ifEmpty { "empty" }}") }, true)
         return 1
     }
 

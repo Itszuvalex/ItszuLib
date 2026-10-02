@@ -22,5 +22,6 @@
   "gui.itszulib.side_config.dir.east": "East",
   "gui.itszulib.research.researched": "Researched",
   "gui.itszulib.research.progress": "Progress: %s / %s",
-  "gui.itszulib.research.requires": "Requires:"
+  "gui.itszulib.research.requires": "Requires:",
+  "gui.itszulib.research.queued": "Queued: #%s"
 }

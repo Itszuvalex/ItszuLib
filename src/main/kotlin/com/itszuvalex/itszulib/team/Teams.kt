@@ -267,6 +267,16 @@ class TeamState private constructor(
         val EMPTY = TeamState(emptyMap(), emptyMap())
 
         /**
+         * Every player whose team differs between [old] and [new] (joined, left, removed, disbanded, or new), with
+         * the team they were in (null for a new player) and the one they are in now, as each state has it.
+         */
+        @JvmStatic
+        fun membershipChanges(old: TeamState, new: TeamState): List<MembershipChange> =
+            new.playerTeams.entries.filter { (player, team) -> old.playerTeams[player] != team }
+                .sortedBy { it.key }
+                .map { (player, team) -> MembershipChange(player, old.teamOf(player), new.teams.getValue(team)) }
+
+        /**
          * @throws IllegalStateException if [teams] break an invariant. Operations build their result through this, so
          * a bug in an operation fails it instead of producing an invalid state.
          */
@@ -340,3 +350,8 @@ class TeamState private constructor(
             Team(id, name, mapOf(player to TeamMember(TeamRole.OWNER, name)), emptySet(), data, unknown)
     }
 }
+
+/**
+ * A player moving between teams: [from] as it was before the move (null for a new player), [to] as it is after.
+ */
+data class MembershipChange(val player: UUID, val from: Team?, val to: Team)

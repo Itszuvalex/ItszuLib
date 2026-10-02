@@ -102,6 +102,9 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
 
     private fun sendSyncs(all: Boolean) {
         val target = player as? ServerPlayer ?: return
+        // A connection that did not negotiate ItszuLib's payloads (a client without it, a test's mock player) gets
+        // none; sending one would throw.
+        if (!target.connection.hasChannel(MenuSyncPayload.TYPE)) return
         collectSyncPayload(target.registryAccess(), all)?.let { PacketDistributor.sendToPlayer(target, it) }
     }
 
