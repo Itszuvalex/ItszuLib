@@ -41,3 +41,7 @@ repo/
 
 ### Logs ###
 logs/
+
+### Nix ###
+.direnv/
+result

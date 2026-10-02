@@ -39,6 +39,8 @@ org.gradle.java.installations.auto-download=false
 
 On the maintainer's Windows machine `GRADLE_USER_HOME` is under scoop (`~/scoop/apps/gradle/current/.gradle`), not `~/.gradle`.
 
+On NixOS, run Gradle inside the repo's dev shell (`flake.nix`): `nix develop`, or direnv with a local `.envrc` containing `use flake` (`.envrc` is not committed). It puts JDK 25 on `PATH`/`JAVA_HOME` and the native libraries the dev client loads on `LD_LIBRARY_PATH`. Without it, `runClient` fails with `GLX: Failed to load GLX`, because NixOS keeps the GPU drivers in `/run/opengl-driver/lib` with no GL dispatcher on the loader path. Other platforms ignore the flake.
+
 ## Documentation
 
 NeoForge's API changes a lot between versions and many online examples are stale. Prefer these sources, in order:
