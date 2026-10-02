@@ -276,6 +276,41 @@ Not done: per-connection throughput caps (every participant has its own transfer
 
 ---
 
+## D16. Screen themes, grain and slot looks — DECIDED (maintainer, 2026-10-02)
+
+The maintainer asked for screens that are not only vanilla grey: a dark mode like the old Femtocraft GUIs, as a theme
+system that mods and others can extend; the old GUIs' faint per-pixel grain, as a toggle; and slots that always show
+where items go, since generated screens draw no art.
+
+- **Themes** (`client/screen/ScreenTheme.kt`): a `ScreenTheme` is a palette (panel and its bevel and outline, slot
+  face and inset edges, output ring, gauge frame and well, text and muted text, progress, energy) plus grain
+  strength. Built in: `itszulib:light` (vanilla's grey with its bevel and inset slots) and `itszulib:dark` (sampled
+  from the old Femtocraft art: panel `#1E1E1E`, `#3E4040` bevel, slots `#292929` inset `#0F0F0F`/`#3E4040`).
+- **Defining themes.** Mods and resource packs add JSON files at `assets/<namespace>/itszulib/themes/<path>.json`
+  (id `<namespace>:<path>`, reloaded with resources): `parent` (default `itszulib:light`; may be another file),
+  `colors` (any of `panel`, `panel_light`, `panel_dark`, `outline`, `slot`, `slot_shadow`, `slot_light`,
+  `slot_output`, `frame`, `well`, `text`, `text_muted`, `progress`, `energy`, as `#RRGGBB` or `#AARRGGBB`; unknown
+  names are an error) and `grain`. A file may replace a theme of the same id, built-ins included. Code can
+  `ScreenThemes.register`. Parent cycles and unknown parents are logged and the theme skipped.
+- **Choosing.** Each `ComponentScreen` kind has a default (`defaultTheme()`, `itszulib:light` unless overridden). The
+  client config (`config/itszulib-client.toml`, editable from the Mods screen) can force one theme for every screen
+  (`theme`) and turn grain off (`grain`); both apply live. Components draw through `ScreenStyle`, which the screen
+  points at its theme before drawing, so existing components follow it; `Label`, `ProgressBar` and `EnergyGauge` use
+  the theme's colours unless given one.
+- **Grain** (`ScreenGrain`): per-pixel value noise like the old GUIs' (most pixels a shade lighter or darker, about
+  one in 160 a stronger speck), as a 128x128 tile drawn white or black with alpha, tiled over panels at the theme's
+  strength, so it changes value but not hue.
+- **Slots.** Every slot is drawn as an inset. Take-only slots (`OutputSlot`, or any slot whose `SlotLook.isOutput`)
+  get a ring in the theme's output colour, drawn under all insets so neighbouring outputs share one outline. A slot
+  may give a hint (`SlotLook.hint()`; `addStorageSlots(..., hint = stack)`) shown faded while it is empty, to say
+  what goes there. Screens with hand-drawn art can still call `extractSlots` for these.
+- Title and inventory labels use the theme's text colour.
+- **Side configuration background** (maintainer): the 3D side configuration view has its own background toggle (the
+  "Bg" button beside the mode button), dark (the theme's well) or light, whichever shows the blocks better; it is
+  remembered in the client config (`sideConfigLight`).
+
+Not done: themed tab buttons (still vanilla buttons), and themes for screens other than `ComponentScreen`s.
+
 ## B1. Shape of the ported ItszuLib API — DECIDED: a fragment/module framework (option 2)
 
 **Context.** ItszuLib's 2015–16 API is built around mechanisms that no longer exist (`IInventory`/`ISidedInventory`, `IFluidHandler`, `IExtendedEntityProperties`, block metadata, `SimpleNetworkWrapper`, immediate-mode GL). Mods written against the old API have to be rewritten against whatever shape ItszuLib takes.

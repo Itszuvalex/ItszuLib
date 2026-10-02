@@ -43,7 +43,7 @@ class DevMenu(containerId: Int, inventory: Inventory, @JvmField val blockEntity:
         val storage = blockEntity?.getModule(Modules.ITEM_STORAGE, null) ?: IItemStorage.Empty
         when (blockEntity) {
             is DevMachineBlockEntity -> {
-                addStorageSlots(storage, 44, 35, count = 1)
+                addStorageSlots(storage, 44, 35, count = 1, hint = net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_INGOT))
                 addStorageSlots(storage, 116, 35, first = 1, count = 1, output = true)
                 addSync(MenuSyncs.fluid(blockEntity.tanks, 0))
                 energy = syncEnergy { blockEntity.battery }
