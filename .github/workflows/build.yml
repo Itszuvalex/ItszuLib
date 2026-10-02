@@ -1,11 +1,13 @@
 name: Build
 
 on:
+  # Pushes only, never pull_request: this is a public repo on a self-hosted runner, and a pull_request run
+  # uses the workflow file from the pull request, so a fork could run anything on the runner. Only people
+  # with write access can push, and a pushed branch's run still shows on its pull request.
   push:
-    branches: [main]
+    branches: ['**']
     # A version tag builds a release: same checks, then the jars go on the tag's GitHub release.
     tags: ['v*']
-  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -14,9 +16,7 @@ concurrency:
 
 jobs:
   build:
-    # Public repo on a self-hosted runner: never run pull requests from forks.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: self-hosted
+    runs-on: nas-linux
     timeout-minutes: 60
     permissions:
       contents: write # attach jars to releases
