@@ -17,6 +17,12 @@ interface Distributable {
     val transferMax: Double
 
     /**
+     * Higher goes first among participants of the same role, before the usual order (for example efficient computers
+     * before wasteful ones, or renewable generators before fuel burners). 0 by default.
+     */
+    val priority: Double get() = 0.0
+
+    /**
      * @return Amount actually added.
      */
     fun add(amount: Double): Double
@@ -54,8 +60,9 @@ data class DistributionParticipant(val key: Any, val role: DistributionRole, val
  * Producer/storage/consumer distribution in one pass: moves from producers (then storage) to consumers (then
  * storage), each within its transfer limit.
  *
- * Priorities: producers with the least room give first (so generators do not fill up and stall), storage with the
- * least room gives first, storage with the least in it fills first, consumers with the least in them fill first. If
+ * Priorities: a higher [Distributable.priority] goes first within its role; among equal priorities, producers with
+ * the least room give first (so generators do not fill up and stall), storage with the least room gives first, storage
+ * with the least in it fills first, consumers with the least in them fill first. If
  * producers make at least what consumers can take, the surplus goes to storage; otherwise storage tops consumers up.
  * Each step removes from the source only what the sink actually accepted, so nothing is created or destroyed.
  */
@@ -79,10 +86,12 @@ class DistributionAlgorithm(
     private class Entry(val node: Distributable, var remaining: Double, val primary: Boolean)
 
     fun distribute(): Result {
-        val producerEntries = producers.map { Entry(it, min(it.amount, it.transferMax).coerceAtLeast(0.0), true) }.sortedBy { it.node.room }
-        val storageTake = storage.map { Entry(it, min(it.amount, it.transferMax).coerceAtLeast(0.0), false) }.sortedBy { it.node.room }
-        val storageGive = storage.map { Entry(it, min(it.room, it.transferMax).coerceAtLeast(0.0), false) }.sortedBy { it.node.amount }
-        val consumerEntries = consumers.map { Entry(it, min(it.room, it.transferMax).coerceAtLeast(0.0), true) }.sortedBy { it.node.amount }
+        val byRoom = compareByDescending<Entry> { it.node.priority }.thenBy { it.node.room }
+        val byAmount = compareByDescending<Entry> { it.node.priority }.thenBy { it.node.amount }
+        val producerEntries = producers.map { Entry(it, min(it.amount, it.transferMax).coerceAtLeast(0.0), true) }.sortedWith(byRoom)
+        val storageTake = storage.map { Entry(it, min(it.amount, it.transferMax).coerceAtLeast(0.0), false) }.sortedWith(byRoom)
+        val storageGive = storage.map { Entry(it, min(it.room, it.transferMax).coerceAtLeast(0.0), false) }.sortedWith(byAmount)
+        val consumerEntries = consumers.map { Entry(it, min(it.room, it.transferMax).coerceAtLeast(0.0), true) }.sortedWith(byAmount)
 
         val produced = producerEntries.sumOf { it.remaining }
         val stored = storageTake.sumOf { it.remaining }

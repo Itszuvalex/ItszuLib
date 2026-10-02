@@ -158,7 +158,7 @@ energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLi
 `assets/<ns>/itszulib/themes/*.json` (`parent` plus any `colors`); a screen picks its default with `defaultTheme()`,
 the client config (`ScreenThemeConfig`) can force one and turn grain off, and components read colours from
 `ScreenStyle` (pointed at the screen's theme while it draws); use `ThemedButton` rather than vanilla buttons so
-buttons follow the theme too. Slots are drawn as insets, take-only slots ringed and
+buttons follow the theme too, with a `ButtonAccents` accent (IO, upgrade, danger, info, or a mod's own) for what they do. Slots are drawn as insets, take-only slots ringed and
 hints (`addStorageSlots(..., hint = stack)`, `SlotLook`) faded into empty slots. Anything a screen
 draws outside its image belongs in `ComponentScreen.extraAreas()`, which the JEI plugin reports so JEI's overlays stay
 clear. JEI is a `compileOnly` dependency plus a dev-run `localRuntime` (`-Pjei=false` leaves it out).

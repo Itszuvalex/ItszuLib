@@ -67,13 +67,14 @@ abstract class ScreenComponent(var width: Int, var height: Int) {
 
 /**
  * A component shown beside the screen while its tab is selected. [tab] is the tab button's short label and [title]
- * its tooltip; a non-empty [icon] is drawn on the tab instead of the label.
+ * its tooltip; a non-empty [icon] is drawn on the tab instead of the label, and [accent] tints it ([ButtonAccents]).
  */
 class SidePanel @JvmOverloads constructor(
     @JvmField val tab: Component,
     @JvmField val title: Component,
     @JvmField val component: ScreenComponent,
     @JvmField val icon: ItemStack = ItemStack.EMPTY,
+    @JvmField val accent: String? = null,
 )
 
 /**
@@ -122,7 +123,7 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
      */
     protected open fun defaultPanels(): List<SidePanel> {
         val side = (menu as? MenuCore)?.sideConfig ?: return emptyList()
-        return listOf(SidePanel(Component.translatable("gui.itszulib.side_config.tab"), Component.translatable("gui.itszulib.side_config.title"), SideConfigPanel(side, menu.containerId)))
+        return listOf(SidePanel(Component.translatable("gui.itszulib.side_config.tab"), Component.translatable("gui.itszulib.side_config.title"), SideConfigPanel(side, menu.containerId), accent = ButtonAccents.IO))
     }
 
     /**
@@ -169,7 +170,7 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
             addRenderableWidget(
                 ThemedButton(
                     leftPos + imageWidth, topPos + TAB_GAP + i * (TAB_SIZE + TAB_GAP), TAB_SIZE, TAB_SIZE, panel.tab,
-                    { togglePanel(panel) }, panel.title, panel.icon, selected = { openPanel === panel },
+                    { togglePanel(panel) }, panel.title, panel.icon, selected = { openPanel === panel }, accent = panel.accent,
                 ),
             )
         }

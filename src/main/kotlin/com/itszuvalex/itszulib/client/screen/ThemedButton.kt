@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack
  * A button drawn in the current [ScreenTheme] ([ScreenStyle.button]) instead of vanilla's sprite: raised, lit while
  * hovered or focused, pressed in while [selected] (e.g. the tab of the open panel), flat with muted text while
  * inactive. Shows [icon] (an item, centred) instead of its message when one is given; the message is still narrated.
+ * [accent] names a [ButtonAccents] colour (from the theme) that tints it by what it does: IO, upgrades, danger, ...
  */
 class ThemedButton @JvmOverloads constructor(
     x: Int,
@@ -23,6 +24,7 @@ class ThemedButton @JvmOverloads constructor(
     tooltip: Component? = null,
     private val icon: ItemStack = ItemStack.EMPTY,
     private val selected: () -> Boolean = { false },
+    var accent: String? = null,
 ) : AbstractButton(x, y, width, height, message) {
     init {
         tooltip?.let { setTooltip(Tooltip.create(it)) }
@@ -37,7 +39,7 @@ class ThemedButton @JvmOverloads constructor(
             isHoveredOrFocused -> ScreenStyle.ButtonState.HOVERED
             else -> ScreenStyle.ButtonState.IDLE
         }
-        ScreenStyle.button(graphics, x, y, width, height, state)
+        ScreenStyle.button(graphics, x, y, width, height, state, accent?.let(ScreenStyle.theme::accent))
         if (!icon.isEmpty) {
             graphics.fakeItem(icon, x + (width - 16) / 2, y + (height - 16) / 2)
             return

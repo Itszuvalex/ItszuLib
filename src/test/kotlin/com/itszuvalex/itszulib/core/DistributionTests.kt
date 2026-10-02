@@ -21,6 +21,27 @@ class DistributionAlgorithmTests {
     }
 
     @Test
+    fun Distribute_HigherPriority_GoesFirstWithinItsRole() {
+        // Without priorities the producer with less room (the fuller one, a) would give first.
+        val a = battery(1000.0, 900.0)
+        val b = battery(1000.0, 100.0)
+        val preferred = object : Distributable by res(b) {
+            override val priority: Double get() = 1.0
+        }
+        val low = battery(1000.0, 0.0)
+        val high = battery(1000.0, 500.0)
+        val urgent = object : Distributable by res(high) {
+            override val priority: Double get() = 1.0
+        }
+        val result = DistributionAlgorithm(listOf(res(a, 60.0), preferred), listOf(), listOf(res(low), urgent)).distribute()
+        assertEquals(160.0, result.toConsumers)
+        assertEquals(0.0, b.storage(), "the preferred producer gave everything")
+        assertEquals(840.0, a.storage())
+        assertEquals(660.0, high.storage(), "the urgent consumer filled first")
+        assertEquals(0.0, low.storage())
+    }
+
+    @Test
     fun Distribute_Surplus_GoesToStorage() {
         val producer = battery(1000.0, 500.0)
         val storage = battery(1000.0, 0.0)

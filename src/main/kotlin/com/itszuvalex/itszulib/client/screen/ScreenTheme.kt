@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap
  * @param grain How strongly per-pixel value noise shows on panels (0 for none, about 0.05 for a faint grain).
  * @param button A button's face ([ThemedButton], side panel tabs); [buttonHover] while hovered. Both default to
  * colours derived from the panel.
+ * @param accents Colours that tint buttons by what they do ([ButtonAccents]: `io`, `upgrade`, `danger`, `info`, or any
+ * name a mod uses), so common kinds of button look alike across screens; names missing here use [ButtonAccents.DEFAULTS].
  */
 data class ScreenTheme(
     val panel: Int,
@@ -43,7 +45,13 @@ data class ScreenTheme(
     val grain: Float,
     val button: Int = panel,
     val buttonHover: Int = panelLight,
+    val accents: Map<String, Int> = emptyMap(),
 ) {
+    /**
+     * The colour of accent [name], or null if neither the theme nor [ButtonAccents.DEFAULTS] has it.
+     */
+    fun accent(name: String): Int? = accents[name] ?: ButtonAccents.DEFAULTS[name]
+
     companion object {
         /** Vanilla's grey, with its bevelled panel and inset slots. */
         @JvmField
@@ -89,10 +97,52 @@ data class ScreenTheme(
 }
 
 /**
+ * Named button accents ([ThemedButton]'s `accent`): what a button does, shown as a tint over its face, so the same kind
+ * of button looks the same on every screen. Themes may recolour these and add their own (`accents` in a theme file).
+ */
+object ButtonAccents {
+    /** Input/output and side configuration. */
+    const val IO = "io"
+
+    /** Upgrades and improvements. */
+    const val UPGRADE = "upgrade"
+
+    /** Destructive or irreversible actions (dump, clear, disband). */
+    const val DANGER = "danger"
+
+    /** Information and help. */
+    const val INFO = "info"
+
+    private val defaults = ConcurrentHashMap(mapOf(
+        IO to 0xFF3A7FD0.toInt(),
+        UPGRADE to 0xFF3FA34D.toInt(),
+        DANGER to 0xFFC0392B.toInt(),
+        INFO to 0xFFC9A227.toInt(),
+    ))
+
+    /** Every accent's default colour (themes override them). */
+    @JvmStatic
+    val DEFAULTS: Map<String, Int> get() = defaults
+
+    /**
+     * Adds a mod's own accent [name] with its default [color] (themes may still recolour it).
+     */
+    @JvmStatic
+    fun register(name: String, color: Int) {
+        defaults[name] = color
+    }
+}
+
+/**
  * A theme as written in a JSON file: an optional [parent] it starts from (default `itszulib:light`) and the colours it
  * changes. Field names are the [ScreenTheme] properties in snake case (`panel_light`, `slot_output`, ...).
  */
-data class ThemeDefinition(val parent: Optional<Identifier>, val values: Map<String, Int>, val grain: Optional<Float>) {
+data class ThemeDefinition @JvmOverloads constructor(
+    val parent: Optional<Identifier>,
+    val values: Map<String, Int>,
+    val grain: Optional<Float>,
+    val accents: Map<String, Int> = emptyMap(),
+) {
     /**
      * The theme this defines, on top of [parent].
      */
@@ -105,6 +155,7 @@ data class ThemeDefinition(val parent: Optional<Identifier>, val values: Map<Str
             well = c("well", parent.well), text = c("text", parent.text), textMuted = c("text_muted", parent.textMuted),
             progress = c("progress", parent.progress), energy = c("energy", parent.energy), grain = grain.orElse(parent.grain),
             button = c("button", parent.button), buttonHover = c("button_hover", parent.buttonHover),
+            accents = parent.accents + accents,
         )
     }
 
@@ -124,6 +175,7 @@ data class ThemeDefinition(val parent: Optional<Identifier>, val values: Map<Str
                     if (unknown.isEmpty()) DataResult.success(map) else DataResult.error { "Unknown theme colours $unknown; known: $KEYS" }
                 }.optionalFieldOf("colors", emptyMap()).forGetter(ThemeDefinition::values),
                 Codec.floatRange(0f, 1f).optionalFieldOf("grain").forGetter(ThemeDefinition::grain),
+                Codec.unboundedMap(Codec.STRING, ScreenTheme.COLOR).optionalFieldOf("accents", emptyMap()).forGetter(ThemeDefinition::accents),
             ).apply(i, ::ThemeDefinition)
         }
     }

@@ -284,6 +284,10 @@ mods build. ItszuLib now has one resource-agnostic algorithm for it (`core/Distr
 
 Not done: per-connection throughput caps (every participant has its own transfer limit; the network has none).
 
+**Addendum (2026-10-02): priority.** `Distributable.priority` (default 0) orders participants within a role before
+the usual order: higher gives (or takes) first. Computation uses it to spend the most efficient computers first; it
+also suits renewable generators before fuel burners.
+
 ---
 
 ## D16. Screen themes, grain and slot looks — DECIDED (maintainer, 2026-10-02)
@@ -324,6 +328,12 @@ where items go, since generated screens draw no art.
   (a slot's inset) while selected (the open panel's tab, the light background toggle), flat with muted text while
   inactive. Both colours are optional in code and JSON (they default to the panel and its light bevel). Mods use
   `ThemedButton` for their own buttons; a `SidePanel` may give an item `icon` for its tab instead of a label.
+- **Accents** (maintainer, 2026-10-02): a `ThemedButton` (and a `SidePanel` tab) may name an accent that tints its
+  face, so the same kind of button looks the same on every screen: `ButtonAccents.IO` (blue; the side configuration
+  tab has it), `UPGRADE` (green), `DANGER` (red), `INFO` (amber). Themes recolour or add accents (`accents` in a theme
+  file, a map of name to colour, merged over the parent's); mods add their own names with defaults through
+  `ButtonAccents.register`. The tint is stronger while hovered, faint while inactive, and laid over the inset while
+  selected.
 
 Not done: themes for screens other than `ComponentScreen`s.
 

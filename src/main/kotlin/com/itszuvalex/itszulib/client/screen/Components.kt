@@ -84,10 +84,12 @@ object ScreenStyle {
     /**
      * A button's background: an outline with cut corners around a raised face (the panel's bevel) in the theme's
      * button colour, its hover colour while [ButtonState.HOVERED], pressed in like a slot while
-     * [ButtonState.SELECTED], and flat in the panel colour while [ButtonState.INACTIVE].
+     * [ButtonState.SELECTED], and flat in the panel colour while [ButtonState.INACTIVE]. An [accent] colour tints the
+     * face (less while inactive), so buttons that do the same kind of thing look alike ([ButtonAccents]).
      */
     @JvmStatic
-    fun button(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int, height: Int, state: ButtonState) {
+    @JvmOverloads
+    fun button(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int, height: Int, state: ButtonState, accent: Int? = null) {
         val t = theme
         val r = x + width
         val b = y + height
@@ -95,17 +97,36 @@ object ScreenStyle {
         graphics.fill(x + 1, b - 1, r - 1, b, t.outline)
         graphics.fill(x, y + 1, x + 1, b - 1, t.outline)
         graphics.fill(r - 1, y + 1, r, b - 1, t.outline)
+        fun tinted(color: Int, amount: Float) = if (accent == null) color else mix(color, accent, amount)
         when (state) {
-            ButtonState.SELECTED -> inset(graphics, x + 1, y + 1, width - 2, height - 2)
-            ButtonState.INACTIVE -> graphics.fill(x + 1, y + 1, r - 1, b - 1, t.panel)
+            ButtonState.SELECTED -> {
+                inset(graphics, x + 1, y + 1, width - 2, height - 2)
+                if (accent != null) graphics.fill(x + 2, y + 2, r - 2, b - 2, (accent and 0xFFFFFF) or (ACCENT_SELECTED shl 24))
+            }
+            ButtonState.INACTIVE -> graphics.fill(x + 1, y + 1, r - 1, b - 1, tinted(t.panel, ACCENT_INACTIVE))
             else -> {
-                graphics.fill(x + 1, y + 1, r - 1, b - 1, if (state == ButtonState.HOVERED) t.buttonHover else t.button)
+                graphics.fill(x + 1, y + 1, r - 1, b - 1, if (state == ButtonState.HOVERED) tinted(t.buttonHover, ACCENT_HOVER) else tinted(t.button, ACCENT_IDLE))
                 graphics.fill(x + 1, y + 1, r - 2, y + 2, t.panelLight)
                 graphics.fill(x + 1, y + 1, x + 2, b - 2, t.panelLight)
                 graphics.fill(x + 2, b - 2, r - 1, b - 1, t.panelDark)
                 graphics.fill(r - 2, y + 2, r - 1, b - 1, t.panelDark)
             }
         }
+    }
+
+    /** How much of an accent shows on a button's face: idle, hovered, inactive, and over a selected button's inset (0-255). */
+    const val ACCENT_IDLE = 0.4f
+    const val ACCENT_HOVER = 0.55f
+    const val ACCENT_INACTIVE = 0.15f
+    const val ACCENT_SELECTED = 0x60
+
+    /**
+     * [a] moved [amount] (0-1) of the way towards [b], per channel; opaque.
+     */
+    @JvmStatic
+    fun mix(a: Int, b: Int, amount: Float): Int {
+        fun ch(shift: Int) = (((a shr shift) and 255) * (1 - amount) + ((b shr shift) and 255) * amount).toInt().coerceIn(0, 255)
+        return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
     }
 }
 

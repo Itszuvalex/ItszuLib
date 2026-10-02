@@ -52,7 +52,7 @@ class SideConfigPanel(private val side: MenuSideConfig, private val containerId:
         view.width = VIEW
         view.height = VIEW
         val label = { Component.translatable("gui.itszulib.side_config.mode", mode.label) }
-        val button = ThemedButton(x + PAD, y + 2 * PAD + VIEW, VIEW - BUTTON_H - PAD, BUTTON_H, label(), { b ->
+        val button = ThemedButton(x + PAD, y + 2 * PAD + VIEW, VIEW - BG_W - PAD, BUTTON_H, label(), { b ->
             modeIndex = (modeIndex + 1) % side.modes.size
             b.message = label()
         })
@@ -60,7 +60,7 @@ class SideConfigPanel(private val side: MenuSideConfig, private val containerId:
         host.addHostWidget(button)
         host.addHostWidget(
             ThemedButton(
-                x + PAD + VIEW - BUTTON_H, y + 2 * PAD + VIEW, BUTTON_H, BUTTON_H, Component.literal("Bg"),
+                x + PAD + VIEW - BG_W, y + 2 * PAD + VIEW, BG_W, BUTTON_H, Component.literal("Bg"),
                 { ScreenThemeConfig.setSideConfigLight(!ScreenThemeConfig.sideConfigLight()) },
                 Component.translatable("gui.itszulib.side_config.background"),
                 selected = ScreenThemeConfig::sideConfigLight,
@@ -160,6 +160,9 @@ class SideConfigPanel(private val side: MenuSideConfig, private val containerId:
         const val VIEW = 112
         const val PAD = 4
         const val BUTTON_H = 14
+
+        /** The background toggle's width: its label and the button's margins. */
+        const val BG_W = 20
         const val SCALE = 30f
 
         /** How much of the view a structure's bounding box may take. */
