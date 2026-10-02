@@ -19,5 +19,8 @@
   "gui.itszulib.side_config.dir.north": "North",
   "gui.itszulib.side_config.dir.south": "South",
   "gui.itszulib.side_config.dir.west": "West",
-  "gui.itszulib.side_config.dir.east": "East"
+  "gui.itszulib.side_config.dir.east": "East",
+  "gui.itszulib.research.researched": "Researched",
+  "gui.itszulib.research.progress": "Progress: %s / %s",
+  "gui.itszulib.research.requires": "Requires:"
 }

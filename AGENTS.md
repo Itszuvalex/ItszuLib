@@ -76,7 +76,8 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
 ├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath; ItszuLibClient (client
 │   │                      registrations); screen/ (ComponentScreen, ScreenComponent, SidePanel, ScreenStyle, gauges,
-│   │                      SideConfigPanel); scene/ (BlockScene*: 3D blocks in a screen). Client only. DECISIONS D12
+│   │                      SideConfigPanel, TechTreeView); scene/ (BlockScene*: 3D blocks in a screen). Client only.
+│   │                      DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
 │   │                      (Fragments.kt), networks (Networks.kt), Sided{Item,Fluid}StorageConfiguration
@@ -88,13 +89,16 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          MenuSyncPayload, MenuActionPayload, MenuSideConfig (SideConfigMode/Modes/Cyclers),
 │                          IMenuHost, BlockMenus
 ├── network/               PacketHandler, ItszuLibNetwork (registers ItszuLib's payloads)
+├── research/              Tech trees: Technology (datapack registry itszulib:technology), Technologies (rules),
+│                          TechTree (registry, team progress, gating, TechnologyResearchedEvent), TechTreeLayout
 ├── team/                  Teams and per-team data: Team/TeamState (rules + invariants), TeamDataType + Research,
 │                          TeamCodec, TeamStore (file persistence), TeamManager, TeamNetwork (sync + lifecycle),
-│                          TeamCommands (/itszulib team, /itszulib research)
+│                          TeamCommands (/itszulib team, /itszulib research unlock|progress)
 ├── dev/                   Dev-only blocks, menu, screen and game tests (never registered in production)
 └── util/                  Color, InventoryUtils (item dropping), StorageUtils (item counting/removal), FaceBitSet, Task,
-                           Singleton
-src/main/resources/        assets/itszulib/lang/en_us.json (screen helper strings), data/itszulib/structure/dev_5x3x5.nbt
+                           Singleton, DevEnvironmentCondition (load condition itszulib:dev_environment)
+src/main/resources/        assets/itszulib/lang/en_us.json (screen helper strings), data/itszulib/structure/dev_5x3x5.nbt,
+                           data/itszulib/itszulib/technology/dev_*.json (dev-only test technologies)
 src/test/kotlin/...        JUnit tests + Testable* fakes that avoid vanilla objects (TestHelpers.kt, CoreTests.kt)
 ```
 
@@ -149,9 +153,12 @@ energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLi
 `INetwork`/`TileNetwork` group `INetworkNode`s (by `Loc4`) into server-side networks in `ItszuLib.NETWORK_MANAGER`, ticked from `ServerTickEvent.Pre/Post`. Nodes are found through the network module on the block entity (`TileNetwork#networkModule`). Chunk unloads drop that chunk's nodes as a batch; block entities must re-add their node when they load. Splits explore iteratively.
 
 ### Teams and per-team data
-Every player is always in exactly one team (a new player gets a solo team they own). Mods register per-team data with `TeamDataTypes.register(TeamDataType(id, codec, empty, merge, copy))` during mod construction; ItszuLib registers `Research.TYPE` (`itszulib:research`, a set of unlocked ids merged by union). Joining (invite and accept) merges the joiner's data into the team; leaving or being removed gives the player a solo team with a copy; disbanding gives every member a copy. Roles: owner (promote/demote officers, hand over ownership, rename, disband; cannot leave a shared team without handing it over), officers (invite, revoke, remove anyone but the owner), members. Read `ItszuLib.TEAMS.state`; change only through `ItszuLib.TEAMS.change { state -> newState }` on the server thread.
+Every player is always in exactly one team (a new player gets a solo team they own). Mods register per-team data with `TeamDataTypes.register(TeamDataType(id, codec, empty, merge, copy))` during mod construction; ItszuLib registers `Research.TYPE` (`itszulib:research`: unlocked ids, merged by union, plus partial progress per technology, merged by maximum). Joining (invite and accept) merges the joiner's data into the team; leaving or being removed gives the player a solo team with a copy; disbanding gives every member a copy. Roles: owner (promote/demote officers, hand over ownership, rename, disband; cannot leave a shared team without handing it over), officers (invite, revoke, remove anyone but the owner), members. Read `ItszuLib.TEAMS.state`; change only through `ItszuLib.TEAMS.change { state -> newState }` on the server thread.
 
 Data integrity (do not weaken): `TeamState` is immutable and checks its invariants on construction, so an operation yields a valid state or changes nothing. Persistence is `TeamStore`, not vanilla `SavedData` (vanilla replaces unreadable saved data with a fresh empty instance and later saves it over the file): strict decoding, fallback to `teams.dat.bak` with the bad file moved aside, refusal to save for the session if neither file reads, and temp-file + read-back + atomic-move saves. Unregistered data types are kept raw. Stored at `<world>/data/itszulib/teams.dat`; clients get their own team through `TeamSyncPayload` (only connections that negotiated it). See DECISIONS D10.
+
+### Tech trees
+Technologies are a synced datapack registry, `itszulib:technology` (`data/<ns>/itszulib/technology/<path>.json`: `tree`, `prerequisites`, `cost`, `icon`, optional `name`, `description`, `position`, `hidden`, `unlocked_by_default`). Research is per team (`Research` team data). `TechTree.of(registryAccess)` gives the `Technologies` (rules: `state` is RESEARCHED, AVAILABLE when every prerequisite is researched, LOCKED, or HIDDEN; `problems()`; `layout(tree)`). Mods produce progress and call `TechTree.addProgress(server, team, id, amount)` (returns what it used; unlocks at the cost and posts `TechnologyResearchedEvent`) in batches, since each change syncs the team; gate with `TechTree.isResearched(player, id)` on either side. Draw a tree with `TechTreeView` in a `ComponentScreen`. Data meant only for dev runs takes `"neoforge:conditions": [{"type": "itszulib:dev_environment"}]`. See DECISIONS D13.
 
 ### Engine seams for testing
 `ILevel`, `IBlockEntity`, `IItemStack` and `Overideable` let logic be unit tested without a game. Tests use `TestableLevel`, `TestableIItemStack`, `TestableLoc4`, `TestableNetwork*`, `TestableFragmentHost`; `MCAssert.failVanillaClass` marks methods tests must not reach.
@@ -177,7 +184,7 @@ framework changes generic.
 - `itszulib:dev_machine` (`dev/DevStorageContent.kt`): 2-slot inventory (slot 0 "input", slot 1 "output"), a 4000 mB tank and a 10000 battery, each behind a sided configuration (`FragSidedConfiguration`), exposed per side by `FragItemStorage`/`FragFluidStorage`/`FragEnergyStorage`, with item, fluid and energy auto IO every tick. Its screen (`DevScreen`) is a `ComponentScreen` with tank and energy gauges and the side configuration panel.
 - `itszulib:dev_multiblock`: a part of a two-block multiblock (`DevMultiblockBlock.SHAPE`, `itszulib:dev_pair`: a `core` and a `wing` east of it); two side by side form on their own. `FragMultiblockPart`, a shared `DevCounter` tick counter, a one-slot inventory and a `MultiblockSidedItemStorageConfiguration`.
 
-`dev/DevGameTests.kt` registers test functions (`Registries.TEST_FUNCTION`) and test instances (`RegisterGameTestsEvent`). Add a test with `test("name") { helper -> ...; helper.succeed() }` (vanilla's 1x1x1 `minecraft:empty` structure) or `test("name", DevGameTests.EMPTY_5X3X5) { ... }` for tests that need neighbours (`data/itszulib/structure/dev_5x3x5.nbt`, an empty 5x3x5 structure). Framework tests live in `DevGameTests`; storage, sided configuration, auto IO and multiblock tests in `DevStorageGameTests`. `GameTestHelper#assertValueEqual(actual, expected, name)` takes the actual value first.
+`dev/DevGameTests.kt` registers test functions (`Registries.TEST_FUNCTION`) and test instances (`RegisterGameTestsEvent`). Add a test with `test("name") { helper -> ...; helper.succeed() }` (vanilla's 1x1x1 `minecraft:empty` structure) or `test("name", DevGameTests.EMPTY_5X3X5) { ... }` for tests that need neighbours (`data/itszulib/structure/dev_5x3x5.nbt`, an empty 5x3x5 structure). Framework tests live in `DevGameTests`; storage, sided configuration, auto IO and multiblock tests in `DevStorageGameTests`; menu tests in `DevMenuGameTests`; tech tree tests in `DevResearchGameTests`. `GameTestHelper#assertValueEqual(actual, expected, name)` takes the actual value first.
 
 ## Testing conventions
 

@@ -1,0 +1,10 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "itszulib:dev_environment"
+    }
+  ],
+  "tree": "itszulib:dev",
+  "cost": 100,
+  "icon": "minecraft:redstone"
+}

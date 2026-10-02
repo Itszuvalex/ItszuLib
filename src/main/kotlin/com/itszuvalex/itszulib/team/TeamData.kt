@@ -2,6 +2,8 @@ package com.itszuvalex.itszulib.team
 
 import com.itszuvalex.itszulib.ItszuLib
 import com.mojang.serialization.Codec
+import com.mojang.serialization.DataResult
+import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.resources.Identifier
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentHashMap
@@ -54,26 +56,80 @@ object TeamDataTypes {
 }
 
 /**
- * The research a team has unlocked. Only grows: joining a team unions research, leaving copies it.
+ * The research a team has unlocked, and its partial progress towards technologies not yet unlocked (see
+ * [com.itszuvalex.itszulib.research.TechTree]). Only grows: joining a team unions research and keeps the larger
+ * progress, leaving copies it.
+ *
+ * @param progress Positive amounts only, and never for an unlocked id.
  */
-data class Research(val unlocked: Set<Identifier>) {
+data class Research @JvmOverloads constructor(
+    val unlocked: Set<Identifier>,
+    val progress: Map<Identifier, Long> = emptyMap(),
+) {
+    init {
+        problem(unlocked, progress)?.let { throw IllegalArgumentException(it) }
+    }
+
     fun has(id: Identifier): Boolean = id in unlocked
 
-    fun unlock(id: Identifier): Research = if (has(id)) this else Research(unlocked + id)
+    fun progressOf(id: Identifier): Long = progress[id] ?: 0L
+
+    fun unlock(id: Identifier): Research = if (has(id)) this else Research(unlocked + id, progress - id)
+
+    /**
+     * Sets the progress towards [id] (an unlocked id keeps none; 0 or less clears it).
+     */
+    fun withProgress(id: Identifier, amount: Long): Research = when {
+        has(id) -> this
+        amount <= 0L -> if (id in progress) Research(unlocked, progress - id) else this
+        else -> Research(unlocked, progress + (id to amount))
+    }
 
     companion object {
         @JvmField
         val EMPTY = Research(emptySet())
 
+        private fun problem(unlocked: Set<Identifier>, progress: Map<Identifier, Long>): String? = when {
+            progress.values.any { it <= 0L } -> "Research progress must be positive: $progress"
+            progress.keys.any { it in unlocked } -> "Research progress kept for unlocked research: ${progress.keys.filter { it in unlocked }}"
+            else -> null
+        }
+
+        private val RECORD: Codec<Research> = RecordCodecBuilder.create<Pair<List<Identifier>, Map<Identifier, Long>>> { i ->
+            i.group(
+                Identifier.CODEC.listOf().optionalFieldOf("unlocked", emptyList()).forGetter { it.first },
+                Codec.unboundedMap(Identifier.CODEC, Codec.LONG).optionalFieldOf("progress", emptyMap()).forGetter { it.second },
+            ).apply(i, ::Pair)
+        }.comapFlatMap(
+            { (unlocked, progress) ->
+                val set = unlocked.toSet()
+                problem(set, progress)?.let { DataResult.error { it } } ?: DataResult.success(Research(set, progress))
+            },
+            { it.unlocked.sorted() to it.progress.toSortedMap() },
+        )
+
+        /** Saves from before progress existed: a plain list of unlocked ids. */
+        private val UNLOCKED_ONLY: Codec<Research> = Identifier.CODEC.listOf().xmap({ Research(it.toSet()) }, { it.unlocked.sorted() })
+
         @JvmField
-        val CODEC: Codec<Research> = Identifier.CODEC.listOf().xmap({ Research(it.toSet()) }, { it.unlocked.sorted() })
+        val CODEC: Codec<Research> = Codec.withAlternative(RECORD, UNLOCKED_ONLY)
+
+        @JvmStatic
+        fun merge(team: Research, joining: Research): Research {
+            val unlocked = team.unlocked + joining.unlocked
+            val progress = HashMap<Identifier, Long>()
+            for ((id, amount) in team.progress.entries + joining.progress.entries) {
+                if (id !in unlocked) progress.merge(id, amount, ::maxOf)
+            }
+            return Research(unlocked, progress)
+        }
 
         @JvmField
         val TYPE: TeamDataType<Research> = TeamDataType(
             Identifier.fromNamespaceAndPath(ItszuLib.ID, "research"),
             CODEC,
             { EMPTY },
-            { team, joining -> Research(team.unlocked + joining.unlocked) },
+            ::merge,
         )
     }
 }

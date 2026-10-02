@@ -12,6 +12,8 @@ import com.itszuvalex.itszulib.dev.DevContent
 import com.itszuvalex.itszulib.client.ItszuLibClient
 import net.neoforged.api.distmarker.Dist
 import com.itszuvalex.itszulib.network.ItszuLibNetwork
+import com.itszuvalex.itszulib.research.TechTree
+import com.itszuvalex.itszulib.util.DevEnvironmentCondition
 import com.itszuvalex.itszulib.team.Research
 import com.itszuvalex.itszulib.team.TeamDataTypes
 import com.itszuvalex.itszulib.team.TeamEvents
@@ -59,6 +61,8 @@ object ItszuLib {
         VanillaChunkTickets.register(MOD_BUS)
         TeamDataTypes.register(Research.TYPE)
         TeamEvents.register()
+        TechTree.register(MOD_BUS)
+        DevEnvironmentCondition.register(MOD_BUS)
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) ItszuLibClient.register(MOD_BUS)
         if (!FMLEnvironment.isProduction()) {
