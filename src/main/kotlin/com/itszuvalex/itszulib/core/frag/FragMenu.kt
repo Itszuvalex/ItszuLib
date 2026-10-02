@@ -14,7 +14,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu
 /**
  * Gives a block a menu, opened when the block is used (see [com.itszuvalex.itszulib.core.EntityBlockCore]). Port of
  * ItszuLib 1.12.2's `ModuleGui`, and of `ModuleMultiblockGui` when [multiblock] is given: then the menu is only
- * available while the multiblock is formed, and every part opens the controller's menu.
+ * available while the block is part of a formed structure. Each member opens its own menu; menus over the structure
+ * read its shared state ([FragMultiblockPart.sharedState]).
  *
  * Client side, the menu type's factory reads the position written by [menuPos] (see
  * [com.itszuvalex.itszulib.menu.BlockMenus.blockEntity]).
@@ -24,7 +25,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu
 class FragMenu @JvmOverloads constructor(
     private val title: Component,
     private val factory: (containerId: Int, inventory: Inventory, player: Player) -> AbstractContainerMenu,
-    private val multiblock: FragMultiBlockInfo? = null,
+    private val multiblock: FragMultiblockPart? = null,
 ) : BlockEntityFragment<IMenuHost>(), IMenuHost {
     override fun name(): String = NAME
 
@@ -36,10 +37,8 @@ class FragMenu @JvmOverloads constructor(
      * The menu this block opens now, or null.
      */
     fun menu(): IMenuHost? {
-        val info = multiblock ?: return this
-        if (!info.info.isFormed) return null
-        if (info.info.isController) return this
-        return info.controllerModule(Modules.MENU)
+        val part = multiblock ?: return this
+        return if (part.isFormed) this else null
     }
 
     override fun menuPos(): BlockPos = host?.blockEntity()?.getBlockPos() ?: BlockPos.ZERO

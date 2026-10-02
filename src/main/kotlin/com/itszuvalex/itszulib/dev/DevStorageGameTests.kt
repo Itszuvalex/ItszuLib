@@ -44,8 +44,7 @@ object DevStorageGameTests {
         test("item_auto_io_pulls_and_pushes", DevGameTests.EMPTY_5X3X5, ::itemAutoIO)
         test("fluid_auto_io_pushes", DevGameTests.EMPTY_5X3X5, ::fluidAutoIO)
         test("multiblock_form_and_break", DevGameTests.EMPTY_5X3X5, ::multiblockFormAndBreak)
-        test("multiblock_rotated_pattern", DevGameTests.EMPTY_5X3X5, ::multiblockRotatedPattern)
-        test("multiblock_controller_state", DevGameTests.EMPTY_5X3X5, ::multiblockControllerState)
+        test("multiblock_shared_state", DevGameTests.EMPTY_5X3X5, ::multiblockSharedState)
     }
 
     private fun machine(helper: GameTestHelper, pos: BlockPos = BlockPos.ZERO): DevMachineBlockEntity {
@@ -195,64 +194,60 @@ object DevStorageGameTests {
     }
 
     /**
-     * Forming tells both parts their controller; faces between the parts expose an empty storage; breaking clears it.
+     * Two dev multiblock blocks side by side form a pair on their own once loaded (the west one is the `core`, at the
+     * home slot); faces between the parts expose an empty storage; breaking one dissolves the structure, hands its
+     * state to [DevCounter.onBreak], and frees the other.
      */
     private fun multiblockFormAndBreak(helper: GameTestHelper) {
-        val controller = multiblock(helper, CENTER)
-        val pattern = DevMultiblockBlock.PATTERN
-        val mb = DevMultiblockBlock.MULTIBLOCK
+        val core = multiblock(helper, CENTER)
+        val wing = multiblock(helper, CENTER.east())
         val level = helper.level
         val at = helper.absolutePos(CENTER)
-        helper.assertTrue(mb.tryForm(level, at, pattern) == null, "formed with a part missing")
+        // onLoad, which forms the structure, runs on the tick after placement.
+        helper.runAfterDelay(2) {
+            val coreMembership = core.part.membership
+            helper.assertTrue(coreMembership != null && coreMembership.isHome, "core formed at the home slot: $coreMembership")
+            helper.assertTrue(wing.part.membership?.offset == BlockPos(1, 0, 0), "wing offset: ${wing.part.membership}")
+            helper.assertTrue(wing.part.membership?.structureId == coreMembership!!.structureId, "same structure")
 
-        val part = multiblock(helper, CENTER.east())
-        helper.assertTrue(mb.tryForm(level, at, pattern) == true, "did not form")
-        helper.assertTrue(controller.info.info.isController, "controller")
-        helper.assertTrue(part.info.info.controller == at, "part's controller is ${part.info.info.controller}")
+            val inner = level.getCapability(NeoCapabilities.Item.BLOCK, at, Direction.EAST)
+            val outer = level.getCapability(NeoCapabilities.Item.BLOCK, at, Direction.WEST)
+            helper.assertValueEqual(inner?.size() ?: -1, 0, "face towards the other part")
+            helper.assertValueEqual(outer?.size() ?: -1, 1, "outside face")
+            helper.assertValueEqual(wing.itemConfig.configuration.getIOForAbsoluteFacing(Direction.WEST), EnumAutomaticIO.NONE, "wing's inner face IO")
 
-        val inner = level.getCapability(NeoCapabilities.Item.BLOCK, at, Direction.EAST)
-        val outer = level.getCapability(NeoCapabilities.Item.BLOCK, at, Direction.WEST)
-        helper.assertValueEqual(inner?.size() ?: -1, 0, "face towards the other part")
-        helper.assertValueEqual(outer?.size() ?: -1, 1, "outside face")
-        helper.assertValueEqual(part.itemConfig.configuration.getIOForAbsoluteFacing(Direction.WEST), EnumAutomaticIO.NONE, "part's inner face IO")
-
-        helper.assertTrue(mb.breakMultiblock(ILevel.of(level), at, pattern), "did not break")
-        helper.assertTrue(!controller.info.info.isFormed && !part.info.info.isFormed, "still formed")
-        helper.assertValueEqual(level.getCapability(NeoCapabilities.Item.BLOCK, at, Direction.EAST)?.size() ?: -1, 1, "inner face after break")
-        helper.succeed()
+            val state = core.counter()
+            DevCounter.lastBroken = null
+            helper.destroyBlock(CENTER.east())
+            helper.assertTrue(DevCounter.lastBroken === state && state?.breaks == 1, "the shared state is told once")
+            helper.assertTrue(core.part.membership == null, "core still formed")
+            helper.assertValueEqual(level.getCapability(NeoCapabilities.Item.BLOCK, at, Direction.EAST)?.size() ?: -1, 1, "inner face after break")
+            helper.succeed()
+        }
     }
 
     /**
-     * A rotated pattern matches blocks laid out along the rotated axis; the unrotated one does not.
+     * The structure ticks once per game tick however many members tick; every member sees the home member's state;
+     * only the home member saves it.
      */
-    private fun multiblockRotatedPattern(helper: GameTestHelper) {
-        multiblock(helper, CENTER)
-        multiblock(helper, CENTER.south())
-        val at = helper.absolutePos(CENTER)
-        val pattern = DevMultiblockBlock.PATTERN
-        helper.assertFalse(pattern.matches(helper.level, at), "unrotated pattern matched a north-south layout")
-        helper.assertTrue(pattern.rotated(Rotation.CLOCKWISE_90).matches(helper.level, at), "rotated pattern did not match")
-        helper.assertTrue(DevMultiblockBlock.MULTIBLOCK.tryForm(helper.level, at, pattern.rotated(Rotation.CLOCKWISE_90)) == true, "did not form")
-        helper.succeed()
-    }
-
-    /**
-     * The controller ticks the shared state; every part sees the controller's state; only the controller saves it.
-     */
-    private fun multiblockControllerState(helper: GameTestHelper) {
-        val controller = multiblock(helper, CENTER)
-        val part = multiblock(helper, CENTER.east())
-        DevMultiblockBlock.MULTIBLOCK.tryForm(helper.level, helper.absolutePos(CENTER), DevMultiblockBlock.PATTERN)
-        helper.runAfterDelay(5) {
-            val count = controller.mbState.get()?.count ?: -1
-            helper.assertTrue(count > 0, "controller did not tick its state")
-            helper.assertTrue(part.mbState.get() === controller.mbState.get(), "part does not see the controller's state")
-            helper.assertFalse(part.mbState.hasState(), "part holds its own state")
+    private fun multiblockSharedState(helper: GameTestHelper) {
+        val core = multiblock(helper, CENTER)
+        val wing = multiblock(helper, CENTER.east())
+        var first = 0
+        helper.runAfterDelay(3) { first = core.counter()?.count ?: -1 }
+        helper.runAfterDelay(13) {
+            val count = core.counter()?.count ?: -1
+            helper.assertValueEqual(count - first, 10, "ticks counted over 10 game ticks")
+            helper.assertTrue(wing.counter() === core.part.state, "wing does not see the home member's state")
+            helper.assertTrue(wing.part.state == null, "wing holds a state of its own")
 
             val registries = helper.level.registryAccess()
-            val loaded = BlockEntity.loadStatic(controller.blockPos, controller.blockState, controller.saveWithFullMetadata(registries), registries)
+            val loaded = BlockEntity.loadStatic(core.blockPos, core.blockState, core.saveWithFullMetadata(registries), registries)
                 as DevMultiblockBlockEntity
-            helper.assertValueEqual(loaded.mbState.get()?.count ?: -1, count, "saved state")
+            helper.assertValueEqual((loaded.part.state as? DevCounter)?.count ?: -1, count, "saved state")
+            val loadedWing = BlockEntity.loadStatic(wing.blockPos, wing.blockState, wing.saveWithFullMetadata(registries), registries)
+                as DevMultiblockBlockEntity
+            helper.assertTrue(loadedWing.part.state == null && loadedWing.part.membership == wing.part.membership, "wing saves only its membership")
             helper.succeed()
         }
     }

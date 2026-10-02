@@ -4,165 +4,156 @@ import com.itszuvalex.itszulib.api.Modules
 import com.itszuvalex.itszulib.api.adapters.IBlockEntity
 import com.itszuvalex.itszulib.api.adapters.ILevel
 import com.itszuvalex.itszulib.api.adapters.IModule
-import com.itszuvalex.itszulib.api.multiblock.MultiBlockInfo
-import com.itszuvalex.itszulib.api.multiblock.MultiblockUtils
+import com.itszuvalex.itszulib.api.multiblock.IMultiblockMember
+import com.itszuvalex.itszulib.api.multiblock.IMultiblockState
+import com.itszuvalex.itszulib.api.multiblock.MultiblockInstance
+import com.itszuvalex.itszulib.api.multiblock.MultiblockManager
+import com.itszuvalex.itszulib.api.multiblock.MultiblockMembership
+import com.itszuvalex.itszulib.api.multiblock.MultiblockRoleRef
+import com.itszuvalex.itszulib.api.multiblock.MultiblockShape
 import com.itszuvalex.itszulib.api.utility.NBTSerializationScope
 import com.itszuvalex.itszulib.core.IBlockEntityTickable
-import com.itszuvalex.itszulib.core.IFragmentHost
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.UUIDUtil
+import net.minecraft.resources.Identifier
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
-import net.neoforged.neoforge.common.util.ValueIOSerializable
 
 /**
- * Exposes [info] through [Modules.MULTIBLOCK], saved and synced to clients; forming or breaking saves and syncs. Port
- * of ItszuLib 1.12.2's `ModuleMultiblockInfo`.
+ * Fragment-based [IMultiblockMember]. Port of TechnoLich's `FragMultiblockPart`, with shared state and client sync.
  *
- * Add it before fragments that read [info] while loading (e.g. [FragMultiblockState]): fragments load in the order
- * they were added.
+ * Persists [membership] (LEVEL scope, and DESCRIPTION scope so clients know whether the block is formed). As the home
+ * member of a stateful shape it also creates the shape's state on [join] and saves it (LEVEL scope, under
+ * [STATE_KEY]), so the state is saved with the home member's chunk. Exposed through [Modules.MULTIBLOCK_MEMBER].
+ *
+ * @param autoForm See [IMultiblockMember.autoForm].
+ * @param manager The server's manager; replaceable for tests.
  */
-class FragMultiBlockInfo @JvmOverloads constructor(val info: MultiBlockInfo = MultiBlockInfo()) : BlockEntityFragment<MultiBlockInfo>() {
-    override fun onAttach(host: IFragmentHost) {
-        super.onAttach(host)
-        info.onChanged = Runnable { markDirtyAndSync() }
+class FragMultiblockPart @JvmOverloads constructor(
+    override val candidateRoles: List<MultiblockRoleRef>,
+    override val autoForm: Boolean = true,
+    private val manager: () -> MultiblockManager = { MultiblockManager.SERVER },
+) : BlockEntityFragment<IMultiblockMember>(), IMultiblockMember {
+    override var membership: MultiblockMembership? = null
+        private set
+
+    override var state: IMultiblockState? = null
+        private set
+
+    private var isClient = false
+
+    /**
+     * Client side there is no manager: each part keeps a scratch state of its shape for menus to sync into.
+     */
+    private var clientState: IMultiblockState? = null
+
+    val isFormed: Boolean get() = membership != null
+
+    val isHome: Boolean get() = membership?.isHome == true
+
+    /**
+     * The structure's shared state: this member's own as home, otherwise the home member's if it is loaded. Client
+     * side, a scratch state of the shape (see [clientState]); null while not formed.
+     */
+    fun sharedState(): IMultiblockState? {
+        val m = membership ?: return null
+        if (isClient) return clientState ?: m.shape.stateFactory?.invoke(Runnable {})?.also { clientState = it }
+        return if (m.isHome) state else manager().stateOf(this)
     }
 
     /**
-     * @return The block entity of this multiblock's controller, if formed and loaded.
+     * This member's loaded structure (server side).
      */
-    fun controller(): IBlockEntity? {
-        val be = host?.blockEntity() ?: return null
-        val level = levelOf(be) ?: return null
-        return MultiblockUtils.controller(level, info)
+    fun instance(): MultiblockInstance? = if (isClient) null else manager().instanceOf(this)
+
+    override fun join(membership: MultiblockMembership) {
+        this.membership = membership
+        state = if (membership.isHome) membership.shape.stateFactory?.invoke(Runnable { markDirty() }) else null
+        markDirtyAndSync()
     }
 
-    /**
-     * Finds the level of the owning block entity. A seam for unit tests, which have no vanilla level.
-     */
-    @JvmField
-    var levelOf: (IBlockEntity) -> ILevel? = { be -> be.toMinecraft().level?.let(ILevel::of) }
+    override fun leave() {
+        membership = null
+        state = null
+        clientState = null
+        markDirtyAndSync()
+    }
 
-    /**
-     * @return [module] as exposed by this multiblock's controller (side-less), if formed and loaded.
-     */
-    fun <T : Any> controllerModule(module: IModule<T>): T? = controller()?.getModule(module, null)
+    override fun module(): IModule<IMultiblockMember> = Modules.MULTIBLOCK_MEMBER
+
+    override fun faceToModuleMapper(be: IBlockEntity): (Direction?) -> IMultiblockMember? = { this }
 
     override fun name(): String = NAME
 
-    override fun module(): IModule<MultiBlockInfo> = Modules.MULTIBLOCK
-
-    override fun faceToModuleMapper(be: IBlockEntity): (Direction?) -> MultiBlockInfo? = { info }
-
     override fun handlesScope(scope: NBTSerializationScope): Boolean = scope != NBTSerializationScope.ITEM
 
-    override fun serializeTo(scope: NBTSerializationScope, output: ValueOutput) = info.serialize(output)
-
-    override fun deserialize(input: ValueInput, scope: NBTSerializationScope) = info.deserialize(input)
-
-    companion object {
-        const val NAME = "MultiBlockInfo"
-    }
-}
-
-/**
- * State shared by a whole multiblock, held by its controller. Port of ItszuLib 1.12.2's `MultiblockStateHolder`.
- * [get] on any part returns the controller's state (created on first use); only the controller saves it (LEVEL
- * scope, under [STATE_KEY]).
- *
- * @param holderOf Finds this fragment's counterpart on another block entity of the same multiblock (the controller).
- */
-class FragMultiblockState<S : ValueIOSerializable>(
-    private val info: FragMultiBlockInfo,
-    private val factory: () -> S,
-    private val holderOf: (IBlockEntity) -> FragMultiblockState<S>?,
-    private val name: String = NAME,
-) : InternalBlockEntityFragment() {
-    private var state: S? = null
-
-    /**
-     * @return The multiblock's state, or null if not formed or the controller is not loaded.
-     */
-    fun get(): S? {
-        if (!isFormedController()) dropStale()
-        if (!info.info.isFormed) return null
-        if (info.info.isController) return local()
-        return info.controller()?.let(holderOf)?.controllerLocal()
-    }
-
-    fun hasState(): Boolean {
-        if (!isFormedController()) dropStale()
-        return state != null
-    }
-
-    /**
-     * Runs [action] on the state if this block is the controller.
-     *
-     * @return True if it ran.
-     */
-    fun doIfController(action: (S) -> Unit): Boolean {
-        if (!isFormedController()) {
-            dropStale()
-            return false
-        }
-        action(local())
-        return true
-    }
-
-    private fun isFormedController(): Boolean = info.info.isFormed && info.info.isController
-
-    /**
-     * A block that is no longer a formed multiblock's controller forgets the state it held. Only a controller saves
-     * its state, so keeping it would make a re-formed multiblock's state depend on whether the chunk was reloaded in
-     * between (1.12.2 kept it in memory until then).
-     */
-    private fun dropStale() {
-        state = null
-    }
-
-    private fun controllerLocal(): S? = if (isFormedController()) local() else null
-
-    private fun local(): S = state ?: factory().also { state = it }
-
-    /**
-     * Drops the held state, e.g. when the multiblock breaks.
-     */
-    fun clear() {
-        state = null
-        markDirty()
-    }
-
-    override fun name(): String = name
-
-    override fun handlesScope(scope: NBTSerializationScope): Boolean = scope == NBTSerializationScope.LEVEL
-
     override fun serializeTo(scope: NBTSerializationScope, output: ValueOutput) {
-        if (info.info.isController) state?.serialize(output.child(STATE_KEY))
+        val m = membership ?: return
+        output.store(ID_TAG, UUIDUtil.CODEC, m.structureId)
+        output.putString(SHAPE_TAG, m.shape.id.toString())
+        output.store(OFFSET_TAG, BlockPos.CODEC, m.offset)
+        if (scope == NBTSerializationScope.LEVEL) state?.serialize(output.child(STATE_KEY))
     }
 
     override fun deserialize(input: ValueInput, scope: NBTSerializationScope) {
-        if (!info.info.isController) return
-        input.child(STATE_KEY).ifPresent { local().deserialize(it) }
+        val shape = input.getString(SHAPE_TAG).map(Identifier::tryParse).map { it?.let(MultiblockShape::byId) }.orElse(null)
+        val id = input.read(ID_TAG, UUIDUtil.CODEC).orElse(null)
+        val loaded = if (shape == null || id == null) null else MultiblockMembership(id, shape, input.read(OFFSET_TAG, BlockPos.CODEC).orElse(BlockPos.ZERO))
+        if (loaded?.structureId != membership?.structureId) clientState = null
+        membership = loaded
+        if (scope != NBTSerializationScope.LEVEL) return
+        state = if (loaded != null && loaded.isHome) loaded.shape.stateFactory?.invoke(Runnable { markDirty() }) else null
+        state?.let { s -> input.child(STATE_KEY).ifPresent(s::deserialize) }
+    }
+
+    override fun onLoad(level: ILevel, pos: BlockPos) {
+        isClient = level.isClientSide()
+        if (isClient) return
+        manager().onPartLoaded(level, pos, this)
+    }
+
+    override fun onChunkUnloaded(level: ILevel, pos: BlockPos) {
+        if (level.isClientSide()) return
+        manager().onPartUnloaded(this)
+    }
+
+    override fun onRemove(level: ILevel, pos: BlockPos, blockStatePrev: BlockState) {
+        if (level.isClientSide()) return
+        manager().onPartRemoved(level, pos, this)
     }
 
     companion object {
-        const val NAME = "MultiblockState"
-        const val STATE_KEY = "MultiblockState"
+        const val NAME = "MultiblockPart"
+        const val ID_TAG = "id"
+        const val SHAPE_TAG = "shape"
+        const val OFFSET_TAG = "offset"
+        const val STATE_KEY = "state"
     }
 }
 
 /**
- * Ticks only on a formed multiblock's controller. Port of ItszuLib 1.12.2's `TileEntityMultiblockTickableModule`.
- * Add with [com.itszuvalex.itszulib.core.BlockEntityFragmentCollection.addTickable] (or [addTickableFragment]).
+ * Ticks a formed structure once per server tick, from whichever of its members ticks first, so it runs while any
+ * member is in a ticking chunk. Add with [com.itszuvalex.itszulib.core.BlockEntityFragmentCollection.addTickable] (or
+ * [addTickableFragment]).
+ *
+ * @param gameTime The level's game time; replaceable for tests.
  */
-abstract class FragMultiblockTickable(protected val info: MultiBlockInfo) : InternalBlockEntityFragment(), IBlockEntityTickable {
+abstract class FragMultiblockTickable @JvmOverloads constructor(
+    protected val part: FragMultiblockPart,
+    private val gameTime: (ILevel) -> Long = { it.toMinecraft().gameTime },
+) : InternalBlockEntityFragment(), IBlockEntityTickable {
     override fun tick(level: ILevel, blockPos: BlockPos, blockState: BlockState) {
-        if (!info.isFormed || !info.isController) return
-        if (level.isClientSide()) clientControllerTick(level, blockPos) else serverControllerTick(level, blockPos)
+        if (level.isClientSide()) return
+        val instance = part.instance() ?: return
+        if (!instance.claimTick(gameTime(level))) return
+        serverStructureTick(level, instance)
     }
 
-    open fun clientControllerTick(level: ILevel, pos: BlockPos) {}
-
-    open fun serverControllerTick(level: ILevel, pos: BlockPos) {}
+    /**
+     * Runs once per server tick for the structure; [MultiblockInstance.anchorPos] is the home member's position and
+     * [MultiblockInstance.state] the shared state (null while the home chunk is loading).
+     */
+    abstract fun serverStructureTick(level: ILevel, instance: MultiblockInstance)
 }

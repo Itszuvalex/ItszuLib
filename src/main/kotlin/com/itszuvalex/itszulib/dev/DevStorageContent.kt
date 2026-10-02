@@ -2,9 +2,14 @@ package com.itszuvalex.itszulib.dev
 
 import com.itszuvalex.itszulib.api.Modules
 import com.itszuvalex.itszulib.api.adapters.ILevel
-import com.itszuvalex.itszulib.api.multiblock.BlockPatternStatic
+import com.itszuvalex.itszulib.ItszuLib
+import com.itszuvalex.itszulib.api.multiblock.IMultiblockState
+import com.itszuvalex.itszulib.api.multiblock.MultiblockBreakPolicy
+import com.itszuvalex.itszulib.api.multiblock.MultiblockInstance
+import com.itszuvalex.itszulib.api.multiblock.MultiblockRoleRef
+import com.itszuvalex.itszulib.api.multiblock.MultiblockShape
 import com.itszuvalex.itszulib.api.multiblock.MultiblockSidedItemStorageConfiguration
-import com.itszuvalex.itszulib.api.multiblock.MultiblockStatic
+import net.minecraft.resources.Identifier
 import com.itszuvalex.itszulib.api.storage.FluidStorageArray
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.storage.ItemStorageArray
@@ -21,8 +26,7 @@ import com.itszuvalex.itszulib.core.frag.FragFluidAutoIO
 import com.itszuvalex.itszulib.core.frag.FragFluidStorage
 import com.itszuvalex.itszulib.core.frag.FragItemAutoIO
 import com.itszuvalex.itszulib.core.frag.FragItemStorage
-import com.itszuvalex.itszulib.core.frag.FragMultiBlockInfo
-import com.itszuvalex.itszulib.core.frag.FragMultiblockState
+import com.itszuvalex.itszulib.core.frag.FragMultiblockPart
 import com.itszuvalex.itszulib.core.frag.FragMultiblockTickable
 import com.itszuvalex.itszulib.core.frag.FragSidedConfiguration
 import com.itszuvalex.itszulib.core.frag.addFluidStorage
@@ -36,7 +40,6 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
 import net.neoforged.fml.LogicalSide
-import net.neoforged.neoforge.common.util.ValueIOSerializable
 
 /**
  * A machine-like block: a two-slot inventory (slot 0 "input", slot 1 "output") and one 4000 mB tank, each with a
@@ -95,21 +98,44 @@ class DevMachineBlockEntity(pos: BlockPos, state: BlockState) :
 }
 
 /**
- * Multiblock state of [DevMultiblockBlockEntity]: counts server ticks while formed.
+ * Shared state of a dev multiblock: counts server ticks while formed.
  */
-class DevCounter : ValueIOSerializable {
+class DevCounter(private val onChanged: Runnable) : IMultiblockState {
     var count = 0
+        set(value) {
+            field = value
+            onChanged.run()
+        }
+
+    /**
+     * How many times the structure broke with this state; for tests.
+     */
+    var breaks = 0
+
+    override fun onBreak(level: ILevel, anchor: BlockPos, brokenAt: BlockPos) {
+        breaks++
+        lastBroken = this
+    }
 
     override fun serialize(output: ValueOutput) = output.putInt("count", count)
 
     override fun deserialize(input: ValueInput) {
         count = input.getIntOr("count", 0)
     }
+
+    companion object {
+        /**
+         * The last state whose structure broke; for tests.
+         */
+        @JvmField
+        var lastBroken: DevCounter? = null
+    }
 }
 
 /**
- * A part of a two-block multiblock ([PATTERN]: the controller and the block east of it). Each part has a one-slot
- * inventory whose faces touching the other part expose nothing; the controller counts ticks in its multiblock state.
+ * A part of a two-block multiblock ([SHAPE]: a `core` and a `wing` east of it). A dev multiblock block can fill
+ * either role, so two side by side form on their own. Each part has a one-slot inventory whose faces touching the
+ * other part expose nothing; the structure counts ticks in its shared state.
  */
 class DevMultiblockBlock(properties: BlockBehaviour.Properties) :
     TickableEntityBlockCore<DevMultiblockBlockEntity>(properties, { DevContent.DEV_MULTIBLOCK_BLOCK_ENTITY.get() }) {
@@ -119,23 +145,21 @@ class DevMultiblockBlock(properties: BlockBehaviour.Properties) :
 
     companion object {
         @JvmStatic
-        val PATTERN: BlockPatternStatic by lazy {
-            BlockPatternStatic(mapOf(BlockPos.ZERO to DevContent.DEV_MULTIBLOCK_BLOCK.get(), BlockPos(1, 0, 0) to DevContent.DEV_MULTIBLOCK_BLOCK.get()))
+        val SHAPE: MultiblockShape by lazy {
+            MultiblockShape.register(
+                Identifier.fromNamespaceAndPath(ItszuLib.ID, "dev_pair"),
+                mapOf(BlockPos.ZERO to "core", BlockPos(1, 0, 0) to "wing"),
+                MultiblockBreakPolicy.DISSOLVE,
+                ::DevCounter,
+            )
         }
-
-        @JvmStatic
-        val MULTIBLOCK: MultiblockStatic by lazy { MultiblockStatic(PATTERN) }
     }
 }
 
 class DevMultiblockBlockEntity(pos: BlockPos, state: BlockState) :
     TickableBlockEntityCore(DevContent.DEV_MULTIBLOCK_BLOCK_ENTITY.get(), pos, state) {
     @JvmField
-    val info = FragMultiBlockInfo()
-
-    @JvmField
-    val mbState: FragMultiblockState<DevCounter> =
-        FragMultiblockState(info, ::DevCounter, { other -> (other as? DevMultiblockBlockEntity)?.mbState })
+    val part = FragMultiblockPart(listOf(MultiblockRoleRef(DevMultiblockBlock.SHAPE, "core"), MultiblockRoleRef(DevMultiblockBlock.SHAPE, "wing")))
 
     @JvmField
     val inventory = ItemStorageArray(1) { markDirty() }
@@ -144,23 +168,24 @@ class DevMultiblockBlockEntity(pos: BlockPos, state: BlockState) :
     val itemConfig = FragSidedConfiguration<SidedItemStorageConfiguration>(
         "ItemConfig",
         MultiblockSidedItemStorageConfiguration(
-            { level?.let(ILevel::of) }, { blockPos }, info.info, "empty", { "main" },
+            { level?.let(ILevel::of) }, { blockPos }, part, "empty", { "main" },
             mapOf("main" to inventory, "empty" to IItemStorage.Empty), { Direction.NORTH },
         ),
         Modules.ITEM_STORAGE_CONFIGURABLE,
     )
 
+    fun counter(): DevCounter? = part.sharedState() as? DevCounter
+
     init {
-        fragList.addFragment(info)
-        fragList.addInternalFragment(mbState)
+        fragList.addFragment(part)
         fragList.addFragment(itemConfig)
         fragList.addItemStorage(FragItemStorage(inventory))
-        fragList.addFragment(FragMenu(Component.literal("Dev multiblock"), { id, inv, _ -> DevMenu(id, inv, this) }, info))
-        fragList.addTickableFragment(object : FragMultiblockTickable(info.info) {
+        fragList.addFragment(FragMenu(Component.literal("Dev multiblock"), { id, inv, _ -> DevMenu(id, inv, this) }, part))
+        fragList.addTickableFragment(object : FragMultiblockTickable(part) {
             override fun name(): String = "Counter"
 
-            override fun serverControllerTick(level: ILevel, pos: BlockPos) {
-                mbState.doIfController { it.count++ }
+            override fun serverStructureTick(level: ILevel, instance: MultiblockInstance) {
+                (instance.state as? DevCounter)?.let { it.count++ }
             }
         })
     }

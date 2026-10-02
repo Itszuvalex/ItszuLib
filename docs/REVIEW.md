@@ -5,7 +5,10 @@ and what is still open. Decisions are in [DECISIONS.md](DECISIONS.md); the port 
 
 ## Fixed
 
-Bugs inherited from 1.12.2 (or introduced by porting it). Every fix has a test that fails on the old code.
+Bugs inherited from 1.12.2 (or introduced by porting it). Every fix has a test that fails on the old code. The multiblock rows for `MultiBlockInfo`, `IBlockPattern`, `MultiblockStateHolder` and `MultiblockStatic` describe code
+since replaced by the controller-less multiblocks (DECISIONS D11); their tests went with it. The sided configuration
+rows still hold (`MultiblockSidedConfigurationTest`), and the `MultiblockUtils` neighbour check is now
+`MultiblockFaces.isFacingSameStructure` (`MultiblockSidedConfigurationTest.NeighbourUnloaded_TreatedAsExternalWithoutLookingItUp`).
 
 | # | Area | Problem | Fix | Regression test |
 |---|---|---|---|---|
@@ -32,11 +35,10 @@ Bugs inherited from 1.12.2 (or introduced by porting it). Every fix has a test t
 ## Open
 
 Not fixed; each needs a maintainer call or is a documented limitation. Numbers are kept when an item closes (O1 is
-R18; O2 is R19; O5 was decided as DECISIONS D6).
+R18; O2 is R19; O3, multiblock state across chunks, was decided as DECISIONS D11; O5 as DECISIONS D6).
 
 | # | Area | Finding | Current handling |
 |---|---|---|---|
-| O3 | Shared multiblock state across chunks | `FragMultiblockState.get` on a part returns null while the controller's chunk is unloaded | Callers can reject such multiblocks with `IBlockPattern.overChunkBoundaries` |
 | O4 | `ItemStorageResourceHandler`, `BatteryEnergyHandler` | Open root transactions; calling them while a transaction is open throws | Documented on both classes |
 
 ## Framework changes to mirror into TechnoLich
@@ -45,6 +47,13 @@ The fragment/module framework is shared with TechnoLich (DECISIONS B1). These ch
 
 - `IItemStorage.split`: non-positive amounts return `IItemStack.Empty` (R12).
 - `IItemStorage.transferSlotIntoStorageSlot`: re-reads the source slot after the insert (R11).
+- Multiblocks (DECISIONS D11): ItszuLib took TechnoLich's controller-less `Multiblocks.kt` and added, which TechnoLich
+  can take back: a required home slot (0,0,0) holding the structure's `IMultiblockState` (saved with the home member,
+  `onBreak` when it breaks); a home chunk ticket refreshed only from ticking members (`IChunkTickets`,
+  `itszulib:multiblock` ticket type); verification of reloaded members against the home member, which fixes
+  TechnoLich's documented `DISSOLVE` gap; `MultiblockManager.form`/`disband` and `IMultiblockMember.autoForm`;
+  membership synced to clients (DESCRIPTION scope); `FragMultiblockTickable` (once per game tick per structure);
+  `MultiblockShape.box`. Also the `onChunkUnloaded` fragment hook, which TechnoLich already has.
 - `IItemStorage.insert`: returns the stack untouched when `canInsert` refuses; new `insertUnchecked` (the old
   behaviour) for owners filling their own slots, also forwarded by `DynamicIItemStorage`. `ItemStorageSlice` and
   `ItemStorageAggregate` forward `canInsert` and `maxStackSize` (R19). Owner code that fills slots refusing outside
@@ -60,5 +69,5 @@ from before these fixes, with no fixes of its own to bring back.
 Compared again at technolich@31457f7 (2026-10-01). TechnoLich has since taken R11, R12 and R15, renamed the storage
 and stack accessors to Kotlin properties, merged the fragment lifecycle hooks (`IFragmentLifecycle`), and added a
 controller-less multiblock subsystem (`Multiblocks.kt`) and teams (since brought here as `team/`). It has not addressed R19 (O2) and documents the
-root-transaction limitation (O4) the same way. Its multiblocks take a different route on O3: each member saves its own
-membership, so no member depends on another's chunk being loaded.
+root-transaction limitation (O4) the same way. Its multiblocks took a different route on O3 (each member saves its own
+membership); ItszuLib has since adopted them, with shared state on top (DECISIONS D11).

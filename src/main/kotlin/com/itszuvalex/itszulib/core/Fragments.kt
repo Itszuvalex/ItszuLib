@@ -36,6 +36,12 @@ interface IBlockEntityBlockEventHandler {
     fun onLoad(level: ILevel, pos: BlockPos) {}
 
     /**
+     * Both sides, when the block entity's chunk unloads (NeoForge's `BlockEntity#onChunkUnloaded`). Not called when
+     * the block is removed (see [onRemove]).
+     */
+    fun onChunkUnloaded(level: ILevel, pos: BlockPos) {}
+
+    /**
      * Both sides, when a neighbouring block changed (`Block#neighborChanged`; 26.1 no longer says which neighbour).
      * Only blocks extending [EntityBlockCore] forward this.
      */
@@ -166,6 +172,8 @@ class BlockEntityFragmentCollection(private val host: IFragmentHost) :
         modList.forEach { it.onRemove(level, pos, blockStatePrev) }
 
     override fun onLoad(level: ILevel, pos: BlockPos) = modList.forEach { it.onLoad(level, pos) }
+
+    override fun onChunkUnloaded(level: ILevel, pos: BlockPos) = modList.forEach { it.onChunkUnloaded(level, pos) }
 
     override fun onNeighborChanged(level: ILevel, pos: BlockPos) = modList.forEach { it.onNeighborChanged(level, pos) }
 }

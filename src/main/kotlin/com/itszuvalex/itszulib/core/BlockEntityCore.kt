@@ -167,6 +167,13 @@ open class BlockEntityCore(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     override fun onLoad(level: ILevel, pos: BlockPos) = fragList.onLoad(level, pos)
 
+    override fun onChunkUnloaded() {
+        super<BlockEntity>.onChunkUnloaded()
+        level?.let { onChunkUnloaded(ILevel.of(it), worldPosition) }
+    }
+
+    override fun onChunkUnloaded(level: ILevel, pos: BlockPos) = fragList.onChunkUnloaded(level, pos)
+
     override fun onNeighborChanged(level: ILevel, pos: BlockPos) = fragList.onNeighborChanged(level, pos)
 
     companion object {

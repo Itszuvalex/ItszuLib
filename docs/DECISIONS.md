@@ -114,6 +114,43 @@ neither file reads, and writes through a verified temporary file and an atomic m
 The code was written in TechnoLich first (technolich@8958584) and copied here with ItszuLib's namespace; the two copies
 are independent.
 
+## D11. Multiblocks: TechnoLich's controller-less model with home-held state — DECIDED (maintainer, 2026-10-02)
+
+The 1.12.2 port kept multiblock state on a controller block; a part in another chunk lost its state, menu and
+capabilities while the controller's chunk was unloaded (REVIEW O3). The maintainer chose to adopt TechnoLich's
+controller-less multiblocks (technolich@31457f7 `Multiblocks.kt`) and design shared state on top, replacing the 1.12.2
+system (`MultiBlockInfo`, `IBlockPattern`/`BlockPatternStatic`, `MultiblockStatic`, `FragMultiBlockInfo`,
+`FragMultiblockState`, `MultiblockUtils`).
+
+From TechnoLich: shapes of offset -> role (`MultiblockShape`), members that save their own membership
+(`IMultiblockMember`, `FragMultiblockPart`), formation driven by members loading, a structure id minted once, and break
+policies (`DISSOLVE`, `DESTROY_ALL`). Added here:
+
+- **Home slot.** Every shape has a slot at (0,0,0), its home. A stateful shape's `IMultiblockState` lives on the home
+  member and is saved with its chunk. A level-wide store was considered and rejected: it would keep every structure's
+  data in memory whenever the level is loaded, so large multiblocks would bloat the whole level (maintainer).
+- **Home chunk ticket.** While a stateful structure has a member outside the home chunk whose own chunk ticks, the
+  manager keeps the home chunk loaded, not ticking, with an `itszulib:multiblock` ticket (radius 0, 60-tick timeout,
+  refreshed every 20 ticks). When the player leaves, members stop ticking, the ticket lapses and the home chunk unloads
+  normally. Only ticking chunks refresh it, so two structures cannot keep each other's chunks loaded; a structure
+  within one chunk never takes one. A member in another chunk sees no state for the moment the home chunk takes to
+  load.
+- **Verification.** A member that loads remembering a structure is checked against the home member once the home
+  position is loaded; if the home member left (the structure broke or was disbanded while this member was unloaded),
+  the member leaves. This closes TechnoLich's documented `DISSOLVE` gap without keeping a record of structures.
+- **Explicit formation.** `MultiblockManager.form(level, shape, anchor)` forms at a given anchor, and members with
+  `autoForm = false` only join that way (for structures built by an item or a process rather than by placing blocks).
+  `disband` ends a structure without break effects (no `onBreak`, nothing destroyed), e.g. before replacing its
+  blocks.
+- **Break hook.** `IMultiblockState.onBreak(level, anchor, brokenAt)` runs once when a member's removal breaks the
+  structure, so the state drops its contents.
+- **Ticking.** `FragMultiblockTickable` runs the structure once per game tick from whichever member ticks first.
+- **Menus and sync.** Membership is synced to clients (DESCRIPTION scope). `FragMenu(..., multiblock = part)` opens on
+  any formed member, over the shared state; client side each part keeps a scratch copy of the state for menus to sync
+  into.
+
+Dropped: pattern rotation (TechnoLich has none either; register one shape per orientation if needed).
+
 ---
 
 ## B1. Shape of the ported ItszuLib API — DECIDED: adopt TechnoLich's framework (option 2)
@@ -140,7 +177,7 @@ are independent.
 **Decision (maintainer, 2026-09-30): option 2.** ItszuLib is rewritten in Kotlin as TechnoLich's fragments/modules framework. The legacy 2016 ItszuLib APIs (`TileEntityBase`/`TileContainer`, `IItemAccess`, `@Saveable` reflection, trait mixins) are not ported.
 
 - **Source of truth:** `F:\Projects\technolich`, branch `neoforge-26.1`. The Kotlin port was synced to **technolich@f021246** in ItszuLib **76501a4** (stable pieces first in 00594ed). Concepts, names, save keys and serialization formats are unchanged; unit and game tests were ported alongside.
-- **TechnoLich is independent:** TechnoLich moved to Kotlin from a copy of ItszuLib 76501a4 with the package renamed, and borrows framework code from ItszuLib for now; it evolves on its own (for example its controllerless multiblocks). Framework fixes made here are listed in REVIEW.md so TechnoLich can take them where they still apply.
+- **TechnoLich is independent:** TechnoLich moved to Kotlin from a copy of ItszuLib 76501a4 with the package renamed, and borrows framework code from ItszuLib for now; it evolves on its own (its controller-less multiblocks have since been adopted here, D11). Framework fixes made here are listed in REVIEW.md so TechnoLich can take them where they still apply.
 - **Kotlin idioms used:** `Optional<T>` returns became nullable `T?`; `Stream` became `Sequence`; simple accessors on `Loc4`, `IModule`, `Color` became properties; storage and battery classes are `open` like their Java originals. Registries (`Components.FRAGMENT_DATA` = `itszulib:fragment_data`, `Modules.COLORABLE` = `itszulib:colorable`) use ItszuLib's namespace.
 - **Deliberate differences from the Java:** `Loc4.distSqr` computes in doubles (the Java int arithmetic overflowed for coordinates about 46k apart; regression test `DistSqr_FarApartCoordinates_DoesNotOverflow`); `TileNetwork.clear()` also clears its location tracker; `TileNetworkNode` keeps its network in `currentNetwork` (a Kotlin property named `network` clashes with `getNetwork()`).
 - ItszuLib-specific parts that are not in TechnoLich (fluid storage, multiblock helpers, menu/screen bases) are added on top.

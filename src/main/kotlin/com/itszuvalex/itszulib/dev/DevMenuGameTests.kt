@@ -41,7 +41,7 @@ object DevMenuGameTests {
         test("menu_quick_move", DevGameTests.EMPTY_1, ::menuQuickMove)
         test("menu_storage_slots_honour_can_insert", DevGameTests.EMPTY_1, ::menuSlotsHonourCanInsert)
         test("menu_slots_over_copy_returning_storage", DevGameTests.EMPTY_1, ::menuOverCopyReturningStorage)
-        test("multiblock_menu_opens_controller", DevGameTests.EMPTY_5X3X5, ::multiblockMenuOpensController)
+        test("multiblock_menu_opens_on_any_part", DevGameTests.EMPTY_5X3X5, ::multiblockMenuOpensOnAnyPart)
         test("horizontal_facing_placement_and_rotation", DevGameTests.EMPTY_1, ::horizontalFacing)
         test("sided_config_follows_facing", DevGameTests.EMPTY_1, ::sidedConfigFollowsFacing)
         test("wire_network_forms_and_splits", DevGameTests.EMPTY_5X3X5, ::wireNetwork)
@@ -236,22 +236,27 @@ object DevMenuGameTests {
     }
 
     /**
-     * A formed multiblock's part opens the controller's menu; an unformed part opens nothing.
+     * A part of a formed structure opens its own menu, over the structure's shared state; an unformed part opens
+     * nothing.
      */
-    private fun multiblockMenuOpensController(helper: GameTestHelper) {
+    private fun multiblockMenuOpensOnAnyPart(helper: GameTestHelper) {
         helper.setBlock(CENTER, DevContent.DEV_MULTIBLOCK_BLOCK.get())
-        helper.setBlock(CENTER.east(), DevContent.DEV_MULTIBLOCK_BLOCK.get())
-        val controller = helper.getBlockEntity(CENTER, DevMultiblockBlockEntity::class.java)
-        val part = helper.getBlockEntity(CENTER.east(), DevMultiblockBlockEntity::class.java)
-        helper.assertTrue(part.getModule(Modules.MENU, null) == null, "unformed part has a menu")
-
-        DevMultiblockBlock.MULTIBLOCK.tryForm(helper.level, helper.absolutePos(CENTER), DevMultiblockBlock.PATTERN)
-        val menu = part.getModule(Modules.MENU, Direction.UP)
-        helper.assertTrue(menu != null, "formed part has no menu")
-        helper.assertValueEqual(menu!!.menuPos(), controller.blockPos, "menu position")
-        val created = menu.createMenu(3, helper.makeMockPlayer(GameType.SURVIVAL).inventory, helper.makeMockPlayer(GameType.SURVIVAL))
-        helper.assertTrue((created as DevMenu).blockEntity === controller, "menu is not over the controller")
-        helper.succeed()
+        val core = helper.getBlockEntity(CENTER, DevMultiblockBlockEntity::class.java)
+        helper.runAfterDelay(2) {
+            helper.assertTrue(core.getModule(Modules.MENU, null) == null, "unformed part has a menu")
+            helper.setBlock(CENTER.east(), DevContent.DEV_MULTIBLOCK_BLOCK.get())
+            val wing = helper.getBlockEntity(CENTER.east(), DevMultiblockBlockEntity::class.java)
+            helper.runAfterDelay(2) {
+                val menu = wing.getModule(Modules.MENU, Direction.UP)
+                helper.assertTrue(menu != null, "formed part has no menu")
+                helper.assertValueEqual(menu!!.menuPos(), wing.blockPos, "menu position")
+                val player = helper.makeMockPlayer(GameType.SURVIVAL)
+                val created = menu.createMenu(3, player.inventory, player) as DevMenu
+                helper.assertTrue(created.blockEntity === wing, "menu is not over the part")
+                helper.assertTrue(wing.counter() === core.counter(), "the part's menu does not read the shared state")
+                helper.succeed()
+            }
+        }
     }
 
     /**

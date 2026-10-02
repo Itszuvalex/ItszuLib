@@ -57,15 +57,16 @@ Framework source of truth: `../technolich` on branch `neoforge-26.1` (its `AGENT
 ```
 src/main/kotlin/com/itszuvalex/itszulib/
 ├── ItszuLib.kt            @Mod object (KFF): module init, data components, payload registration, dev content
-│                          (non-production only), server tick / chunk unload / server stop -> NETWORK_MANAGER
+│                          (non-production only), server tick / chunk unload / server stop -> NETWORK_MANAGER,
+│                          MultiblockManager.SERVER, multiblock ticket type
 ├── api/
 │   ├── Api.kt             Capabilities (COLORABLE), Modules (COLORABLE, ITEM/FLUID_STORAGE, *_STORAGE_CONFIGURABLE,
-│   │                      MULTIBLOCK, MENU; Modules.init()), Components (FRAGMENT_DATA = itszulib:fragment_data),
+│   │                      MULTIBLOCK_MEMBER, MENU; Modules.init()), Components (FRAGMENT_DATA = itszulib:fragment_data),
 │   │                      ModuleCapabilities (registers a BlockEntityCore type's modules + STANDARD NeoForge caps)
 │   ├── adapters/          Engine-facing interfaces: IModule/Module, IModuleProvider, IBlockEntity, ILevel,
 │   │                      IItemStack, IFluidStack, IBattery, IColorable
-│   ├── multiblock/        MultiBlockInfo, IBlockPattern/BlockPatternStatic, IMultiblock/MultiblockStatic,
-│   │                      MultiblockUtils, Multiblock{Item,Fluid}StorageConfiguration
+│   ├── multiblock/        MultiblockShape, IMultiblockMember, IMultiblockState, MultiblockManager (+ instance,
+│   │                      chunk tickets: MultiblockTickets.kt), Multiblock{Item,Fluid}StorageConfiguration
 │   ├── storage/           IItemStorage and IFluidStorage + implementations (Array, Slice, Aggregate, NBT, Dynamic,
 │   │                      ResourceHandler-backed); IBattery implementations
 │   ├── utility/           Loc4 (+Level/ILevel/Indirect), ChunkCoord, LocationTracker, DirectionUtil, module
@@ -79,7 +80,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │   │                      (Fragments.kt), networks (Networks.kt), Sided{Item,Fluid}StorageConfiguration
 │   └── frag/              Fragment base classes; FragColorable, FragDropInventory; storage fragments
 │                          (FragItem/FluidStorage, FragSidedConfiguration, FragItem/FluidAutoIO); multiblock fragments
-│                          (FragMultiBlockInfo, FragMultiblockState, FragMultiblockTickable); FragMenu;
+│                          (FragMultiblockPart, FragMultiblockTickable); FragMenu;
 │                          FragConnectable, FragNetworkedWire
 ├── menu/                  MenuCore (slots, shift-click, syncs), MenuSync/MenuSyncs, MenuSyncPayload,
 │                          MenuActionPayload, IMenuHost, BlockMenus
@@ -111,7 +112,7 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 - `fragList.addCapability(cap) { side -> ... }` exposes a non-module capability, typically one of `ModuleCapabilities.STANDARD` (NeoForge item/fluid/energy).
 - `fragList.addTickable(...)`: ticked by `TickableBlockEntityCore` when the block's `TickableEntityBlockCore#hasTicker(side)` returns true.
 
-`BlockEntityCore` wires fragments into the vanilla lifecycle: `saveAdditional`/`loadAdditional` (LEVEL), `getUpdateTag`/`handleUpdateTag`/`onDataPacket` (DESCRIPTION), `collectImplicitComponents`/`applyImplicitComponents` (ITEM), `setRemoved`/`clearRemoved` (fragment invalidation), `preRemoveSideEffects` -> fragment `onRemove` (server only, only when the block actually changes).
+`BlockEntityCore` wires fragments into the vanilla lifecycle: `saveAdditional`/`loadAdditional` (LEVEL), `getUpdateTag`/`handleUpdateTag`/`onDataPacket` (DESCRIPTION), `collectImplicitComponents`/`applyImplicitComponents` (ITEM), `setRemoved`/`clearRemoved` (fragment invalidation), `preRemoveSideEffects` -> fragment `onRemove` (server only, only when the block actually changes), `onLoad`/`onChunkUnloaded` -> fragment `onLoad`/`onChunkUnloaded`.
 
 ### Modules and capabilities
 `IModule<T>`: a handle identified by a namespaced `Identifier`, optionally backed by a `BlockCapability<T, Direction?>` and/or `ItemCapability<T, ItemAccess>`. Register with `Module.registerModule(id, blockCap[, itemCap])` during mod construction (ids must be unique).
@@ -129,6 +130,9 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 - `IItemStorage`: slot-based, default transfer logic, saved as one entry per non-empty slot keyed by index. `IBattery`: double-based energy.
 - ItszuLib -> NeoForge: `WrapperResourceHandlerIItemStorage.of(storage)` (per-slot limits, commit-only notifications), `WrapperEnergyHandlerIBattery(battery)` (whole units). Create once per block entity.
 - NeoForge -> ItszuLib: `ItemStorageResourceHandler`, `BatteryEnergyHandler`; they open root transactions, so never call them inside one.
+
+### Multiblocks
+Controller-less, from TechnoLich, with shared state (DECISIONS D11). `MultiblockShape.register(id, slots, breakPolicy, state)` maps offsets to role names; the (0,0,0) slot is required and is the structure's home. A member exposes `IMultiblockMember` (usually `FragMultiblockPart(candidateRoles, autoForm)` through `Modules.MULTIBLOCK_MEMBER`) and saves its own membership. `MultiblockManager.SERVER` forms structures when auto-forming members load (all slots loaded, roles matching) or on `form(level, shape, anchor)`, and `disband`s them without break effects. Breaking a member breaks the structure: `DISSOLVE` frees the others, `DESTROY_ALL` destroys them (loading their chunks). A stateful shape's `IMultiblockState` lives on the home member, saved with its chunk; other members reach it with `FragMultiblockPart.sharedState()`, and it gets `onBreak` to drop its contents. While a member outside the home chunk is in a ticking chunk, the manager keeps the home chunk loaded without ticking it (an `itszulib:multiblock` ticket that lapses 60 ticks after the last refresh). Reloaded members are checked against the home member and leave if their structure is gone. `FragMultiblockTickable` runs once per game tick per structure. Faces between members: `Multiblock{Item,Fluid}StorageConfiguration`. `ItszuLib` ticks the manager (`ServerTickEvent.Post`) and clears it on server stop.
 
 ### Networks
 `INetwork`/`TileNetwork` group `INetworkNode`s (by `Loc4`) into server-side networks in `ItszuLib.NETWORK_MANAGER`, ticked from `ServerTickEvent.Pre/Post`. Nodes are found through the network module on the block entity (`TileNetwork#networkModule`). Chunk unloads drop that chunk's nodes as a batch; block entities must re-add their node when they load. Splits explore iteratively.
@@ -160,7 +164,7 @@ framework changes generic, and list changes to the code TechnoLich borrowed in `
 
 - `itszulib:dev_frag_block`: colorable, 1-slot inventory exposed via `Capabilities.Item.BLOCK`, drops on break.
 - `itszulib:dev_machine` (`dev/DevStorageContent.kt`): 2-slot inventory (slot 0 "input", slot 1 "output") and a 4000 mB tank, each behind a sided configuration (`FragSidedConfiguration`), exposed per side by `FragItemStorage`/`FragFluidStorage`, with item and fluid auto IO every tick.
-- `itszulib:dev_multiblock`: one part of a two-block multiblock (`DevMultiblockBlock.PATTERN`: controller + the block east of it) with `FragMultiBlockInfo`, a `FragMultiblockState` tick counter and a `MultiblockSidedItemStorageConfiguration`.
+- `itszulib:dev_multiblock`: a part of a two-block multiblock (`DevMultiblockBlock.SHAPE`, `itszulib:dev_pair`: a `core` and a `wing` east of it); two side by side form on their own. `FragMultiblockPart`, a shared `DevCounter` tick counter, a one-slot inventory and a `MultiblockSidedItemStorageConfiguration`.
 
 `dev/DevGameTests.kt` registers test functions (`Registries.TEST_FUNCTION`) and test instances (`RegisterGameTestsEvent`). Add a test with `test("name") { helper -> ...; helper.succeed() }` (vanilla's 1x1x1 `minecraft:empty` structure) or `test("name", DevGameTests.EMPTY_5X3X5) { ... }` for tests that need neighbours (`data/itszulib/structure/dev_5x3x5.nbt`, an empty 5x3x5 structure). Framework tests live in `DevGameTests`; storage, sided configuration, auto IO and multiblock tests in `DevStorageGameTests`. `GameTestHelper#assertValueEqual(actual, expected, name)` takes the actual value first.
 

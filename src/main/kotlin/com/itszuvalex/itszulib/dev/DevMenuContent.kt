@@ -23,7 +23,7 @@ import net.neoforged.fml.LogicalSide
 /**
  * The dev blocks' menu. Over a [DevMachineBlockEntity]: an input slot, a take-only output slot, the tank (synced) and
  * action 0 (cycle the item storage on face `data` forward). Over a [DevMultiblockBlockEntity]: its inventory slot and
- * the controller's tick count (synced). Then the player's inventory.
+ * the structure's tick count (synced). Then the player's inventory.
  */
 class DevMenu(containerId: Int, inventory: Inventory, @JvmField val blockEntity: BlockEntityCore?) :
     MenuCore(DevContent.DEV_MENU.get(), containerId, inventory.player) {
@@ -42,7 +42,7 @@ class DevMenu(containerId: Int, inventory: Inventory, @JvmField val blockEntity:
             }
             is DevMultiblockBlockEntity -> {
                 addStorageSlots(storage, 80, 35)
-                addSync(MenuSyncs.int({ blockEntity.mbState.get()?.count ?: 0 }, { ticks = it }))
+                addSync(MenuSyncs.int({ blockEntity.counter()?.count ?: 0 }, { ticks = it }))
             }
             else -> {}
         }

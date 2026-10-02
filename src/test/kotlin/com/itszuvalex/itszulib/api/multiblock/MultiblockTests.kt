@@ -3,320 +3,677 @@ package com.itszuvalex.itszulib.api.multiblock
 import com.itszuvalex.itszulib.TestIO
 import com.itszuvalex.itszulib.TestableCoreBlockEntity
 import com.itszuvalex.itszulib.TestableLevel
-import com.itszuvalex.itszulib.api.Modules
 import com.itszuvalex.itszulib.api.adapters.ILevel
 import com.itszuvalex.itszulib.api.storage.FluidStorageArray
 import com.itszuvalex.itszulib.api.storage.IFluidStorage
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.storage.ItemStorageArray
+import com.itszuvalex.itszulib.api.utility.ChunkCoord
 import com.itszuvalex.itszulib.api.utility.NBTSerializationScope
 import com.itszuvalex.itszulib.core.EnumAutomaticIO
 import com.itszuvalex.itszulib.core.SidedStorageConfiguration
-import com.itszuvalex.itszulib.core.frag.FragMultiBlockInfo
-import com.itszuvalex.itszulib.core.frag.FragMultiblockState
+import com.itszuvalex.itszulib.core.frag.FragMultiblockPart
 import com.itszuvalex.itszulib.core.frag.FragMultiblockTickable
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.world.level.Level
+import net.minecraft.resources.Identifier
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.Rotation
-import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
-import net.neoforged.neoforge.common.util.ValueIOSerializable
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNotSame
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-
-private val ORIGIN: BlockPos = BlockPos.ZERO
-private val EAST_OF_ORIGIN: BlockPos = BlockPos(1, 0, 0)
+import java.util.UUID
 
 /**
- * A pattern that only lists positions; block matching needs a real level and is covered by the game tests.
+ * Shared state for tests: a counter that records [onBreak].
  */
-private class OffsetsPattern(private val offsets: List<BlockPos>) : IBlockPattern {
-    override val rotation: Rotation = Rotation.NONE
-    override fun rotated(rot: Rotation): IBlockPattern = OffsetsPattern(offsets.map { it.rotate(rot) })
-    override fun matches(level: Level, pos: BlockPos): Boolean = true
-    override fun blocksInMatch(pos: BlockPos): Collection<BlockPos> = offsets.map { pos.offset(it) }
-}
+class TestCounter(private val onChanged: Runnable) : IMultiblockState {
+    var count = 0
+        set(value) {
+            field = value
+            onChanged.run()
+        }
 
-private val TWO_WIDE = OffsetsPattern(listOf(BlockPos.ZERO, BlockPos(1, 0, 0)))
+    val breaks = ArrayList<Pair<BlockPos, BlockPos>>()
+
+    override fun onBreak(level: ILevel, anchor: BlockPos, brokenAt: BlockPos) {
+        breaks += anchor to brokenAt
+    }
+
+    override fun serialize(output: ValueOutput) = output.putInt("count", count)
+
+    override fun deserialize(input: ValueInput) {
+        count = input.getIntOr("count", 0)
+    }
+}
 
 /**
- * A block entity with a [FragMultiBlockInfo] whose controller lookups go through [level].
+ * Records ticket refreshes; [ticking] decides which positions tick.
  */
-private fun part(level: TestableLevel, pos: BlockPos): Pair<TestableCoreBlockEntity, FragMultiBlockInfo> {
-    val be = TestableCoreBlockEntity(pos, level)
-    val frag = FragMultiBlockInfo()
-    frag.levelOf = { level }
-    be.fragList.addFragment(frag)
-    return be to frag
+class TestableTickets : IChunkTickets {
+    val refreshed = ArrayList<ChunkCoord>()
+    var ticking: (BlockPos) -> Boolean = { true }
+
+    override fun refresh(level: ILevel, chunk: ChunkCoord) {
+        refreshed += chunk
+    }
+
+    override fun isTicking(level: ILevel, pos: BlockPos): Boolean = ticking(pos)
 }
 
-class MultiBlockInfoTest {
+/**
+ * Shapes shared by the multiblock tests; registered once (shape ids are global).
+ */
+object TestShapes {
+    lateinit var PAIR: MultiblockShape
+    lateinit var TRIPLE: MultiblockShape
+    lateinit var LINKED_TRIPLE: MultiblockShape
+    lateinit var STATEFUL_PAIR: MultiblockShape
+    lateinit var STATEFUL_LINKED_PAIR: MultiblockShape
+
+    private var registered = false
+
+    fun register() {
+        if (registered) return
+        registered = true
+        PAIR = MultiblockShape.register(id("pair"), mapOf(BlockPos.ZERO to "core", BlockPos(1, 0, 0) to "wing"))
+        TRIPLE = MultiblockShape.register(id("triple"), mapOf(BlockPos.ZERO to "core", BlockPos(1, 0, 0) to "wing", BlockPos(-1, 0, 0) to "wing"))
+        LINKED_TRIPLE = MultiblockShape.register(
+            id("linked_triple"), mapOf(BlockPos.ZERO to "core", BlockPos(1, 0, 0) to "wing", BlockPos(-1, 0, 0) to "wing"),
+            MultiblockBreakPolicy.DESTROY_ALL,
+        )
+        STATEFUL_PAIR = MultiblockShape.register(
+            id("stateful_pair"), mapOf(BlockPos.ZERO to "core", BlockPos(1, 0, 0) to "wing"), MultiblockBreakPolicy.DISSOLVE, ::TestCounter,
+        )
+        STATEFUL_LINKED_PAIR = MultiblockShape.register(
+            id("stateful_linked_pair"), mapOf(BlockPos.ZERO to "core", BlockPos(1, 0, 0) to "wing"), MultiblockBreakPolicy.DESTROY_ALL, ::TestCounter,
+        )
+    }
+
+    fun clear() {
+        MultiblockShape.clear()
+        registered = false
+    }
+
+    private fun id(path: String) = Identifier.fromNamespaceAndPath("itszulib_test", path)
+}
+
+/**
+ * Fixtures: block entities hosting a [FragMultiblockPart] wired to a test [manager], in a [TestableLevel].
+ */
+abstract class MultiblockTestBase {
+    protected val level = TestableLevel()
+    protected val destroyed = ArrayList<BlockPos>()
+    protected val tickets = TestableTickets()
+    protected var manager = MultiblockManager({ _, pos -> destroyed.add(pos) }, tickets)
+
+    protected inner class Part(val pos: BlockPos, shape: MultiblockShape, roles: List<String>, autoForm: Boolean = true) {
+        val be = TestableCoreBlockEntity(pos, level)
+        val part = FragMultiblockPart(roles.map { MultiblockRoleRef(shape, it) }, autoForm) { manager }
+
+        init {
+            be.fragList.addFragment(part)
+        }
+
+        val membership get() = part.membership
+
+        fun load() = manager.onPartLoaded(level, pos, part)
+
+        fun unload() = manager.onPartUnloaded(part)
+
+        fun remove() = manager.onPartRemoved(level, pos, part)
+    }
+
+    protected fun place(shape: MultiblockShape, pos: BlockPos, vararg roles: String, autoForm: Boolean = true) = Part(pos, shape, roles.toList(), autoForm)
+
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun classSetup() = TestShapes.register()
+
+        @AfterAll
+        @JvmStatic
+        fun classTeardown() = TestShapes.clear()
+    }
+}
+
+class MultiblockManagerTest : MultiblockTestBase() {
+    private val pair get() = TestShapes.PAIR
+
     @Test
-    fun Form_Fresh_JoinsAndOnlyTheControllerIsController() {
-        val controller = MultiBlockInfo()
-        val other = MultiBlockInfo()
-        assertTrue(controller.form(ORIGIN, ORIGIN))
-        assertTrue(other.form(EAST_OF_ORIGIN, ORIGIN))
-        assertTrue(controller.isFormed && controller.isController)
-        assertTrue(other.isFormed && !other.isController)
-        assertEquals(ORIGIN, other.controller)
+    fun OnPartLoaded_AllSlotsPresentAndMatching_JoinsEveryMemberToTheSameStructure() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        val wing = place(pair, BlockPos(1, 0, 0), "wing")
+        core.load()
+        wing.load()
+
+        assertNotNull(core.membership)
+        assertEquals(core.membership!!.structureId, wing.membership!!.structureId)
+        assertEquals(BlockPos.ZERO, core.membership!!.offset)
+        assertEquals(BlockPos(1, 0, 0), wing.membership!!.offset)
+        assertSame(core.part, manager.get(core.membership!!.structureId)!!.memberAt(BlockPos.ZERO))
+        assertSame(wing.part, manager.get(core.membership!!.structureId)!!.memberAt(BlockPos(1, 0, 0)))
     }
 
     /**
-     * Regression: 1.12.2 compared the block's own position (not the new controller's) with the stored controller, so a
-     * formed controller could be taken over by another multiblock, and a formed part could not re-join its own.
+     * [TestShapes.TRIPLE] needs a `wing` at both (1,0,0) and (-1,0,0). The west wing loads first, so its search must
+     * reject offset (1,0,0) (wrong anchor, nothing there) before trying (-1,0,0).
      */
     @Test
-    fun Form_AlreadyFormed_OnlySameControllerAccepted() {
-        val controller = MultiBlockInfo()
-        controller.form(ORIGIN, ORIGIN)
-        assertFalse(controller.form(ORIGIN, EAST_OF_ORIGIN), "a formed controller joined another multiblock")
-        assertEquals(ORIGIN, controller.controller)
-        assertTrue(controller.isController)
+    fun OnPartLoaded_RoleAtMultipleOffsets_TriesEachCandidateOffsetUntilOneMatches() {
+        val triple = TestShapes.TRIPLE
+        val core = place(triple, BlockPos.ZERO, "core")
+        val east = place(triple, BlockPos(1, 0, 0), "wing")
+        val west = place(triple, BlockPos(-1, 0, 0), "wing")
+        west.load()
 
-        val other = MultiBlockInfo()
-        other.form(EAST_OF_ORIGIN, ORIGIN)
-        assertTrue(other.form(EAST_OF_ORIGIN, ORIGIN), "a formed part could not re-join its own multiblock")
+        val id = core.membership?.structureId
+        assertNotNull(id)
+        assertEquals(id, east.membership?.structureId)
+        assertEquals(BlockPos(1, 0, 0), east.membership?.offset)
+        assertEquals(BlockPos(-1, 0, 0), west.membership?.offset)
     }
 
     @Test
-    fun BreakFrom_OnlyOwnControllerAccepted() {
-        val info = MultiBlockInfo()
-        info.form(EAST_OF_ORIGIN, ORIGIN)
-        assertFalse(info.breakFrom(EAST_OF_ORIGIN))
-        assertTrue(info.isFormed)
-        assertTrue(info.breakFrom(ORIGIN))
-        assertFalse(info.isFormed)
-        assertNull(info.controller)
+    fun OnPartLoaded_MissingNeighbor_DoesNotForm() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        core.load()
+        assertNull(core.membership)
     }
 
     @Test
-    fun OnChanged_RunsOnFormAndBreakOnly() {
-        val info = MultiBlockInfo()
-        var changes = 0
-        info.onChanged = Runnable { changes++ }
-        info.form(ORIGIN, ORIGIN)
-        info.form(ORIGIN, EAST_OF_ORIGIN) // refused
-        info.breakFrom(ORIGIN)
-        assertEquals(2, changes)
-    }
-
-    @Test
-    fun Serialization_RoundTrips() {
-        val info = MultiBlockInfo()
-        info.form(EAST_OF_ORIGIN, BlockPos(5, 6, 7))
-        val copy = MultiBlockInfo()
-        copy.deserialize(TestIO.read(TestIO.write(info::serialize)))
-        assertTrue(copy.isFormed)
-        assertFalse(copy.isController)
-        assertEquals(BlockPos(5, 6, 7), copy.controller)
-    }
-
-    @Test
-    fun Deserialize_Missing_IsNotFormed() {
-        val info = MultiBlockInfo()
-        info.form(ORIGIN, ORIGIN)
-        info.deserialize(TestIO.read(TestIO.write { }))
-        assertFalse(info.isFormed)
-        assertFalse(info.isController)
-    }
-}
-
-class BlockPatternStaticTest {
-    private fun offsets(pattern: IBlockPattern) = pattern.blocksInMatch(BlockPos.ZERO).toSet()
-
-    private fun twoWide() = BlockPatternStatic(mapOf(BlockPos.ZERO to Blocks.STONE, BlockPos(1, 0, 0) to Blocks.STONE))
-
-    /**
-     * Regression: 1.12.2's `rotated` rotated a throwaway copy and returned an unrotated one.
-     */
-    @Test
-    fun Rotated_RotatesOffsetsAndRecordsRotation() {
-        val rotated = twoWide().rotated(Rotation.CLOCKWISE_90)
-        assertEquals(setOf(BlockPos.ZERO, BlockPos(0, 0, 1)), offsets(rotated))
-        assertEquals(Rotation.CLOCKWISE_90, rotated.rotation)
-        assertEquals(Rotation.CLOCKWISE_180, rotated.rotated(Rotation.CLOCKWISE_90).rotation)
-    }
-
-    @Test
-    fun Rotated_LeavesOriginalUnchanged() {
-        val pattern = twoWide()
-        pattern.rotated(Rotation.CLOCKWISE_180)
-        assertEquals(setOf(BlockPos.ZERO, BlockPos(1, 0, 0)), offsets(pattern))
-        assertEquals(Rotation.NONE, pattern.rotation)
-    }
-
-    @Test
-    fun Constructor_CopiesTheMap() {
-        val map = hashMapOf(BlockPos.ZERO to Blocks.STONE)
-        val pattern = BlockPatternStatic(map)
-        map[BlockPos(1, 0, 0)] = Blocks.STONE
-        assertEquals(1, pattern.blocks.size)
-    }
-
-    @Test
-    fun BlocksInMatch_OffsetsFromController() {
-        val pattern = BlockPatternStatic(mapOf(BlockPos.ZERO to Blocks.STONE, BlockPos(0, 1, 0) to Blocks.STONE))
-        assertEquals(setOf(BlockPos(10, 20, 30), BlockPos(10, 21, 30)), pattern.blocksInMatch(BlockPos(10, 20, 30)).toSet())
-    }
-
-    @Test
-    fun OverChunkBoundaries_DetectsSpanningPatterns() {
-        val pattern = twoWide()
-        assertFalse(pattern.overChunkBoundaries(BlockPos(0, 64, 0)))
-        assertTrue(pattern.overChunkBoundaries(BlockPos(15, 64, 0)))
-        assertTrue(pattern.overChunkBoundaries(BlockPos(-1, 64, 0)))
-    }
-}
-
-class MultiblockStaticTest {
-    @Test
-    fun Form_EveryPartJoinsTheController() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        val (_, b) = part(level, EAST_OF_ORIGIN)
-        assertTrue(MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE))
-        assertTrue(a.info.isController)
-        assertEquals(ORIGIN, b.info.controller)
-        assertFalse(b.info.isController)
-    }
-
-    // 1.12.2 kept forming after a part refused, leaving a half-formed multiblock whose controller ran while a part
-    // belonged to nothing, or to another multiblock.
-    @Test
-    fun Form_PartWithoutModule_ReturnsFalseAndNoPartJoins() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        TestableCoreBlockEntity(EAST_OF_ORIGIN, level)
-        assertFalse(MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE))
-        assertFalse(a.info.isFormed)
-    }
-
-    @Test
-    fun Form_PartMissing_ReturnsFalseAndNoPartJoins() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        assertFalse(MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE))
-        assertFalse(a.info.isFormed)
-    }
-
-    @Test
-    fun Form_PartOfAnotherMultiblock_ReturnsFalseAndNoPartJoins() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        val (_, b) = part(level, EAST_OF_ORIGIN)
-        b.info.form(EAST_OF_ORIGIN, BlockPos(9, 9, 9))
-        assertFalse(MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE))
-        assertFalse(a.info.isFormed)
-        assertEquals(BlockPos(9, 9, 9), b.info.controller)
-    }
-
-    @Test
-    fun Form_AlreadyFormedBySameController_Succeeds() {
-        val level = TestableLevel()
-        part(level, ORIGIN)
-        part(level, EAST_OF_ORIGIN)
-        val mb = MultiblockStatic(TWO_WIDE)
-        assertTrue(mb.form(level, ORIGIN, TWO_WIDE))
-        assertTrue(mb.form(level, ORIGIN, TWO_WIDE))
-    }
-
-    @Test
-    fun BreakMultiblock_EveryPartLeaves() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        val (_, b) = part(level, EAST_OF_ORIGIN)
-        val mb = MultiblockStatic(TWO_WIDE)
-        mb.form(level, ORIGIN, TWO_WIDE)
-        assertTrue(mb.breakMultiblock(level, ORIGIN, TWO_WIDE))
-        assertFalse(a.info.isFormed)
-        assertFalse(b.info.isFormed)
-    }
-
-    @Test
-    fun BreakMultiblock_MissingPart_ReturnsFalseButOthersLeave() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        a.info.form(ORIGIN, ORIGIN)
-        assertFalse(MultiblockStatic(TWO_WIDE).breakMultiblock(level, ORIGIN, TWO_WIDE))
-        assertFalse(a.info.isFormed)
-    }
-}
-
-class MultiblockUtilsTest {
-    @Test
-    fun IsFacingInMultiblock_SameController_True() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        part(level, EAST_OF_ORIGIN)
-        MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE)
-        assertTrue(MultiblockUtils.isFacingInMultiblock(level, ORIGIN, Direction.EAST, a.info))
-        assertFalse(MultiblockUtils.isFacingInMultiblock(level, ORIGIN, Direction.WEST, a.info))
-    }
-
-    @Test
-    fun IsFacingInMultiblock_OtherControllerOrNotFormed_False() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        val (_, b) = part(level, EAST_OF_ORIGIN)
-        assertFalse(MultiblockUtils.isFacingInMultiblock(level, ORIGIN, Direction.EAST, a.info))
-        a.info.form(ORIGIN, ORIGIN)
-        b.info.form(EAST_OF_ORIGIN, EAST_OF_ORIGIN)
-        assertFalse(MultiblockUtils.isFacingInMultiblock(level, ORIGIN, Direction.EAST, a.info))
+    fun OnPartLoaded_WrongRoleAtSlot_DoesNotForm() {
+        val wrong = place(pair, BlockPos.ZERO, "wing")
+        val wing = place(pair, BlockPos(1, 0, 0), "wing")
+        wrong.load()
+        wing.load()
+        assertNull(wrong.membership)
+        assertNull(wing.membership)
     }
 
     /**
-     * Regression: the lookup must not load the neighbour's chunk (1.12.2 asked with force = false; a plain
-     * `Level#getBlockEntity` on the server loads the chunk).
+     * Forming never loads a chunk to look ([TestableLevel] fails the test on a lookup in an unloaded chunk).
      */
     @Test
-    fun IsFacingInMultiblock_NeighbourUnloaded_FalseWithoutLookingItUp() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        part(level, EAST_OF_ORIGIN)
-        MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE)
-        level.unloaded += EAST_OF_ORIGIN
-        assertFalse(MultiblockUtils.isFacingInMultiblock(level, ORIGIN, Direction.EAST, a.info))
+    fun OnPartLoaded_SlotUnloaded_DoesNotFormOrLookItUp() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        place(pair, BlockPos(1, 0, 0), "wing")
+        level.unloaded += BlockPos(1, 0, 0)
+        core.load()
+        assertNull(core.membership)
     }
 
     @Test
-    fun Controller_FormedAndLoaded_ReturnsIt() {
-        val level = TestableLevel()
-        val (controller, _) = part(level, ORIGIN)
-        val (_, b) = part(level, EAST_OF_ORIGIN)
-        assertNull(MultiblockUtils.controller(level, b.info))
-        MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE)
-        assertSame(controller, MultiblockUtils.controller(level, b.info))
-        level.unloaded += ORIGIN
-        assertNull(MultiblockUtils.controller(level, b.info))
+    fun OnPartLoaded_AutoFormOff_DoesNotForm() {
+        val core = place(pair, BlockPos.ZERO, "core", autoForm = false)
+        val wing = place(pair, BlockPos(1, 0, 0), "wing", autoForm = false)
+        core.load()
+        wing.load()
+        assertNull(core.membership)
+    }
+
+    @Test
+    fun Form_AutoFormOff_FormsAtTheGivenAnchor() {
+        val core = place(pair, BlockPos(5, 0, 0), "core", autoForm = false)
+        val wing = place(pair, BlockPos(6, 0, 0), "wing", autoForm = false)
+        val instance = manager.form(level, pair, BlockPos(5, 0, 0))
+        assertNotNull(instance)
+        assertEquals(BlockPos(5, 0, 0), instance!!.anchorPos)
+        assertEquals(instance.id, core.membership?.structureId)
+        assertEquals(instance.id, wing.membership?.structureId)
+    }
+
+    @Test
+    fun Form_SlotAlreadyInAStructure_NoMemberJoins() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        val wing = place(pair, BlockPos(1, 0, 0), "wing")
+        wing.part.join(MultiblockMembership(UUID.randomUUID(), pair, BlockPos(1, 0, 0)))
+        assertNull(manager.form(level, pair, BlockPos.ZERO))
+        assertNull(core.membership)
+    }
+
+    @Test
+    fun OnPartRemoved_Dissolve_OtherMembersLeave() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        val wing = place(pair, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val id = core.membership!!.structureId
+
+        wing.remove()
+        assertTrue(destroyed.isEmpty(), "DISSOLVE must not destroy any block")
+        assertNull(core.membership, "the other member must leave when a sibling is removed")
+        assertNull(manager.get(id), "the broken structure must be forgotten")
+    }
+
+    @Test
+    fun OnPartRemoved_DestroyAll_DestroysEveryOtherMember() {
+        val triple = TestShapes.LINKED_TRIPLE
+        val core = place(triple, BlockPos.ZERO, "core")
+        val east = place(triple, BlockPos(1, 0, 0), "wing")
+        val west = place(triple, BlockPos(-1, 0, 0), "wing")
+        core.load()
+        val id = core.membership!!.structureId
+
+        east.remove()
+
+        assertEquals(setOf(BlockPos.ZERO, BlockPos(-1, 0, 0)), destroyed.toSet())
+        assertNull(core.membership)
+        assertNull(west.membership)
+        assertNull(manager.get(id))
+    }
+
+    /**
+     * The sibling's chunk unloaded, so the manager no longer holds it; it is still found through the level (which
+     * loads chunks) and destroyed rather than left as an orphaned piece.
+     */
+    @Test
+    fun OnPartRemoved_DestroyAll_SiblingUnloaded_StillDestroyed() {
+        val triple = TestShapes.LINKED_TRIPLE
+        val core = place(triple, BlockPos.ZERO, "core")
+        val east = place(triple, BlockPos(1, 0, 0), "wing")
+        val west = place(triple, BlockPos(-1, 0, 0), "wing")
+        core.load()
+        west.unload()
+
+        east.remove()
+
+        assertTrue(BlockPos(-1, 0, 0) in destroyed, "unloaded sibling must be destroyed")
+        assertNull(west.membership)
+    }
+
+    @Test
+    fun OnPartRemoved_DestroyAll_LeavesBlocksOfOtherStructures() {
+        val triple = TestShapes.LINKED_TRIPLE
+        val core = place(triple, BlockPos.ZERO, "core")
+        val east = place(triple, BlockPos(1, 0, 0), "wing")
+        place(triple, BlockPos(-1, 0, 0), "wing")
+        core.load()
+        val stranger = place(triple, BlockPos(-1, 0, 0), "wing")
+        stranger.part.join(MultiblockMembership(UUID.randomUUID(), triple, BlockPos(-1, 0, 0)))
+
+        east.remove()
+
+        assertEquals(listOf(BlockPos.ZERO), destroyed)
+        assertNotNull(stranger.membership)
+    }
+
+    /**
+     * Destroying a sibling reports that sibling's own removal back to the manager; nothing is torn down twice.
+     */
+    @Test
+    fun OnPartRemoved_DestroyAll_ReentrantRemovalIsIgnored() {
+        val triple = TestShapes.LINKED_TRIPLE
+        val parts = HashMap<BlockPos, Part>()
+        val calls = ArrayList<BlockPos>()
+        manager = MultiblockManager({ lvl, pos ->
+            calls.add(pos)
+            manager.onPartRemoved(lvl, pos, parts[pos]!!.part)
+        }, tickets)
+        listOf(BlockPos.ZERO to "core", BlockPos(1, 0, 0) to "wing", BlockPos(-1, 0, 0) to "wing").forEach { (pos, role) ->
+            parts[pos] = place(triple, pos, role)
+        }
+        parts[BlockPos.ZERO]!!.load()
+        val east = parts[BlockPos(1, 0, 0)]!!
+        // A real block keeps its membership until it is gone; the reentrant call sees it.
+        val westPart = parts[BlockPos(-1, 0, 0)]!!
+
+        east.remove()
+
+        assertEquals(setOf(BlockPos.ZERO, BlockPos(-1, 0, 0)), calls.toSet())
+        assertEquals(2, calls.size)
+        assertNull(westPart.membership)
+    }
+
+    @Test
+    fun OnPartUnloaded_DoesNotBreakStructure_JustDeregistersLocally() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        val wing = place(pair, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val id = core.membership!!.structureId
+
+        wing.unload()
+
+        assertNotNull(core.membership)
+        assertNotNull(wing.membership, "unloading must not clear the unloaded member's own membership")
+        assertNull(manager.get(id)!!.memberAt(BlockPos(1, 0, 0)))
+    }
+
+    @Test
+    fun OnPartUnloaded_LastMember_ForgetsTheStructure() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        val wing = place(pair, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val id = core.membership!!.structureId
+        wing.unload()
+        core.unload()
+        assertNull(manager.get(id))
+    }
+
+    /**
+     * A server restart: a fresh manager, and a member whose membership was restored from its save.
+     */
+    @Test
+    fun OnPartLoaded_WithExistingMembership_RejoinsWithoutReformingOrNewId() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        val wing = place(pair, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val id = core.membership!!.structureId
+
+        manager = MultiblockManager({ _, pos -> destroyed.add(pos) }, tickets)
+        wing.load()
+
+        assertEquals(id, wing.membership!!.structureId, "reload must not mint a new id")
+        assertSame(wing.part, manager.get(id)!!.memberAt(BlockPos(1, 0, 0)))
+        assertNotNull(wing.membership, "the home member still belongs to the structure")
+    }
+
+    /**
+     * The structure broke while this member's chunk was unloaded (TechnoLich's known limitation for DISSOLVE): when it
+     * loads again, the home member no longer belongs to the structure, so it leaves.
+     */
+    @Test
+    fun OnPartLoaded_HomeLeftWhileUnloaded_MemberLeaves() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        val wing = place(pair, BlockPos(1, 0, 0), "wing")
+        core.load()
+        wing.unload()
+        manager.disband(level, core.pos, core.part)
+        assertNotNull(wing.membership, "the unloaded wing was not told")
+
+        wing.load()
+        assertNull(wing.membership)
+    }
+
+    /**
+     * Verification never loads the home chunk: it waits until the home position is loaded.
+     */
+    @Test
+    fun VerifyPending_HomeChunkUnloaded_WaitsUntilLoaded() {
+        val core = place(pair, BlockPos.ZERO, "core")
+        val wing = place(pair, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val id = core.membership!!.structureId
+        manager = MultiblockManager({ _, pos -> destroyed.add(pos) }, tickets)
+        level.removeIBlockEntity(BlockPos.ZERO)
+        level.unloaded += BlockPos.ZERO
+
+        wing.load()
+        manager.verifyPending()
+        assertNotNull(wing.membership, "left before the home member could be checked")
+
+        level.unloaded -= BlockPos.ZERO
+        manager.verifyPending()
+        assertNull(wing.membership, "the home position holds no member of the structure")
+        assertNull(manager.get(id))
+    }
+
+    @Test
+    fun Disband_EveryMemberLeavesWithoutBreakEffects() {
+        val shape = TestShapes.STATEFUL_LINKED_PAIR
+        val core = place(shape, BlockPos.ZERO, "core")
+        val wing = place(shape, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val state = core.part.state as TestCounter
+
+        manager.disband(level, wing.pos, wing.part)
+
+        assertNull(core.membership)
+        assertNull(wing.membership)
+        assertNull(core.part.state, "the home member drops its state")
+        assertTrue(destroyed.isEmpty())
+        assertTrue(state.breaks.isEmpty())
     }
 }
 
-class MultiblockSidedConfigurationTest {
+class MultiblockStateTest : MultiblockTestBase() {
+    private val shape get() = TestShapes.STATEFUL_PAIR
+
+    @Test
+    fun Join_OnlyTheHomeMemberHoldsTheState() {
+        val core = place(shape, BlockPos.ZERO, "core")
+        val wing = place(shape, BlockPos(1, 0, 0), "wing")
+        core.load()
+        assertTrue(core.part.state is TestCounter)
+        assertNull(wing.part.state)
+        assertSame(core.part.state, wing.part.sharedState())
+        assertSame(core.part.state, manager.stateOf(wing.part))
+    }
+
+    @Test
+    fun SharedState_HomeUnloaded_Null() {
+        val core = place(shape, BlockPos.ZERO, "core")
+        val wing = place(shape, BlockPos(1, 0, 0), "wing")
+        core.load()
+        core.unload()
+        assertNull(wing.part.sharedState())
+    }
+
+    @Test
+    fun StateChange_MarksTheHomeMemberDirty() {
+        val core = place(shape, BlockPos.ZERO, "core")
+        place(shape, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val before = core.be.dirtyCount
+        (core.part.sharedState() as TestCounter).count++
+        assertEquals(before + 1, core.be.dirtyCount)
+    }
+
+    @Test
+    fun OnPartRemoved_StateToldOnceWithAnchorAndBrokenPosition() {
+        val core = place(shape, BlockPos(4, 0, 0), "core")
+        val wing = place(shape, BlockPos(5, 0, 0), "wing")
+        core.load()
+        val state = core.part.state as TestCounter
+
+        wing.remove()
+
+        assertEquals(listOf(BlockPos(4, 0, 0) to BlockPos(5, 0, 0)), state.breaks)
+        assertNull(core.part.state)
+    }
+
+    /**
+     * The home member is not registered (its chunk unloaded), so it is looked up through the level for the break.
+     */
+    @Test
+    fun OnPartRemoved_HomeUnregistered_StateStillTold() {
+        val core = place(shape, BlockPos.ZERO, "core")
+        val wing = place(shape, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val state = core.part.state as TestCounter
+        core.unload()
+
+        wing.remove()
+
+        assertEquals(1, state.breaks.size)
+        assertNull(core.membership, "the home member leaves too")
+    }
+
+    @Test
+    fun Serialization_HomeSavesStateAndMembership_OtherMembersOnlyMembership() {
+        val core = place(shape, BlockPos.ZERO, "core")
+        val wing = place(shape, BlockPos(1, 0, 0), "wing")
+        core.load()
+        (core.part.state as TestCounter).count = 7
+
+        val coreTag = TestIO.write { core.part.serializeTo(NBTSerializationScope.LEVEL, it) }
+        val wingTag = TestIO.write { wing.part.serializeTo(NBTSerializationScope.LEVEL, it) }
+        assertFalse(wingTag.contains(FragMultiblockPart.STATE_KEY))
+
+        val loaded = FragMultiblockPart(listOf(MultiblockRoleRef(shape, "core"))) { manager }
+        loaded.deserialize(TestIO.read(coreTag), NBTSerializationScope.LEVEL)
+        assertEquals(core.membership, loaded.membership)
+        assertEquals(7, (loaded.state as TestCounter).count)
+    }
+
+    @Test
+    fun Serialization_Description_MembershipOnly() {
+        val core = place(shape, BlockPos.ZERO, "core")
+        place(shape, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val tag = TestIO.write { core.part.serializeTo(NBTSerializationScope.DESCRIPTION, it) }
+        assertFalse(tag.contains(FragMultiblockPart.STATE_KEY))
+        val client = FragMultiblockPart(listOf(MultiblockRoleRef(shape, "core"))) { manager }
+        client.deserialize(TestIO.read(tag), NBTSerializationScope.DESCRIPTION)
+        assertEquals(core.membership, client.membership)
+    }
+
+    @Test
+    fun Deserialize_UnknownShape_NotFormed() {
+        val core = place(shape, BlockPos.ZERO, "core")
+        place(shape, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val tag = TestIO.write { core.part.serializeTo(NBTSerializationScope.LEVEL, it) }
+        tag.putString(FragMultiblockPart.SHAPE_TAG, "itszulib_test:never_registered")
+        val loaded = FragMultiblockPart(listOf()) { manager }
+        loaded.deserialize(TestIO.read(tag), NBTSerializationScope.LEVEL)
+        assertNull(loaded.membership)
+        assertNull(loaded.state)
+    }
+}
+
+class MultiblockTicketTest : MultiblockTestBase() {
+    // The home member at x = 15 is in chunk 0; the wing at x = 16 is in chunk 1.
+    private val home = BlockPos(15, 0, 0)
+    private val other = BlockPos(16, 0, 0)
+
+    @Test
+    fun Register_MemberOutsideTheHomeChunk_RefreshesTheHomeChunkTicket() {
+        place(TestShapes.STATEFUL_PAIR, home, "core").load()
+        place(TestShapes.STATEFUL_PAIR, other, "wing").load()
+        assertTrue(tickets.refreshed.isNotEmpty())
+        assertTrue(tickets.refreshed.all { it == ChunkCoord.of(home) })
+    }
+
+    @Test
+    fun Tick_RefreshesEveryInterval_WhileAMemberElsewhereTicks() {
+        val core = place(TestShapes.STATEFUL_PAIR, home, "core")
+        place(TestShapes.STATEFUL_PAIR, other, "wing")
+        core.load()
+        tickets.refreshed.clear()
+
+        manager.tick(MultiblockManager.TICKET_REFRESH - 1)
+        assertTrue(tickets.refreshed.isEmpty(), "refreshed between intervals")
+        manager.tick(MultiblockManager.TICKET_REFRESH)
+        assertEquals(listOf(ChunkCoord.of(home)), tickets.refreshed)
+    }
+
+    /**
+     * A member in a chunk that does not tick (e.g. loaded only by another structure's ticket) never refreshes, so
+     * structures cannot keep each other's chunks loaded.
+     */
+    @Test
+    fun Tick_MemberElsewhereNotTicking_NoRefresh() {
+        tickets.ticking = { false }
+        place(TestShapes.STATEFUL_PAIR, home, "core").load()
+        place(TestShapes.STATEFUL_PAIR, other, "wing")
+        manager.tick(MultiblockManager.TICKET_REFRESH)
+        assertTrue(tickets.refreshed.isEmpty())
+    }
+
+    @Test
+    fun Tick_StatelessOrSameChunk_NoRefresh() {
+        place(TestShapes.PAIR, home, "core").load()
+        place(TestShapes.PAIR, other, "wing")
+        place(TestShapes.STATEFUL_PAIR, BlockPos(0, 5, 0), "core").load()
+        place(TestShapes.STATEFUL_PAIR, BlockPos(1, 5, 0), "wing")
+        manager.tick(MultiblockManager.TICKET_REFRESH)
+        assertTrue(tickets.refreshed.isEmpty())
+    }
+
+    @Test
+    fun Tick_MemberElsewhereUnloaded_NoRefresh() {
+        val core = place(TestShapes.STATEFUL_PAIR, home, "core")
+        val wing = place(TestShapes.STATEFUL_PAIR, other, "wing")
+        core.load()
+        wing.unload()
+        tickets.refreshed.clear()
+        manager.tick(MultiblockManager.TICKET_REFRESH)
+        assertTrue(tickets.refreshed.isEmpty())
+    }
+}
+
+class FragMultiblockTickableTest : MultiblockTestBase() {
+    @Test
+    fun Tick_EveryMemberTicks_StructureTicksOncePerGameTick() {
+        val core = place(TestShapes.STATEFUL_PAIR, BlockPos.ZERO, "core")
+        val wing = place(TestShapes.STATEFUL_PAIR, BlockPos(1, 0, 0), "wing")
+        var time = 100L
+        val ticks = ArrayList<Long>()
+        fun tickable(part: FragMultiblockPart) = object : FragMultiblockTickable(part, { time }) {
+            override fun name(): String = "Tick"
+            override fun serverStructureTick(level: ILevel, instance: MultiblockInstance) {
+                ticks += time
+            }
+        }
+        val a = tickable(core.part)
+        val b = tickable(wing.part)
+        a.tick(level, core.pos, Blocks.AIR.defaultBlockState())
+        core.load()
+        a.tick(level, core.pos, Blocks.AIR.defaultBlockState())
+        b.tick(level, wing.pos, Blocks.AIR.defaultBlockState())
+        time++
+        b.tick(level, wing.pos, Blocks.AIR.defaultBlockState())
+        a.tick(level, core.pos, Blocks.AIR.defaultBlockState())
+        assertEquals(listOf(100L, 101L), ticks)
+    }
+}
+
+class MultiblockShapeTest {
+    @Test
+    fun Register_DuplicateId_Throws() {
+        val id = Identifier.fromNamespaceAndPath("itszulib_test", "dup")
+        MultiblockShape.register(id, mapOf(BlockPos.ZERO to "a"))
+        try {
+            assertThrows(IllegalArgumentException::class.java) { MultiblockShape.register(id, mapOf(BlockPos.ZERO to "a")) }
+        } finally {
+            MultiblockShape.clear()
+            TestShapes.clear()
+        }
+    }
+
+    @Test
+    fun Register_NoHomeSlot_Throws() {
+        assertThrows(IllegalArgumentException::class.java) {
+            MultiblockShape.register(Identifier.fromNamespaceAndPath("itszulib_test", "homeless"), mapOf(BlockPos(1, 0, 0) to "a"))
+        }
+    }
+
+    @Test
+    fun ById_UnknownId_ReturnsNull() {
+        assertNull(MultiblockShape.byId(Identifier.fromNamespaceAndPath("itszulib_test", "never_registered")))
+    }
+
+    @Test
+    fun Box_EverySlotFromTheLowestCorner() {
+        val slots = MultiblockShape.box(2, 3, 2, "frame")
+        assertEquals(12, slots.size)
+        assertEquals("frame", slots[BlockPos.ZERO])
+        assertEquals("frame", slots[BlockPos(1, 2, 1)])
+        assertNull(slots[BlockPos(2, 0, 0)])
+    }
+}
+
+class MultiblockSidedConfigurationTest : MultiblockTestBase() {
     private val main = ItemStorageArray(1)
     private val storages: Map<String, IItemStorage> = mapOf("main" to main, "empty" to IItemStorage.Empty)
 
     /**
-     * Two formed parts side by side along x; the configuration belongs to the one at the origin, whose front is
-     * [front].
+     * A formed pair along x; the configuration belongs to the part at the origin, whose front is [front].
      */
-    private fun config(front: Direction): Pair<MultiblockSidedItemStorageConfiguration, TestableLevel> {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        part(level, EAST_OF_ORIGIN)
-        MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE)
-        val config = MultiblockSidedItemStorageConfiguration(
-            { level }, { ORIGIN }, a.info, "empty", { "main" }, storages, { front },
-        )
-        return config to level
+    private fun config(front: Direction): Pair<MultiblockSidedItemStorageConfiguration, Part> {
+        val core = place(TestShapes.PAIR, BlockPos.ZERO, "core")
+        place(TestShapes.PAIR, BlockPos(1, 0, 0), "wing")
+        core.load()
+        val config = MultiblockSidedItemStorageConfiguration({ level }, { BlockPos.ZERO }, core.part, "empty", { "main" }, storages, { front })
+        return config to core
     }
 
     /**
@@ -354,8 +711,8 @@ class MultiblockSidedConfigurationTest {
     }
 
     /**
-     * Regression: relative queries (what a side configuration screen shows) must agree with the world-face queries
-     * that decide what the face does. 1.12.2 only overrode the world-face ones.
+     * Regression: relative queries (what a side configuration screen shows) agree with the world-face queries that
+     * decide what the face does. 1.12.2 only overrode the world-face ones.
      */
     @Test
     fun InternalFace_RelativeQueriesAgreeWithAbsolute() {
@@ -368,203 +725,51 @@ class MultiblockSidedConfigurationTest {
 
     @Test
     fun Broken_EveryFaceConfigurable() {
-        val (config, level) = config(Direction.NORTH)
-        MultiblockStatic(TWO_WIDE).breakMultiblock(level, ORIGIN, TWO_WIDE)
+        val (config, core) = config(Direction.NORTH)
+        manager.disband(level, core.pos, core.part)
         config.cycleRelativeFacingIOForward(Direction.EAST)
         assertSame(main, config.getStorageForGlobalFacing(Direction.EAST))
         assertEquals(EnumAutomaticIO.INPUT, config.getIOForAbsoluteFacing(Direction.EAST))
     }
 
+    /**
+     * Regression (R5): deciding whether a face is internal never loads the neighbour's chunk.
+     */
     @Test
-    fun NoLevel_TreatsEveryFaceAsExternal() {
-        val info = MultiBlockInfo().also { it.form(ORIGIN, ORIGIN) }
-        val config = MultiblockSidedItemStorageConfiguration({ null }, { ORIGIN }, info, "empty", { "main" }, storages, { Direction.NORTH })
+    fun NeighbourUnloaded_TreatedAsExternalWithoutLookingItUp() {
+        val (config, _) = config(Direction.NORTH)
+        level.unloaded += BlockPos(1, 0, 0)
         assertSame(main, config.getStorageForGlobalFacing(Direction.EAST))
     }
 
     @Test
+    fun NoLevel_TreatsEveryFaceAsExternal() {
+        val (_, core) = config(Direction.NORTH)
+        val config = MultiblockSidedItemStorageConfiguration({ null }, { BlockPos.ZERO }, core.part, "empty", { "main" }, storages, { Direction.NORTH })
+        assertSame(main, config.getStorageForGlobalFacing(Direction.EAST))
+    }
+
+    @Test
+    fun OtherStructure_FaceIsExternal() {
+        val (config, _) = config(Direction.NORTH)
+        val stranger = place(TestShapes.PAIR, BlockPos(0, 0, 1), "wing")
+        stranger.part.join(MultiblockMembership(UUID.randomUUID(), TestShapes.PAIR, BlockPos(1, 0, 0)))
+        assertSame(main, config.getStorageForGlobalFacing(Direction.SOUTH))
+        config.cycleRelativeFacingIOForward(Direction.SOUTH)
+        assertEquals(EnumAutomaticIO.INPUT, config.getIOForAbsoluteFacing(Direction.SOUTH))
+    }
+
+    @Test
     fun Fluid_InternalFace_ExposesEmptyStorageAndLocksCycling() {
-        val level = TestableLevel()
-        val (_, a) = part(level, ORIGIN)
-        part(level, EAST_OF_ORIGIN)
-        MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE)
+        val (_, core) = config(Direction.NORTH)
         val tank = FluidStorageArray(1, 1000)
         val config = MultiblockSidedFluidStorageConfiguration(
-            { level }, { ORIGIN }, a.info, "empty", { "tank" }, mapOf("tank" to tank, "empty" to IFluidStorage.Empty), { Direction.NORTH },
+            { level }, { BlockPos.ZERO }, core.part, "empty", { "tank" }, mapOf("tank" to tank, "empty" to IFluidStorage.Empty), { Direction.NORTH },
         )
         config.cycleRelativeFacingIOForward(Direction.EAST)
         assertSame(IFluidStorage.Empty, config.getStorageForGlobalFacing(Direction.EAST))
         assertSame(tank, config.getStorageForGlobalFacing(Direction.WEST))
         assertEquals(EnumAutomaticIO.NONE, config.getIOForRelativeFacing(Direction.EAST))
         assertEquals(EnumAutomaticIO.NONE, storedIO(config, Direction.EAST))
-    }
-}
-
-class Counter : ValueIOSerializable {
-    var count = 0
-    override fun serialize(output: ValueOutput) = output.putInt("count", count)
-    override fun deserialize(input: ValueInput) {
-        count = input.getIntOr("count", 0)
-    }
-}
-
-class FragMultiblockStateTest {
-    private val states = HashMap<com.itszuvalex.itszulib.api.adapters.IBlockEntity, FragMultiblockState<Counter>>()
-
-    private inner class Part(level: TestableLevel, pos: BlockPos) {
-        val be: TestableCoreBlockEntity
-        val info: FragMultiBlockInfo
-        val state: FragMultiblockState<Counter>
-
-        init {
-            val (b, i) = part(level, pos)
-            be = b
-            info = i
-            state = FragMultiblockState(info, ::Counter, { other -> states[other] })
-            be.fragList.addInternalFragment(state)
-            states[be] = state
-        }
-    }
-
-    private fun formed(): Triple<TestableLevel, Part, Part> {
-        val level = TestableLevel()
-        val a = Part(level, ORIGIN)
-        val b = Part(level, EAST_OF_ORIGIN)
-        MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE)
-        return Triple(level, a, b)
-    }
-
-    @Test
-    fun Get_NotFormed_Null() {
-        val a = Part(TestableLevel(), ORIGIN)
-        assertNull(a.state.get())
-        assertFalse(a.state.doIfController { })
-    }
-
-    @Test
-    fun Get_OnAnyPart_ReturnsTheControllersState() {
-        val (_, a, b) = formed()
-        b.state.get()!!.count = 3
-        assertSame(a.state.get(), b.state.get())
-        assertTrue(a.state.hasState())
-        assertFalse(b.state.hasState())
-        assertEquals(3, a.state.get()!!.count)
-    }
-
-    @Test
-    fun DoIfController_RunsOnlyOnController() {
-        val (_, a, b) = formed()
-        assertTrue(a.state.doIfController { it.count++ })
-        assertFalse(b.state.doIfController { it.count++ })
-        assertEquals(1, a.state.get()!!.count)
-    }
-
-    @Test
-    fun Serialization_OnlyControllerSavesAndLoads() {
-        val (_, a, b) = formed()
-        a.state.get()!!.count = 7
-        val controllerTag = TestIO.write { a.be.fragList.serializeTo(NBTSerializationScope.LEVEL, it) }
-        val partTag = TestIO.write { b.be.fragList.serializeTo(NBTSerializationScope.LEVEL, it) }
-        assertTrue(controllerTag.getCompoundOrEmpty(FragMultiblockState.NAME).contains(FragMultiblockState.STATE_KEY))
-        assertFalse(partTag.getCompoundOrEmpty(FragMultiblockState.NAME).contains(FragMultiblockState.STATE_KEY))
-
-        // The info fragment was added first, so it loads first and the state knows it belongs to the controller.
-        val reloaded = Part(TestableLevel(), ORIGIN)
-        reloaded.be.fragList.deserialize(TestIO.read(controllerTag), NBTSerializationScope.LEVEL)
-        assertEquals(7, reloaded.state.get()!!.count)
-    }
-
-    /**
-     * Regression: a controller kept its state in memory after its multiblock broke, so a re-formed multiblock got the
-     * old state back, but only if the chunk had not been reloaded in between (only a controller saves its state).
-     */
-    @Test
-    fun BreakThenReform_StartsFromFreshState() {
-        val (level, a, _) = formed()
-        a.state.get()!!.count = 5
-        MultiblockStatic(TWO_WIDE).breakMultiblock(level, ORIGIN, TWO_WIDE)
-        assertNull(a.state.get())
-        MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE)
-        assertEquals(0, a.state.get()!!.count)
-    }
-
-    @Test
-    fun Clear_DropsStateAndMarksDirty() {
-        val (_, a, _) = formed()
-        a.state.get()!!.count = 5
-        val before = a.be.dirtyCount
-        a.state.clear()
-        assertFalse(a.state.hasState())
-        assertTrue(a.be.dirtyCount > before)
-    }
-}
-
-class FragMultiBlockInfoTest {
-    @Test
-    fun FormAndBreak_MarkDirtyAndSync() {
-        val (be, frag) = part(TestableLevel(), ORIGIN)
-        frag.info.form(ORIGIN, ORIGIN)
-        frag.info.breakFrom(ORIGIN)
-        assertEquals(2, be.syncCount)
-    }
-
-    @Test
-    fun Scopes_LevelAndDescriptionNotItem() {
-        val frag = FragMultiBlockInfo()
-        assertTrue(frag.handlesScope(NBTSerializationScope.LEVEL))
-        assertTrue(frag.handlesScope(NBTSerializationScope.DESCRIPTION))
-        assertFalse(frag.handlesScope(NBTSerializationScope.ITEM))
-    }
-
-    @Test
-    fun Module_ExposedOnEverySide() {
-        val (be, frag) = part(TestableLevel(), ORIGIN)
-        assertSame(frag.info, be.getModule(Modules.MULTIBLOCK, null))
-        assertSame(frag.info, be.getModule(Modules.MULTIBLOCK, Direction.UP))
-    }
-
-    @Test
-    fun ControllerModule_ResolvesThroughTheController() {
-        val level = TestableLevel()
-        val (controller, a) = part(level, ORIGIN)
-        val (_, b) = part(level, EAST_OF_ORIGIN)
-        MultiblockStatic(TWO_WIDE).form(level, ORIGIN, TWO_WIDE)
-        assertSame(controller, b.controller())
-        assertSame(a.info, b.controllerModule(Modules.MULTIBLOCK))
-        assertNotSame(b.info, b.controllerModule(Modules.MULTIBLOCK))
-    }
-}
-
-class FragMultiblockTickableTest {
-    private class Recorder(info: MultiBlockInfo) : FragMultiblockTickable(info) {
-        var server = 0
-        var client = 0
-        override fun name(): String = "Recorder"
-        override fun serverControllerTick(level: ILevel, pos: BlockPos) {
-            server++
-        }
-        override fun clientControllerTick(level: ILevel, pos: BlockPos) {
-            client++
-        }
-    }
-
-    private fun state(): BlockState = Blocks.STONE.defaultBlockState()
-
-    @Test
-    fun Tick_OnlyOnFormedController_RoutedBySide() {
-        val level = TestableLevel()
-        val info = MultiBlockInfo()
-        val recorder = Recorder(info)
-        recorder.tick(level, ORIGIN, state())
-        info.form(EAST_OF_ORIGIN, ORIGIN)
-        recorder.tick(level, ORIGIN, state())
-        assertEquals(0, recorder.server)
-        info.breakFrom(ORIGIN)
-        info.form(ORIGIN, ORIGIN)
-        recorder.tick(level, ORIGIN, state())
-        level.clientSide = true
-        recorder.tick(level, ORIGIN, state())
-        assertEquals(1, recorder.server)
-        assertEquals(1, recorder.client)
     }
 }

@@ -3,6 +3,8 @@ package com.itszuvalex.itszulib
 import com.itszuvalex.itszulib.api.Components
 import com.itszuvalex.itszulib.api.Modules
 import com.itszuvalex.itszulib.api.adapters.ILevel
+import com.itszuvalex.itszulib.api.multiblock.MultiblockManager
+import com.itszuvalex.itszulib.api.multiblock.VanillaChunkTickets
 import com.itszuvalex.itszulib.api.utility.ChunkCoord
 import com.itszuvalex.itszulib.api.utility.LazySingleSidedHolder
 import com.itszuvalex.itszulib.core.NetworkManager
@@ -52,6 +54,7 @@ object ItszuLib {
         Modules.init()
         Components.register(MOD_BUS)
         MOD_BUS.addListener(ItszuLibNetwork::register)
+        VanillaChunkTickets.register(MOD_BUS)
         TeamDataTypes.register(Research.TYPE)
         TeamEvents.register()
 
@@ -60,6 +63,8 @@ object ItszuLib {
         }
 
         NeoForge.EVENT_BUS.addListener { _: ServerStoppedEvent -> NETWORK_MANAGER.get(LogicalSide.SERVER)?.clear() }
+        NeoForge.EVENT_BUS.addListener { _: ServerStoppedEvent -> MultiblockManager.SERVER.clear() }
+        NeoForge.EVENT_BUS.addListener { e: ServerTickEvent.Post -> MultiblockManager.SERVER.tick(e.server.tickCount.toLong()) }
         NeoForge.EVENT_BUS.addListener { _: ServerTickEvent.Pre -> NETWORK_MANAGER.get(LogicalSide.SERVER)?.onTickStart() }
         NeoForge.EVENT_BUS.addListener { _: ServerTickEvent.Post -> NETWORK_MANAGER.get(LogicalSide.SERVER)?.onTickEnd() }
         NeoForge.EVENT_BUS.addListener(::onChunkUnload)

@@ -4,7 +4,7 @@ import com.itszuvalex.itszulib.ItszuLib
 import com.itszuvalex.itszulib.api.adapters.IColorable
 import com.itszuvalex.itszulib.api.adapters.IModule
 import com.itszuvalex.itszulib.api.adapters.Module
-import com.itszuvalex.itszulib.api.multiblock.MultiBlockInfo
+import com.itszuvalex.itszulib.api.multiblock.IMultiblockMember
 import com.itszuvalex.itszulib.api.storage.IFluidStorage
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.core.BlockEntityCore
@@ -70,10 +70,10 @@ object Modules {
         Module.registerModule(id("fluid_storage_configurable"), null)
 
     /**
-     * Multiblock membership of a block entity.
+     * A block entity that can be a multiblock member (see [com.itszuvalex.itszulib.api.multiblock.MultiblockManager]).
      */
     @JvmField
-    val MULTIBLOCK: IModule<MultiBlockInfo> = Module.registerModule(id("multiblock"), null)
+    val MULTIBLOCK_MEMBER: IModule<IMultiblockMember> = Module.registerModule(id("multiblock_member"), null)
 
     /**
      * The menu a block opens when used, per clicked face. Exposed by [com.itszuvalex.itszulib.core.frag.FragMenu];
