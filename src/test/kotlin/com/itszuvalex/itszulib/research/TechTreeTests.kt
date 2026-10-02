@@ -59,6 +59,41 @@ class TechTreeTests {
     }
 
     @Test
+    fun PathTo_PrerequisitesFirst_SkipsResearched() {
+        val t = techs("root" to tech(), "a" to tech("root"), "b" to tech("root"), "goal" to tech("a", "b"))
+        Assertions.assertEquals(listOf("root", "a", "b", "goal").map(::id), t.pathTo(id("goal"), Research.EMPTY))
+        Assertions.assertEquals(listOf("b", "goal").map(::id), t.pathTo(id("goal"), Research(setOf(id("root"), id("a")))))
+        Assertions.assertEquals(emptyList<Identifier>(), t.pathTo(id("root"), Research(setOf(id("root")))))
+    }
+
+    @Test
+    fun PathTo_Unreachable_IsEmpty() {
+        val t = techs("orphan" to tech("missing"), "x" to tech("y"), "y" to tech("x"), "after" to tech("orphan"))
+        Assertions.assertEquals(emptyList<Identifier>(), t.pathTo(id("after"), Research.EMPTY))
+        Assertions.assertEquals(emptyList<Identifier>(), t.pathTo(id("x"), Research.EMPTY))
+        Assertions.assertEquals(emptyList<Identifier>(), t.pathTo(id("nope"), Research.EMPTY))
+    }
+
+    @Test
+    fun Focus_FirstQueuedAvailableInTree() {
+        val other = Technology(id("other_tree"), emptyList(), 10L, Items.BOOK, Optional.empty(), Optional.empty(), Optional.empty(), false, false)
+        val t = Technologies(mapOf(id("root") to tech(), id("next") to tech("root"), id("elsewhere") to other))
+        Assertions.assertNull(t.focus(TREE, Research.EMPTY))
+        // "next" is locked, "elsewhere" is another tree: "root" is the focus.
+        Assertions.assertEquals(id("root"), t.focus(TREE, Research.EMPTY.withQueue(listOf(id("next"), id("elsewhere"), id("root")))))
+        Assertions.assertEquals(id("elsewhere"), t.focus(id("other_tree"), Research.EMPTY.withQueue(listOf(id("elsewhere")))))
+    }
+
+    @Test
+    fun Unqueue_TakesDependentsAlong() {
+        val t = techs("root" to tech(), "a" to tech("root"), "b" to tech("a"), "side" to tech("root"))
+        val queued = Research.EMPTY.withQueue(listOf("root", "a", "side", "b").map(::id))
+        Assertions.assertEquals(listOf(id("root"), id("side")), t.unqueue(id("a"), queued).queue)
+        Assertions.assertEquals(emptyList<Identifier>(), t.unqueue(id("root"), queued).queue)
+        Assertions.assertEquals(listOf("root", "a", "b").map(::id), t.unqueue(id("side"), queued).queue)
+    }
+
+    @Test
     fun Problems_ReportsMissingPrerequisitesAndCycles() {
         val t = techs("a" to tech("c"), "b" to tech("a"), "c" to tech("b"), "d" to tech("ghost"), "ok" to tech())
         val problems = t.problems()

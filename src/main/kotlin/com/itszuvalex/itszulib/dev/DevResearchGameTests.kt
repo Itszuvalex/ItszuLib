@@ -35,6 +35,7 @@ object DevResearchGameTests {
         test("tech_tree_loads_datapack_technologies", ::loads)
         test("tech_tree_progress_unlocks_and_posts_event", ::progressUnlocks)
         test("tech_tree_states_follow_team_research", ::states)
+        test("tech_tree_queue_focus_follows_research", ::queue)
     }
 
     private fun teamOf(helper: GameTestHelper): Pair<Player, UUID> {
@@ -77,6 +78,23 @@ object DevResearchGameTests {
         // dev_far costs 0: offering nothing researches it once it is available.
         helper.assertValueEqual(TechTree.addProgress(server, team, FAR, 0), 0L, "free technology")
         helper.assertTrue(ItszuLib.TEAMS.state.team(team)!![Research.TYPE].has(FAR), "free technology unlocked")
+        helper.succeed()
+    }
+
+    private fun queue(helper: GameTestHelper) {
+        val (_, team) = teamOf(helper)
+        val server = helper.level.server
+        fun queue() = ItszuLib.TEAMS.state.team(team)!![Research.TYPE].queue
+        helper.assertTrue(TechTree.queue(server, team, FAR), "queued with its prerequisites")
+        helper.assertValueEqual(queue(), listOf(ROOT, BRANCH, SECRET, FAR), "path in order")
+        helper.assertFalse(TechTree.queue(server, team, BRANCH), "already queued")
+        helper.assertTrue(TechTree.focus(server, team, TREE) == ROOT, "focus is the first available")
+        TechTree.addProgress(server, team, ROOT, 100)
+        helper.assertValueEqual(queue(), listOf(BRANCH, SECRET, FAR), "researched leaves the queue")
+        helper.assertTrue(TechTree.focus(server, team, TREE) == BRANCH, "focus moves on")
+        helper.assertTrue(TechTree.unqueue(server, team, BRANCH), "unqueued")
+        helper.assertValueEqual(queue(), emptyList<Identifier>(), "dependents go with it")
+        helper.assertTrue(TechTree.focus(server, team, TREE) == null, "no focus")
         helper.succeed()
     }
 

@@ -57,8 +57,9 @@ object TechTreeGeometry {
 /**
  * Shows one tech tree ([TechTree]) laid out by [TechTreeLayout]: each technology as its icon in a frame coloured by
  * its state for the team (green researched, yellow available, grey locked; hidden ones are not drawn), progress under
- * it, links to its prerequisites, and a tooltip with its name, description, progress and missing prerequisites. Drag
- * to pan, scroll to pan up and down (with shift, sideways); clicking a technology calls [onSelect].
+ * it, its place in the team's research queue ([Research.queue]) as a badge, links to its prerequisites, and a tooltip
+ * with its name, description, progress, queue place and missing prerequisites. Drag to pan, scroll to pan up and down
+ * (with shift, sideways); clicking a technology calls [onSelect], right-clicking it [onAlternate].
  *
  * @param research The team's research; by default the local player's (synced team data).
  * @param selected Drawn with a white frame, e.g. what a machine is researching.
@@ -70,6 +71,7 @@ class TechTreeView @JvmOverloads constructor(
     private val research: () -> Research = { Minecraft.getInstance().player?.let(TechTree::research) ?: Research.EMPTY },
     private val selected: () -> Identifier? = { null },
     private val onSelect: (Identifier) -> Unit = {},
+    private val onAlternate: (Identifier) -> Unit = {},
 ) : ScreenComponent(width, height) {
     private var panX = Double.NaN
     private var panY = Double.NaN
@@ -118,6 +120,20 @@ class TechTreeView @JvmOverloads constructor(
             if (state == TechnologyState.AVAILABLE && progress > 0 && tech.cost > 0) {
                 graphics.fill(nx, ny + n + 1, nx + n, ny + n + 3, ScreenStyle.DARK)
                 graphics.fill(nx, ny + n + 1, nx + (n * progress / tech.cost).toInt().coerceIn(0, n), ny + n + 3, ScreenStyle.PROGRESS)
+            }
+        }
+        val queued = research.queue.withIndex().filter { (_, id) -> id in visible && layout.positions.containsKey(id) }
+        if (queued.isNotEmpty()) {
+            graphics.nextStratum()
+            val font = host.hostFont
+            for ((index, id) in queued) {
+                val point = layout.positions.getValue(id)
+                val label = (index + 1).toString()
+                val w = font.width(label) + 2
+                val bx = x + TechTreeGeometry.nodeX(point, panX) + TechTreeGeometry.NODE - w + 1
+                val by = y + TechTreeGeometry.nodeY(point, panY) - 2
+                graphics.fill(bx, by, bx + w, by + 9, QUEUE_BADGE)
+                graphics.text(font, label, bx + 1, by + 1, QUEUE_TEXT, false)
             }
         }
         graphics.disableScissor()
@@ -173,18 +189,35 @@ class TechTreeView @JvmOverloads constructor(
                 ScreenMath.formatAmount(research.progressOf(id)),
                 ScreenMath.formatAmount(tech.cost),
             ).withStyle(ChatFormatting.YELLOW)
-            else -> {
-                lines += Component.translatable("gui.itszulib.research.requires").withStyle(ChatFormatting.RED)
-                for (p in techs.missingPrerequisites(id, research)) {
-                    lines += Component.literal("  ").append(techs[p]?.displayName(p) ?: Component.literal(p.toString())).withStyle(ChatFormatting.RED)
-                }
+            else -> {}
+        }
+        research.queuePosition(id).takeIf { it >= 0 }?.let {
+            lines += Component.translatable("gui.itszulib.research.queued", it + 1).withStyle(ChatFormatting.AQUA)
+        }
+        if (state == TechnologyState.LOCKED || state == TechnologyState.HIDDEN) {
+            lines += Component.translatable("gui.itszulib.research.requires").withStyle(ChatFormatting.RED)
+            for (p in techs.missingPrerequisites(id, research)) {
+                lines += Component.literal("  ").append(techs[p]?.displayName(p) ?: Component.literal(p.toString())).withStyle(ChatFormatting.RED)
             }
         }
         return lines
     }
 
+    private fun nodeAt(mx: Double, my: Double): Identifier? {
+        val techs = technologies()
+        val layout = techs.layout(tree)
+        val research = research()
+        val visible = layout.positions.keys.filterTo(HashSet()) { (techs.state(it, research) ?: TechnologyState.HIDDEN) != TechnologyState.HIDDEN }
+        return TechTreeGeometry.nodeAt(layout, visible, panX, panY, mx - x, my - y)
+    }
+
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
-        if (!contains(event.x(), event.y()) || event.button() != 0) return false
+        if (!contains(event.x(), event.y())) return false
+        if (event.button() == 1) {
+            nodeAt(event.x(), event.y())?.let(onAlternate)
+            return true
+        }
+        if (event.button() != 0) return false
         pressed = true
         dragged = false
         return true
@@ -202,11 +235,7 @@ class TechTreeView @JvmOverloads constructor(
         if (!pressed) return false
         pressed = false
         if (dragged) return true
-        val techs = technologies()
-        val layout = techs.layout(tree)
-        val research = research()
-        val visible = layout.positions.keys.filterTo(HashSet()) { (techs.state(it, research) ?: TechnologyState.HIDDEN) != TechnologyState.HIDDEN }
-        TechTreeGeometry.nodeAt(layout, visible, panX, panY, event.x() - x, event.y() - y)?.let(onSelect)
+        nodeAt(event.x(), event.y())?.let(onSelect)
         return true
     }
 
@@ -234,6 +263,8 @@ class TechTreeView @JvmOverloads constructor(
         const val SELECTED = 0xFFFFFFFF.toInt()
         const val EDGE = 0xFF555555.toInt()
         const val EDGE_DONE = 0xFF55AA55.toInt()
+        const val QUEUE_BADGE = 0xFF1E5A78.toInt()
+        const val QUEUE_TEXT = 0xFFFFFFFF.toInt()
         const val SCROLL = 16.0
     }
 }
