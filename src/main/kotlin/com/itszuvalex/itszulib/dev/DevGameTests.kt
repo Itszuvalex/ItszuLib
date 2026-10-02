@@ -7,6 +7,7 @@ import com.itszuvalex.itszulib.api.Modules
 import com.itszuvalex.itszulib.api.adapters.IItemStack
 import com.itszuvalex.itszulib.api.adapters.ILevel
 import com.itszuvalex.itszulib.api.storage.ItemStorageArray
+import com.itszuvalex.itszulib.api.storage.ItemStorageResourceHandler
 import com.itszuvalex.itszulib.api.utility.Loc4
 import com.itszuvalex.itszulib.api.wrappers.WrapperBlockEntity
 import com.itszuvalex.itszulib.api.wrappers.WrapperResourceHandlerIItemStorage
@@ -21,6 +22,7 @@ import net.minecraft.resources.Identifier
 import net.minecraft.util.ProblemReporter
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.storage.TagValueInput
 import net.neoforged.bus.api.IEventBus
@@ -83,6 +85,7 @@ object DevGameTests {
         test("inventory_change_marks_dirty", ::inventoryChangeMarksDirty)
         test("item_scope_components_round_trip", ::itemScopeComponentsRoundTrip)
         test("resource_handler_per_slot_limit", ::resourceHandlerPerSlotLimit)
+        test("handler_adapter_joins_open_transaction", ::handlerAdapterJoinsOpenTransaction)
         DevStorageGameTests.register(::test)
         DevMenuGameTests.register(::test)
     }
@@ -242,6 +245,28 @@ object DevGameTests {
 
         helper.assertValueEqual(color, placed.colorable.getColor(), "color from item")
         helper.assertTrue(placed.inventory.get(0).isEmpty(), "Inventory is LEVEL scope only and must not ride on the item")
+        helper.succeed()
+    }
+
+    /**
+     * Regression (REVIEW O4): a chest's handler adapted to an ItszuLib storage and exposed again through ItszuLib's
+     * NeoForge wrapper. Inserting through the wrapper runs inside the caller's transaction; the adapter used to open a
+     * root transaction there, which threw. It now joins it: aborting rolls the chest back, committing keeps the items.
+     */
+    private fun handlerAdapterJoinsOpenTransaction(helper: GameTestHelper) {
+        helper.setBlock(BlockPos.ZERO, Blocks.CHEST)
+        val chest = helper.level.getCapability(NeoCapabilities.Item.BLOCK, helper.absolutePos(BlockPos.ZERO), null)!!
+        val exposed = WrapperResourceHandlerIItemStorage.of(ItemStorageResourceHandler(chest))
+        val diamond = ItemResource.of(Items.DIAMOND)
+
+        Transaction.openRoot().use { tx -> helper.assertValueEqual(exposed.insert(0, diamond, 5, tx), 5, "inserted inside the transaction") }
+        helper.assertValueEqual(chest.getAmountAsInt(0), 0, "aborted insert left in the chest")
+
+        Transaction.openRoot().use { tx ->
+            exposed.insert(0, diamond, 5, tx)
+            tx.commit()
+        }
+        helper.assertValueEqual(chest.getAmountAsInt(0), 5, "committed insert")
         helper.succeed()
     }
 

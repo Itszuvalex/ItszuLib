@@ -79,6 +79,59 @@ class EnergyAdapterTest {
         Assertions.assertEquals(10.0, battery.storage())
     }
 
+    /**
+     * Regression (REVIEW O4): the adapter opened a root transaction, which throws inside an open one. It now joins the
+     * caller's transaction, so an aborted caller rolls the change back.
+     */
+    @Test
+    fun BatteryEnergyHandler_InsideAbortedTransaction_RolledBack() {
+        val handler = SimpleEnergyHandler(100)
+        val battery = BatteryEnergyHandler(handler)
+        Transaction.openRoot().use { _ ->
+            Assertions.assertEquals(40.0, battery.fill(40.0))
+            Assertions.assertEquals(40L, handler.amountAsLong, "visible inside the caller's transaction")
+        }
+        Assertions.assertEquals(0L, handler.amountAsLong)
+    }
+
+    @Test
+    fun BatteryEnergyHandler_InsideCommittedTransaction_Kept() {
+        val handler = SimpleEnergyHandler(100)
+        val battery = BatteryEnergyHandler(handler)
+        Transaction.openRoot().use { tx ->
+            battery.fill(40.0)
+            Assertions.assertEquals(15.0, battery.drain(15.0))
+            tx.commit()
+        }
+        Assertions.assertEquals(25L, handler.amountAsLong)
+    }
+
+    @Test
+    fun Transactions_OpenJoined_NestsOnlyWhenOneIsOpen() {
+        Transactions.openJoined()!!.use { root ->
+            Assertions.assertEquals(0, root.depth())
+            Transactions.openJoined()!!.use { nested -> Assertions.assertEquals(1, nested.depth()) }
+        }
+    }
+
+    /**
+     * An ItszuLib battery over a NeoForge handler, exposed again through ItszuLib's wrapper: aborting makes the
+     * wrapper's journal restore the battery while the transaction closes. That write must not throw (no transaction may
+     * be opened then), and the backing handler restores itself.
+     */
+    @Test
+    fun BatteryEnergyHandler_BehindWrapper_AbortRestoresWithoutThrowing() {
+        val backing = SimpleEnergyHandler(100)
+        val exposed = WrapperEnergyHandlerIBattery(BatteryEnergyHandler(backing))
+        Transaction.openRoot().use { tx -> Assertions.assertEquals(30, exposed.insert(30, tx)) }
+        Assertions.assertEquals(0L, backing.amountAsLong)
+        Transaction.openRoot().use { tx ->
+            exposed.insert(30, tx)
+            tx.commit()
+        }
+        Assertions.assertEquals(30L, backing.amountAsLong)
+    }
+
     // 1.12.2's PowerBattery clamped its charge to the capacity; the port did not, so a save from a larger battery (or a
     // direct setStorage) left it over capacity with negative room.
     @Test

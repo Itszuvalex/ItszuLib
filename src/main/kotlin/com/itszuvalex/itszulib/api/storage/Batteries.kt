@@ -5,7 +5,6 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
 import net.neoforged.neoforge.transfer.energy.EnergyHandler
-import net.neoforged.neoforge.transfer.transaction.Transaction
 import kotlin.math.floor
 
 private const val POWER_KEY = "P"
@@ -89,7 +88,9 @@ open class DynamicIBattery(private val batterySupplier: () -> IBattery) : IBatte
 /**
  * Battery backed by a NeoForge [EnergyHandler], e.g. another mod's energy capability.
  * Energy is converted 1:1 and truncated to whole units.
- * Mutations open root transactions, so they must not be called while a transaction is open.
+ * Mutations run in their own transaction, nested in the caller's if one is open ([Transactions.openJoined]): then
+ * they take effect only if the caller's transaction commits. Writes while a transaction is closing do nothing (see
+ * [Transactions.openJoined]).
  */
 open class BatteryEnergyHandler(private val handler: EnergyHandler) : IBattery {
     override fun storage(): Double = handler.amountAsLong.toDouble()
@@ -101,17 +102,17 @@ open class BatteryEnergyHandler(private val handler: EnergyHandler) : IBattery {
 
     override fun maxStorage(): Double = handler.capacityAsLong.toDouble()
 
-    override fun fill(amt: Double): Double = Transaction.openRoot().use { tx ->
+    override fun fill(amt: Double): Double = Transactions.openJoined()?.use { tx ->
         val filled = handler.insert(toInt(amt), tx)
         tx.commit()
         filled.toDouble()
-    }
+    } ?: 0.0
 
-    override fun drain(amt: Double): Double = Transaction.openRoot().use { tx ->
+    override fun drain(amt: Double): Double = Transactions.openJoined()?.use { tx ->
         val drained = handler.extract(toInt(amt), tx)
         tx.commit()
         drained.toDouble()
-    }
+    } ?: 0.0
 
     /**
      * The backing handler owns its persistence.

@@ -10,7 +10,6 @@ import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
 import net.neoforged.neoforge.transfer.ResourceHandler
 import net.neoforged.neoforge.transfer.item.ItemResource
-import net.neoforged.neoforge.transfer.transaction.Transaction
 
 /**
  * Array-backed storage. [get] returns the live stack; mutate it only through this storage (e.g. [setSlot]) so the
@@ -166,7 +165,9 @@ open class ItemStorageNBT private constructor(
 
 /**
  * Item storage backed by a NeoForge item [ResourceHandler], e.g. another mod's inventory capability.
- * Mutations open root transactions, so they must not be called while a transaction is open.
+ * Mutations run in their own transaction, nested in the caller's if one is open ([Transactions.openJoined]): then
+ * they take effect only if the caller's transaction commits. Writes while a transaction is closing do nothing (see
+ * [Transactions.openJoined]).
  */
 open class ItemStorageResourceHandler(private val handler: ResourceHandler<ItemResource>) : IItemStorage {
     override fun get(index: Int): IItemStack {
@@ -181,7 +182,8 @@ open class ItemStorageResourceHandler(private val handler: ResourceHandler<ItemR
      * Replaces the slot's contents. Leaves the slot unchanged if the handler will not accept the full stack.
      */
     override fun setSlot(index: Int, stack: IItemStack) {
-        Transaction.openRoot().use { tx ->
+        val transaction = Transactions.openJoined() ?: return
+        transaction.use { tx ->
             val current = handler.getResource(index)
             val currentAmount = handler.getAmountAsInt(index)
             if (!current.isEmpty && handler.extract(index, current, currentAmount, tx) != currentAmount) return
