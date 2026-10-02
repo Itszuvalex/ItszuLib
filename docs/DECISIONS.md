@@ -151,6 +151,37 @@ policies (`DISSOLVE`, `DESTROY_ALL`). Added here:
 
 Dropped: pattern rotation (TechnoLich has none either; register one shape per orientation if needed).
 
+## D12. Screens built from components, with side configuration and energy defaults — DECIDED (maintainer, 2026-10-02)
+
+A consumer mod built a 3D side configuration view (the machine and its neighbours, rotated by dragging, faces clicked
+to configure, after Ender IO). The maintainer asked for it in ItszuLib, not as a fixed screen but as components that
+show or hide behind buttons, with sensible defaults for item, fluid and energy handling (energy through ItszuLib
+batteries or NeoForge's energy handler, though no consumer uses it yet).
+
+- **Screens.** `client/screen/ComponentScreen` is an `AbstractContainerScreen` made of `ScreenComponent`s: components
+  placed in the image (`addComponent`) and `SidePanel`s toggled by tab buttons on the image's right edge, one open at a
+  time (`togglePanel`; widgets are rebuilt so a closed panel's buttons go away). Components keep their state across
+  re-inits, may add vanilla widgets, take mouse input before the screen, and draw in the background pass. Clicks on
+  the open panel or the tabs do not count as outside the screen. Default look: `ScreenStyle` (plain grey panel, slot
+  frames); `extractPanel` replaces it. Default components: `EnergyGauge` (over an `EnergyView`), `FluidGauge`,
+  `ProgressBar`, `Label`.
+- **3D blocks in a screen.** `client/scene`: `BlockSceneRenderState`/`BlockSceneRenderer`, a NeoForge
+  picture-in-picture element drawing blocks from their models plus flat face overlays (registered by
+  `client/ItszuLibClient`, on every client); `BlockSceneGeometry` (view space, picking, pure math, unit tested);
+  `BlockSceneView` (drag to rotate, press without a drag is a click). Blocks drawn only by block entity renderers show
+  as faint boxes.
+- **Side configuration.** `MenuCore.enableSideConfig(be, modes)` keeps the `SideConfigMode`s the block entity has
+  (default `SideConfigModes.ITEM`, `FLUID`, `ENERGY`, each a configuration module plus a `SideConfigCycler`: `IO`,
+  `STORAGE` or `IO_THEN_STORAGE`) and handles `MenuCore.ACTION_SIDE_CONFIG`. ItszuLib's own actions use negative ids,
+  routed by `MenuCore.dispatchAction` before `handleAction`. `ComponentScreen` adds `SideConfigPanel` (the 3D view,
+  faces shaded by automatic IO, a mode button) as a default panel whenever the menu has side configuration.
+- **Energy parity.** `SidedEnergyStorageConfiguration`, `Modules.ENERGY_STORAGE` and `ENERGY_STORAGE_CONFIGURABLE`,
+  `FragEnergyStorage` + `addEnergyStorage` (the battery per side and NeoForge's energy capability), `FragEnergyAutoIO`.
+  Menus sync energy into an `EnergyView` with `syncEnergy` (a battery) or `syncEnergyHandler` (a NeoForge handler).
+
+The dev machine uses all of it (`DevScreen`: tank and energy gauges, the "IO" tab). Not done: textured styles, layout
+helpers beyond fixed positions, and a 3D view of multiblocks (each member shows its own block).
+
 ---
 
 ## B1. Shape of the ported ItszuLib API — DECIDED: adopt TechnoLich's framework (option 2)

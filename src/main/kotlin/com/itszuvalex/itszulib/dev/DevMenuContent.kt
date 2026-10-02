@@ -22,7 +22,8 @@ import net.neoforged.fml.LogicalSide
 
 /**
  * The dev blocks' menu. Over a [DevMachineBlockEntity]: an input slot, a take-only output slot, the tank (synced) and
- * action 0 (cycle the item storage on face `data` forward). Over a [DevMultiblockBlockEntity]: its inventory slot and
+ * action 0 (cycle the item storage on face `data` forward), its energy (synced) and side configuration (item, fluid and
+ * energy, through [MenuCore.ACTION_SIDE_CONFIG]). Over a [DevMultiblockBlockEntity]: its inventory slot and
  * the structure's tick count (synced). Then the player's inventory.
  */
 class DevMenu(containerId: Int, inventory: Inventory, @JvmField val blockEntity: BlockEntityCore?) :
@@ -32,6 +33,12 @@ class DevMenu(containerId: Int, inventory: Inventory, @JvmField val blockEntity:
      */
     var ticks = 0
 
+    /**
+     * Client copy of the machine's energy.
+     */
+    @JvmField
+    var energy = com.itszuvalex.itszulib.menu.EnergyView()
+
     init {
         val storage = blockEntity?.getModule(Modules.ITEM_STORAGE, null) ?: IItemStorage.Empty
         when (blockEntity) {
@@ -39,6 +46,8 @@ class DevMenu(containerId: Int, inventory: Inventory, @JvmField val blockEntity:
                 addStorageSlots(storage, 44, 35, count = 1)
                 addStorageSlots(storage, 116, 35, first = 1, count = 1, output = true)
                 addSync(MenuSyncs.fluid(blockEntity.tanks, 0))
+                energy = syncEnergy { blockEntity.battery }
+                enableSideConfig(blockEntity)
             }
             is DevMultiblockBlockEntity -> {
                 addStorageSlots(storage, 80, 35)

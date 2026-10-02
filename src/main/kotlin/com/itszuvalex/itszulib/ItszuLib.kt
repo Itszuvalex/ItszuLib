@@ -9,6 +9,8 @@ import com.itszuvalex.itszulib.api.utility.ChunkCoord
 import com.itszuvalex.itszulib.api.utility.LazySingleSidedHolder
 import com.itszuvalex.itszulib.core.NetworkManager
 import com.itszuvalex.itszulib.dev.DevContent
+import com.itszuvalex.itszulib.client.ItszuLibClient
+import net.neoforged.api.distmarker.Dist
 import com.itszuvalex.itszulib.network.ItszuLibNetwork
 import com.itszuvalex.itszulib.team.Research
 import com.itszuvalex.itszulib.team.TeamDataTypes
@@ -58,6 +60,7 @@ object ItszuLib {
         TeamDataTypes.register(Research.TYPE)
         TeamEvents.register()
 
+        if (FMLEnvironment.getDist() == Dist.CLIENT) ItszuLibClient.register(MOD_BUS)
         if (!FMLEnvironment.isProduction()) {
             DevContent.register(MOD_BUS)
         }

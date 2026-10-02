@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.core
 
+import com.itszuvalex.itszulib.api.adapters.IBattery
 import com.itszuvalex.itszulib.api.storage.IFluidStorage
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.utility.DirectionUtil
@@ -109,3 +110,9 @@ open class SidedFluidStorageConfiguration(
     storages: Map<String, IFluidStorage>,
     front: () -> Direction,
 ) : SidedStorageConfiguration<IFluidStorage>(defaults, storages, front)
+
+open class SidedEnergyStorageConfiguration(
+    defaults: (Direction) -> String,
+    storages: Map<String, IBattery>,
+    front: () -> Direction,
+) : SidedStorageConfiguration<IBattery>(defaults, storages, front)

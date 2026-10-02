@@ -40,7 +40,7 @@ framework lacks, in the order it is ported.
 | F8 | Horizontal facing | `core/behaviors/BlockBehaviorHorizontalFacing`, `BlockBehaviors` | `HorizontalEntityBlockCore` (`FACING` state, placed facing the player, rotate/mirror) | Done: `core/HorizontalFacing`, `HorizontalEntityBlockCore`, `TickableHorizontalEntityBlockCore` |
 | F9 | Sided connections and wire networks | `ModuleSidedConnectable`, `ModuleSidedBlockableConnectable`, `ModuleNetworkedWire`, `logistics/IPersistedConnectableNetworkNode`, `util/FaceBitSet` | `util/FaceBitSet`, `core/frag/FragConnectable` (connected/blocked faces), `IPersistedConnectableNetworkNode`, `FragNetworkedWire` on `TileNetwork` | Done: `util/FaceBitSet`, `core/frag/FragConnectable`, `IPersistedConnectableNetworkNode`, `FragNetworkedWire` |
 | F10 | Power-driven task | `util/Task` | `util/Task` (progress, speed/efficiency scaling) | Done: `util/Task` (+ `contributeFrom(battery)`, from 1.12.2's `BatteryPoweredTask`) |
-| F11 | Screen helpers | `gui/GuiBase`, `GuiFluidTank`, `GuiProgress`, `GuiPanelTexture`, `GuiLabel` | `client/ScreenHelpers`: draw a fluid tank (fluid sprite + tint), progress bars, tooltips. The 1.12.2 widget toolkit (flow layouts, text box, panels) is not ported | Done: `client/ScreenHelpers` (+ `ScreenMath`) |
+| F11 | Screen helpers | `gui/GuiBase`, `GuiFluidTank`, `GuiProgress`, `GuiPanelTexture`, `GuiLabel` | `client/ScreenHelpers`: draw a fluid tank (fluid sprite + tint), progress bars, tooltips. The 1.12.2 widget toolkit (flow layouts, text box, panels) is not ported | Done: `client/ScreenHelpers` (+ `ScreenMath`); screens from components with side panels, gauges and the 3D side configuration panel (`client/screen`, `client/scene`, DECISIONS D12) |
 
 Not ported from 1.12.2, and why:
 

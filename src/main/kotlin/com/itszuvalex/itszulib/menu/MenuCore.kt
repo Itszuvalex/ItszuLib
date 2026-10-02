@@ -12,6 +12,9 @@ import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.neoforged.neoforge.transfer.energy.EnergyHandler
+import com.itszuvalex.itszulib.api.adapters.IBattery
 import net.neoforged.neoforge.network.PacketDistributor
 
 /**
@@ -109,6 +112,59 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
      * @return True if handled.
      */
     open fun handleAction(player: Player, action: Int, data: Int): Boolean = false
+
+    /**
+     * Side configuration support, if [enableSideConfig] was called and the block entity has any of the modes.
+     */
+    var sideConfig: MenuSideConfig? = null
+        private set
+
+    /**
+     * Lets this menu's screen edit [blockEntity]'s sided configurations of [modes] (those it has) through
+     * [ACTION_SIDE_CONFIG]. Call on both sides with the same modes. [onChanged] runs on the server after a change;
+     * by default it saves and syncs the block entity.
+     */
+    @JvmOverloads
+    fun enableSideConfig(
+        blockEntity: BlockEntity?,
+        modes: List<SideConfigMode> = SideConfigModes.DEFAULTS,
+        onChanged: (BlockEntity) -> Unit = MenuSideConfig::markDirtyAndSync,
+    ): MenuSideConfig? {
+        if (blockEntity == null) return null
+        sideConfig = MenuSideConfig(blockEntity, modes) { onChanged(blockEntity) }.takeIf { it.modes.isNotEmpty() }
+        return sideConfig
+    }
+
+    /**
+     * Server side: routes an action from [MenuActionPayload]. ItszuLib's own actions (negative ids, e.g.
+     * [ACTION_SIDE_CONFIG]) are handled here; every other action goes to [handleAction].
+     */
+    fun dispatchAction(player: Player, action: Int, data: Int): Boolean = when (action) {
+        ACTION_SIDE_CONFIG -> sideConfig?.handle(data) ?: false
+        else -> if (action < 0) false else handleAction(player, action, data)
+    }
+
+    /**
+     * Syncs a battery's energy and capacity into the returned view (the client copy, for screens). [battery] may
+     * return null (the view then reads 0).
+     */
+    fun syncEnergy(battery: () -> IBattery?): EnergyView {
+        val view = EnergyView()
+        addSync(MenuSyncs.double({ battery()?.storage() ?: 0.0 }, { view.stored = it }))
+        addSync(MenuSyncs.double({ battery()?.maxStorage() ?: 0.0 }, { view.capacity = it }))
+        return view
+    }
+
+    /**
+     * Syncs a NeoForge energy handler's amount and capacity into the returned view, for blocks that use NeoForge's
+     * energy API directly.
+     */
+    fun syncEnergyHandler(handler: () -> EnergyHandler?): EnergyView {
+        val view = EnergyView()
+        addSync(MenuSyncs.long({ handler()?.amountAsLong ?: 0L }, { view.stored = it.toDouble() }))
+        addSync(MenuSyncs.long({ handler()?.capacityAsLong ?: 0L }, { view.capacity = it.toDouble() }))
+        return view
+    }
 
     /**
      * Adds [count] slots over [storage] starting at storage index [first], in rows of [columns] from ([x], [y]), 18
@@ -225,7 +281,22 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
         const val SLOT_SIZE = 18
         const val INVENTORY_SLOTS = 27
         const val HOTBAR_SLOTS = 9
+
+        /**
+         * Cycles one face of a sided configuration ([MenuSideConfig.data]); needs [enableSideConfig].
+         */
+        const val ACTION_SIDE_CONFIG = -1
     }
+}
+
+/**
+ * Client copy of synced energy (see [MenuCore.syncEnergy] and [MenuCore.syncEnergyHandler]).
+ */
+class EnergyView {
+    var stored = 0.0
+    var capacity = 0.0
+
+    val fraction: Double get() = if (capacity <= 0) 0.0 else (stored / capacity).coerceIn(0.0, 1.0)
 }
 
 /**

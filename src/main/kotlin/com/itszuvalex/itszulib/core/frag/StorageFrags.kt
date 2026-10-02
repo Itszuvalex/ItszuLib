@@ -1,12 +1,14 @@
 package com.itszuvalex.itszulib.core.frag
 
 import com.itszuvalex.itszulib.api.Modules
+import com.itszuvalex.itszulib.api.adapters.IBattery
 import com.itszuvalex.itszulib.api.adapters.IBlockEntity
 import com.itszuvalex.itszulib.api.adapters.ILevel
 import com.itszuvalex.itszulib.api.adapters.IModule
 import com.itszuvalex.itszulib.api.storage.IFluidStorage
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.utility.NBTSerializationScope
+import com.itszuvalex.itszulib.api.wrappers.WrapperEnergyHandlerIBattery
 import com.itszuvalex.itszulib.api.wrappers.WrapperResourceHandlerIFluidStorage
 import com.itszuvalex.itszulib.api.wrappers.WrapperResourceHandlerIItemStorage
 import com.itszuvalex.itszulib.core.BlockEntityFragmentCollection
@@ -21,6 +23,8 @@ import net.minecraft.world.level.storage.ValueOutput
 import net.neoforged.neoforge.capabilities.BlockCapability
 import net.neoforged.neoforge.transfer.ResourceHandler
 import net.neoforged.neoforge.transfer.ResourceHandlerUtil
+import net.neoforged.neoforge.transfer.energy.EnergyHandler
+import net.neoforged.neoforge.transfer.energy.EnergyHandlerUtil
 import net.neoforged.neoforge.transfer.fluid.FluidResource
 import net.neoforged.neoforge.transfer.item.ItemResource
 import net.neoforged.neoforge.transfer.resource.Resource
@@ -107,6 +111,57 @@ class FragFluidStorage @JvmOverloads constructor(storage: IFluidStorage, name: S
     companion object {
         const val NAME = "FluidStorage"
     }
+}
+
+/**
+ * Exposes a battery as [Modules.ENERGY_STORAGE], per side, and as NeoForge's energy capability (see
+ * [addEnergyStorage]). Per side as [FragStorage]: with no side, [storage]; otherwise the battery the block entity's
+ * [Modules.ENERGY_STORAGE_CONFIGURABLE] assigns to that face, or [storage] without one.
+ *
+ * @param persist Whether to save [storage] (LEVEL scope).
+ */
+class FragEnergyStorage @JvmOverloads constructor(val storage: IBattery, private val name: String = NAME, private val persist: Boolean = true) :
+    BlockEntityFragment<IBattery>() {
+    private val handlers = IdentityHashMap<IBattery, EnergyHandler>()
+
+    /**
+     * @return The battery exposed on [side], or null if that face exposes none.
+     */
+    fun storageFor(side: Direction?): IBattery? {
+        if (side == null) return storage
+        val config = host?.blockEntity()?.getModule(Modules.ENERGY_STORAGE_CONFIGURABLE, null) ?: return storage
+        return config.getStorageForGlobalFacing(side)
+    }
+
+    /**
+     * @return The NeoForge handler over [storageFor] ([side]), one cached instance per battery.
+     */
+    fun handler(side: Direction?): EnergyHandler? = storageFor(side)?.let { b -> handlers.getOrPut(b) { WrapperEnergyHandlerIBattery(b) } }
+
+    override fun name(): String = name
+
+    override fun module(): IModule<IBattery> = Modules.ENERGY_STORAGE
+
+    override fun faceToModuleMapper(be: IBlockEntity): (Direction?) -> IBattery? = ::storageFor
+
+    override fun handlesScope(scope: NBTSerializationScope): Boolean = persist && scope == NBTSerializationScope.LEVEL
+
+    override fun serializeTo(scope: NBTSerializationScope, output: ValueOutput) = storage.serialize(output)
+
+    override fun deserialize(input: ValueInput, scope: NBTSerializationScope) = storage.deserialize(input)
+
+    companion object {
+        const val NAME = "EnergyStorage"
+    }
+}
+
+/**
+ * Adds [frag] and exposes it through NeoForge's energy capability.
+ */
+fun BlockEntityFragmentCollection.addEnergyStorage(frag: FragEnergyStorage): FragEnergyStorage {
+    addFragment(frag)
+    addCapability(NeoCapabilities.Energy.BLOCK, frag::handler)
+    return frag
 }
 
 /**
@@ -285,5 +340,67 @@ class FragFluidAutoIO @JvmOverloads constructor(
         const val NAME = "FluidAutoIO"
         const val TICKS_DEFAULT = 20
         const val AMOUNT_DEFAULT = 250
+    }
+}
+
+/**
+ * Energy counterpart of [FragAutoIO]: every [ticksPerOperation] ticks, pulls energy from neighbours on INPUT faces into
+ * the battery [Modules.ENERGY_STORAGE_CONFIGURABLE] assigns to that face, and pushes from OUTPUT faces' batteries into
+ * neighbours, up to [amountPerOperation] in each direction in total, through NeoForge's energy capability.
+ */
+class FragEnergyAutoIO @JvmOverloads constructor(
+    private val ticksPerOperation: () -> Int = { TICKS_DEFAULT },
+    private val amountPerOperation: () -> Int = { AMOUNT_DEFAULT },
+    private val name: String = NAME,
+) : InternalBlockEntityFragment(), IBlockEntityTickable {
+    /**
+     * Ticks until the next operation; the operation runs when this reaches 0.
+     */
+    var ticks = 0
+        private set
+
+    private val handlers = IdentityHashMap<IBattery, EnergyHandler>()
+
+    override fun tick(level: ILevel, blockPos: BlockPos, blockState: BlockState) {
+        if (level.isClientSide()) return
+        ticks = FragAutoIO.incrementTicks(ticks, ticksPerOperation())
+        if (ticks != 0) return
+        val config = host?.blockEntity()?.getModule(Modules.ENERGY_STORAGE_CONFIGURABLE, null) ?: return
+        val amount = amountPerOperation()
+        var input = amount
+        var output = amount
+        for (face in Direction.entries) {
+            val io = config.getIOForAbsoluteFacing(face)
+            if (io == EnumAutomaticIO.NONE) continue
+            if (io == EnumAutomaticIO.INPUT && input <= 0 || io == EnumAutomaticIO.OUTPUT && output <= 0) continue
+            val ours = config.getStorageForGlobalFacing(face)?.let(::handler) ?: continue
+            val pos = blockPos.relative(face)
+            if (!level.isLoaded(pos)) continue
+            val neighbour = level.toMinecraft().getCapability(NeoCapabilities.Energy.BLOCK, pos, face.opposite) ?: continue
+            if (io == EnumAutomaticIO.INPUT) input -= EnergyHandlerUtil.move(neighbour, ours, input, null)
+            else output -= EnergyHandlerUtil.move(ours, neighbour, output, null)
+        }
+        if (input != amount || output != amount) markDirty()
+    }
+
+    /**
+     * @return The NeoForge handler over [battery], one cached instance per battery.
+     */
+    fun handler(battery: IBattery): EnergyHandler = handlers.getOrPut(battery) { WrapperEnergyHandlerIBattery(battery) }
+
+    override fun name(): String = name
+
+    override fun handlesScope(scope: NBTSerializationScope): Boolean = scope == NBTSerializationScope.LEVEL
+
+    override fun serializeTo(scope: NBTSerializationScope, output: ValueOutput) = output.putInt(FragAutoIO.TICKS_KEY, ticks)
+
+    override fun deserialize(input: ValueInput, scope: NBTSerializationScope) {
+        ticks = input.getIntOr(FragAutoIO.TICKS_KEY, 0)
+    }
+
+    companion object {
+        const val NAME = "EnergyAutoIO"
+        const val TICKS_DEFAULT = 1
+        const val AMOUNT_DEFAULT = 100
     }
 }

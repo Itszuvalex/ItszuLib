@@ -43,6 +43,8 @@ object DevStorageGameTests {
         test("fluid_resource_handler_transactions", DevGameTests.EMPTY_1, ::fluidResourceHandlerTransactions)
         test("item_auto_io_pulls_and_pushes", DevGameTests.EMPTY_5X3X5, ::itemAutoIO)
         test("fluid_auto_io_pushes", DevGameTests.EMPTY_5X3X5, ::fluidAutoIO)
+        test("sided_energy_capability", DevGameTests.EMPTY_1, ::sidedEnergyCapability)
+        test("energy_auto_io_pushes", DevGameTests.EMPTY_5X3X5, ::energyAutoIO)
         test("multiblock_form_and_break", DevGameTests.EMPTY_5X3X5, ::multiblockFormAndBreak)
         test("multiblock_shared_state", DevGameTests.EMPTY_5X3X5, ::multiblockSharedState)
     }
@@ -170,6 +172,38 @@ object DevStorageGameTests {
             helper.assertValueEqual(be.inventory.get(0).stackSize(), 10, "diamonds pulled in")
             helper.assertTrue(source.isEmpty, "source chest emptied")
             helper.assertValueEqual(sink.countItem(Items.GOLD_INGOT), 6, "gold pushed out")
+        }
+    }
+
+    /**
+     * Each face's energy capability reaches the battery; inserting through it notifies the battery once, on commit.
+     */
+    private fun sidedEnergyCapability(helper: GameTestHelper) {
+        val be = machine(helper)
+        val pos = helper.absolutePos(BlockPos.ZERO)
+        val east = helper.level.getCapability(NeoCapabilities.Energy.BLOCK, pos, Direction.EAST)!!
+        helper.assertValueEqual(east.capacityAsLong, DevMachineBlockEntity.BATTERY_CAPACITY.toLong(), "capacity through the capability")
+        val inserted = net.neoforged.neoforge.transfer.transaction.Transaction.openRoot().use { tx ->
+            east.insert(1500, tx).also { tx.commit() }
+        }
+        helper.assertValueEqual(inserted, 1500, "inserted")
+        helper.assertValueEqual(be.battery.storage(), 1500.0, "battery filled")
+        helper.assertTrue(be.getModule(com.itszuvalex.itszulib.api.Modules.ENERGY_STORAGE, Direction.UP) === be.battery, "module per side")
+        helper.succeed()
+    }
+
+    private fun energyAutoIO(helper: GameTestHelper) {
+        val source = machine(helper, CENTER)
+        val sink = machine(helper, CENTER.east())
+        source.battery.setStorage(2000.0)
+        source.energyConfig.update { it.cycleRelativeFacingIOBackward(Direction.EAST) } // OUTPUT
+        helper.runAfterDelay(1) {
+            val moved = sink.battery.storage()
+            helper.assertTrue(moved <= DevMachineBlockEntity.ENERGY_PER_TICK, "moved more than one operation's worth in a tick: $moved")
+        }
+        helper.succeedWhen {
+            helper.assertValueEqual(sink.battery.storage(), 2000.0, "energy pushed into the neighbour")
+            helper.assertValueEqual(source.battery.storage(), 0.0, "source drained")
         }
     }
 

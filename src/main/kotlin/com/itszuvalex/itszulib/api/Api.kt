@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.api
 
 import com.itszuvalex.itszulib.ItszuLib
+import com.itszuvalex.itszulib.api.adapters.IBattery
 import com.itszuvalex.itszulib.api.adapters.IColorable
 import com.itszuvalex.itszulib.api.adapters.IModule
 import com.itszuvalex.itszulib.api.adapters.Module
@@ -9,6 +10,7 @@ import com.itszuvalex.itszulib.api.storage.IFluidStorage
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.core.BlockEntityCore
 import com.itszuvalex.itszulib.menu.IMenuHost
+import com.itszuvalex.itszulib.core.SidedEnergyStorageConfiguration
 import com.itszuvalex.itszulib.core.SidedFluidStorageConfiguration
 import com.itszuvalex.itszulib.core.SidedItemStorageConfiguration
 import net.minecraft.core.Direction
@@ -56,6 +58,13 @@ object Modules {
     val FLUID_STORAGE: IModule<IFluidStorage> = Module.registerModule(id("fluid_storage"), null)
 
     /**
+     * A block entity's energy storage, per side. Exposed by [com.itszuvalex.itszulib.core.frag.FragEnergyStorage], which
+     * also exposes NeoForge's energy capability.
+     */
+    @JvmField
+    val ENERGY_STORAGE: IModule<IBattery> = Module.registerModule(id("energy_storage"), null)
+
+    /**
      * Which item storage and automatic IO mode each face uses. When present, [ITEM_STORAGE] follows it per side.
      */
     @JvmField
@@ -68,6 +77,13 @@ object Modules {
     @JvmField
     val FLUID_STORAGE_CONFIGURABLE: IModule<SidedFluidStorageConfiguration> =
         Module.registerModule(id("fluid_storage_configurable"), null)
+
+    /**
+     * Which energy storage and automatic IO mode each face uses. When present, [ENERGY_STORAGE] follows it per side.
+     */
+    @JvmField
+    val ENERGY_STORAGE_CONFIGURABLE: IModule<SidedEnergyStorageConfiguration> =
+        Module.registerModule(id("energy_storage_configurable"), null)
 
     /**
      * A block entity that can be a multiblock member (see [com.itszuvalex.itszulib.api.multiblock.MultiblockManager]).

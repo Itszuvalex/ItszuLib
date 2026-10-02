@@ -22,6 +22,11 @@ import com.itszuvalex.itszulib.core.TickableEntityBlockCore
 import com.itszuvalex.itszulib.core.TickableHorizontalEntityBlockCore
 import com.itszuvalex.itszulib.core.frag.FragMenu
 import net.minecraft.network.chat.Component
+import com.itszuvalex.itszulib.core.frag.FragEnergyAutoIO
+import com.itszuvalex.itszulib.core.frag.FragEnergyStorage
+import com.itszuvalex.itszulib.core.frag.addEnergyStorage
+import com.itszuvalex.itszulib.api.storage.PowerBattery
+import com.itszuvalex.itszulib.core.SidedEnergyStorageConfiguration
 import com.itszuvalex.itszulib.core.frag.FragFluidAutoIO
 import com.itszuvalex.itszulib.core.frag.FragFluidStorage
 import com.itszuvalex.itszulib.core.frag.FragItemAutoIO
@@ -80,9 +85,22 @@ class DevMachineBlockEntity(pos: BlockPos, state: BlockState) :
         Modules.FLUID_STORAGE_CONFIGURABLE,
     )
 
+    @JvmField
+    val battery = PowerBattery(BATTERY_CAPACITY) { markDirty() }
+
+    @JvmField
+    val energyConfig = FragSidedConfiguration(
+        "EnergyConfig",
+        SidedEnergyStorageConfiguration({ "battery" }, mapOf("battery" to battery), { HorizontalFacing.front(blockState) }),
+        Modules.ENERGY_STORAGE_CONFIGURABLE,
+    )
+
     init {
         fragList.addFragment(itemConfig)
         fragList.addFragment(fluidConfig)
+        fragList.addFragment(energyConfig)
+        fragList.addEnergyStorage(FragEnergyStorage(battery))
+        fragList.addTickableFragment(FragEnergyAutoIO({ 1 }, { ENERGY_PER_TICK }))
         fragList.addItemStorage(FragItemStorage(inventory))
         fragList.addFluidStorage(FragFluidStorage(tanks))
         fragList.addTickableFragment(FragItemAutoIO({ 1 }, { ITEMS_PER_TICK }))
@@ -94,6 +112,8 @@ class DevMachineBlockEntity(pos: BlockPos, state: BlockState) :
         const val TANK_CAPACITY = 4000
         const val ITEMS_PER_TICK = 4
         const val MB_PER_TICK = 100
+        const val BATTERY_CAPACITY = 10000.0
+        const val ENERGY_PER_TICK = 500
     }
 }
 

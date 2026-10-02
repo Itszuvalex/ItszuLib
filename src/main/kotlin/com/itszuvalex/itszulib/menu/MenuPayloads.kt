@@ -67,7 +67,7 @@ data class MenuSyncPayload(val containerId: Int, val entries: List<Entry>) : Cus
 
 /**
  * Client to server: a button or similar control in a [MenuCore]'s screen was used. [action] and [data] mean whatever
- * the menu's [MenuCore.handleAction] makes of them (e.g. "cycle the storage on face [data] forward").
+ * the menu's [MenuCore.dispatchAction] makes of them (e.g. "cycle the storage on face [data] forward").
  *
  * Replaces 1.12.2's per-control messages, which named a block by position and were applied without checking
  * that the sender had that block's menu open. This payload only reaches the sender's open menu, and only while
@@ -105,7 +105,7 @@ data class MenuActionPayload(val containerId: Int, val action: Int, val data: In
         @JvmStatic
         fun dispatch(menu: AbstractContainerMenu?, payload: MenuActionPayload, player: Player): Boolean {
             if (menu !is MenuCore || menu.containerId != payload.containerId || !menu.stillValid(player)) return false
-            return menu.handleAction(player, payload.action, payload.data)
+            return menu.dispatchAction(player, payload.action, payload.data)
         }
     }
 }

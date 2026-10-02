@@ -38,6 +38,7 @@ object DevMenuGameTests {
         test("menu_opens_on_use", DevGameTests.EMPTY_1, ::menuOpensOnUse)
         test("menu_syncs_to_client_menu", DevGameTests.EMPTY_1, ::menuSyncsToClientMenu)
         test("menu_action_dispatch", DevGameTests.EMPTY_1, ::menuActionDispatch)
+        test("menu_side_config_action", DevGameTests.EMPTY_1, ::menuSideConfigAction)
         test("menu_quick_move", DevGameTests.EMPTY_1, ::menuQuickMove)
         test("menu_storage_slots_honour_can_insert", DevGameTests.EMPTY_1, ::menuSlotsHonourCanInsert)
         test("menu_slots_over_copy_returning_storage", DevGameTests.EMPTY_1, ::menuOverCopyReturningStorage)
@@ -115,6 +116,34 @@ object DevMenuGameTests {
         player.setPos(player.position().add(100.0, 0.0, 0.0))
         helper.assertFalse(MenuActionPayload.dispatch(menu, MenuActionPayload(9, DevMenu.ACTION_CYCLE_STORAGE, east), player), "out of reach")
         helper.assertValueEqual(config.getStorageNameForRelativeFacing(Direction.EAST), "output", "out-of-reach action applied")
+        helper.succeed()
+    }
+
+    /**
+     * [MenuCore.ACTION_SIDE_CONFIG] cycles the face of the chosen mode's configuration; the menu offers only the modes
+     * the block entity has; bad faces, modes and ItszuLib action ids are refused.
+     */
+    private fun menuSideConfigAction(helper: GameTestHelper) {
+        val be = machine(helper)
+        val player = helper.makeMockPlayer(GameType.SURVIVAL)
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(BlockPos.ZERO).above()))
+        val menu = DevMenu(9, player.inventory, be)
+        val side = menu.sideConfig!!
+        helper.assertValueEqual(side.modes, com.itszuvalex.itszulib.menu.SideConfigModes.DEFAULTS, "modes")
+        fun act(data: Int) = MenuActionPayload.dispatch(menu, MenuActionPayload(9, com.itszuvalex.itszulib.menu.MenuCore.ACTION_SIDE_CONFIG, data), player)
+        val energyMode = side.modes.indexOf(com.itszuvalex.itszulib.menu.SideConfigModes.ENERGY)
+        val face = Direction.UP
+        helper.assertTrue(act(com.itszuvalex.itszulib.menu.MenuSideConfig.data(face, energyMode, false)), "handled")
+        helper.assertValueEqual(be.energyConfig.configuration.getIOForAbsoluteFacing(face), com.itszuvalex.itszulib.core.EnumAutomaticIO.INPUT, "energy face cycled")
+        helper.assertValueEqual(be.itemConfig.configuration.getIOForAbsoluteFacing(face), com.itszuvalex.itszulib.core.EnumAutomaticIO.NONE, "item face untouched")
+        act(com.itszuvalex.itszulib.menu.MenuSideConfig.data(face, energyMode, true))
+        helper.assertValueEqual(be.energyConfig.configuration.getIOForAbsoluteFacing(face), com.itszuvalex.itszulib.core.EnumAutomaticIO.NONE, "cycled back")
+        helper.assertFalse(act(7), "bad face")
+        helper.assertFalse(act(com.itszuvalex.itszulib.menu.MenuSideConfig.data(face, 9, false)), "bad mode")
+        helper.assertFalse(MenuActionPayload.dispatch(menu, MenuActionPayload(9, -2, 0), player), "unknown ItszuLib action")
+
+        val multi = helper.makeMockPlayer(GameType.SURVIVAL)
+        helper.assertTrue(DevMenu(10, multi.inventory, null).sideConfig == null, "no block entity, no side config")
         helper.succeed()
     }
 

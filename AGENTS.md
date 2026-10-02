@@ -74,16 +74,19 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │   └── wrappers/          Vanilla/NeoForge <-> ItszuLib adapters (WrapperLevel, WrapperBlockEntity,
 │                          WrapperVanillaItemStack/FluidStack, WrapperContainerIItemStorage,
 │                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
-├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath. Client only.
+├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath; ItszuLibClient (client
+│   │                      registrations); screen/ (ComponentScreen, ScreenComponent, SidePanel, ScreenStyle, gauges,
+│   │                      SideConfigPanel); scene/ (BlockScene*: 3D blocks in a screen). Client only. DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
 │   │                      (Fragments.kt), networks (Networks.kt), Sided{Item,Fluid}StorageConfiguration
 │   └── frag/              Fragment base classes; FragColorable, FragDropInventory; storage fragments
-│                          (FragItem/FluidStorage, FragSidedConfiguration, FragItem/FluidAutoIO); multiblock fragments
+│                          (FragItem/Fluid/EnergyStorage, FragSidedConfiguration, FragItem/Fluid/EnergyAutoIO); multiblock fragments
 │                          (FragMultiblockPart, FragMultiblockTickable); FragMenu;
 │                          FragConnectable, FragNetworkedWire
-├── menu/                  MenuCore (slots, shift-click, syncs), MenuSync/MenuSyncs, MenuSyncPayload,
-│                          MenuActionPayload, IMenuHost, BlockMenus
+├── menu/                  MenuCore (slots, shift-click, syncs, syncEnergy/EnergyView, enableSideConfig), MenuSync/MenuSyncs,
+│                          MenuSyncPayload, MenuActionPayload, MenuSideConfig (SideConfigMode/Modes/Cyclers),
+│                          IMenuHost, BlockMenus
 ├── network/               PacketHandler, ItszuLibNetwork (registers ItszuLib's payloads)
 ├── team/                  Teams and per-team data: Team/TeamState (rules + invariants), TeamDataType + Research,
 │                          TeamCodec, TeamStore (file persistence), TeamManager, TeamNetwork (sync + lifecycle),
@@ -134,6 +137,14 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 ### Multiblocks
 Controller-less, from TechnoLich, with shared state (DECISIONS D11). `MultiblockShape.register(id, slots, breakPolicy, state)` maps offsets to role names; the (0,0,0) slot is required and is the structure's home. A member exposes `IMultiblockMember` (usually `FragMultiblockPart(candidateRoles, autoForm)` through `Modules.MULTIBLOCK_MEMBER`) and saves its own membership. `MultiblockManager.SERVER` forms structures when auto-forming members load (all slots loaded, roles matching) or on `form(level, shape, anchor)`, and `disband`s them without break effects. Breaking a member breaks the structure: `DISSOLVE` frees the others, `DESTROY_ALL` destroys them (loading their chunks). A stateful shape's `IMultiblockState` lives on the home member, saved with its chunk; other members reach it with `FragMultiblockPart.sharedState()`, and it gets `onBreak` to drop its contents. While a member outside the home chunk is in a ticking chunk, the manager keeps the home chunk loaded without ticking it (an `itszulib:multiblock` ticket that lapses 60 ticks after the last refresh). Reloaded members are checked against the home member and leave if their structure is gone. `FragMultiblockTickable` runs once per game tick per structure. Faces between members: `Multiblock{Item,Fluid}StorageConfiguration`. `ItszuLib` ticks the manager (`ServerTickEvent.Post`) and clears it on server stop.
 
+### Screens
+Build machine screens on `ComponentScreen` (DECISIONS D12): place components in `addComponents()` (`EnergyGauge`,
+`FluidGauge`, `ProgressBar`, `Label` or your own `ScreenComponent`), add `SidePanel`s for content behind a tab. A menu
+that calls `enableSideConfig(blockEntity[, modes])` gets the 3D side configuration panel automatically; modes default
+to item, fluid and energy (`SideConfigModes`), and a mode's `SideConfigCycler` decides what a click changes. Sync
+energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLib's own menu actions use negative ids
+(`MenuCore.ACTION_SIDE_CONFIG`); give yours non-negative ids and handle them in `handleAction`.
+
 ### Networks
 `INetwork`/`TileNetwork` group `INetworkNode`s (by `Loc4`) into server-side networks in `ItszuLib.NETWORK_MANAGER`, ticked from `ServerTickEvent.Pre/Post`. Nodes are found through the network module on the block entity (`TileNetwork#networkModule`). Chunk unloads drop that chunk's nodes as a batch; block entities must re-add their node when they load. Splits explore iteratively.
 
@@ -163,7 +174,7 @@ framework changes generic, and list changes to the code TechnoLich borrowed in `
 `dev/DevContent.kt` registers dev blocks only when `!FMLEnvironment.isProduction()`:
 
 - `itszulib:dev_frag_block`: colorable, 1-slot inventory exposed via `Capabilities.Item.BLOCK`, drops on break.
-- `itszulib:dev_machine` (`dev/DevStorageContent.kt`): 2-slot inventory (slot 0 "input", slot 1 "output") and a 4000 mB tank, each behind a sided configuration (`FragSidedConfiguration`), exposed per side by `FragItemStorage`/`FragFluidStorage`, with item and fluid auto IO every tick.
+- `itszulib:dev_machine` (`dev/DevStorageContent.kt`): 2-slot inventory (slot 0 "input", slot 1 "output"), a 4000 mB tank and a 10000 battery, each behind a sided configuration (`FragSidedConfiguration`), exposed per side by `FragItemStorage`/`FragFluidStorage`/`FragEnergyStorage`, with item, fluid and energy auto IO every tick. Its screen (`DevScreen`) is a `ComponentScreen` with tank and energy gauges and the side configuration panel.
 - `itszulib:dev_multiblock`: a part of a two-block multiblock (`DevMultiblockBlock.SHAPE`, `itszulib:dev_pair`: a `core` and a `wing` east of it); two side by side form on their own. `FragMultiblockPart`, a shared `DevCounter` tick counter, a one-slot inventory and a `MultiblockSidedItemStorageConfiguration`.
 
 `dev/DevGameTests.kt` registers test functions (`Registries.TEST_FUNCTION`) and test instances (`RegisterGameTestsEvent`). Add a test with `test("name") { helper -> ...; helper.succeed() }` (vanilla's 1x1x1 `minecraft:empty` structure) or `test("name", DevGameTests.EMPTY_5X3X5) { ... }` for tests that need neighbours (`data/itszulib/structure/dev_5x3x5.nbt`, an empty 5x3x5 structure). Framework tests live in `DevGameTests`; storage, sided configuration, auto IO and multiblock tests in `DevStorageGameTests`. `GameTestHelper#assertValueEqual(actual, expected, name)` takes the actual value first.

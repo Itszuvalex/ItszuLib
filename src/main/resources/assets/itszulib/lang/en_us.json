@@ -1,5 +1,23 @@
 {
   "gui.itszulib.tank.empty": "Empty",
   "gui.itszulib.tank.amount": "%s / %s mB",
-  "gui.itszulib.energy": "%s / %s %s"
+  "gui.itszulib.energy": "%s / %s %s",
+  "gui.itszulib.energy.unit": "FE",
+  "gui.itszulib.side_config.tab": "IO",
+  "gui.itszulib.side_config.title": "Side configuration",
+  "gui.itszulib.side_config.mode": "Configure: %s",
+  "gui.itszulib.side_config.mode.item": "Items",
+  "gui.itszulib.side_config.mode.fluid": "Fluids",
+  "gui.itszulib.side_config.mode.energy": "Energy",
+  "gui.itszulib.side_config.face": "Face: %s",
+  "gui.itszulib.side_config.storage": "Storage: %s",
+  "gui.itszulib.side_config.io.input": "Pulls in",
+  "gui.itszulib.side_config.io.output": "Pushes out",
+  "gui.itszulib.side_config.io.none": "No automatic IO",
+  "gui.itszulib.side_config.dir.down": "Down",
+  "gui.itszulib.side_config.dir.up": "Up",
+  "gui.itszulib.side_config.dir.north": "North",
+  "gui.itszulib.side_config.dir.south": "South",
+  "gui.itszulib.side_config.dir.west": "West",
+  "gui.itszulib.side_config.dir.east": "East"
 }
