@@ -59,7 +59,8 @@ object TechTreeGeometry {
  * its state for the team (green researched, yellow available, grey locked; hidden ones are not drawn), progress under
  * it, its place in the team's research queue ([Research.queue]) as a badge, links to its prerequisites, and a tooltip
  * with its name, description, progress, queue place and missing prerequisites. Drag to pan, scroll to pan up and down
- * (with shift, sideways); clicking a technology calls [onSelect], right-clicking it [onAlternate].
+ * (with shift, sideways); clicking a technology calls [onSelect], right-clicking it [onAlternate]. It opens centred on
+ * [selected], if any.
  *
  * @param research The team's research; by default the local player's (synced team data).
  * @param selected Drawn with a white frame, e.g. what a machine is researching.
@@ -80,9 +81,15 @@ class TechTreeView @JvmOverloads constructor(
 
     private fun technologies(): Technologies = Minecraft.getInstance().level?.registryAccess()?.let(TechTree::of) ?: Technologies.EMPTY
 
+    /**
+     * Pans so the view opens centred on [selected] if it has one, else at the layout's top left.
+     */
     private fun clamp(layout: TechTreeLayout.Result) {
-        if (panX.isNaN()) panX = 0.0
-        if (panY.isNaN()) panY = 0.0
+        if (panX.isNaN() || panY.isNaN()) {
+            val point = selected()?.let(layout.positions::get)
+            panX = point?.let { TechTreeGeometry.PAD + it.x * TechTreeGeometry.CELL_WIDTH + TechTreeGeometry.NODE / 2.0 - width / 2.0 } ?: 0.0
+            panY = point?.let { TechTreeGeometry.PAD + it.y * TechTreeGeometry.CELL_HEIGHT + TechTreeGeometry.NODE / 2.0 - height / 2.0 } ?: 0.0
+        }
         panX = TechTreeGeometry.clampPan(panX, TechTreeGeometry.contentWidth(layout), width)
         panY = TechTreeGeometry.clampPan(panY, TechTreeGeometry.contentHeight(layout), height)
     }
