@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.team
 
 import com.itszuvalex.itszulib.ItszuLib
+import com.itszuvalex.itszulib.store.ServerStores
 import com.mojang.logging.LogUtils
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtOps
@@ -9,16 +10,10 @@ import net.minecraft.network.codec.ByteBufCodecs
 import net.minecraft.network.codec.StreamCodec
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.minecraft.resources.Identifier
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.storage.LevelResource
 import net.neoforged.neoforge.common.NeoForge
 import net.neoforged.neoforge.event.RegisterCommandsEvent
 import net.neoforged.neoforge.event.entity.player.PlayerEvent
-import net.neoforged.neoforge.event.level.LevelEvent
-import net.neoforged.neoforge.event.server.ServerStartingEvent
-import net.neoforged.neoforge.event.server.ServerStoppedEvent
 import net.neoforged.neoforge.network.PacketDistributor
 import net.neoforged.neoforge.network.handling.IPayloadContext
 import net.neoforged.neoforge.server.ServerLifecycleHooks
@@ -65,35 +60,18 @@ object ClientTeam {
 }
 
 /**
- * Wires [ItszuLib.TEAMS] into the server lifecycle: load when the server starts, save with the overworld (autosave
- * and shutdown), give each joining player a solo team, sync each player's team, and register `/itszulib team`. The
- * sync payload is registered with ItszuLib's others in [com.itszuvalex.itszulib.network.ItszuLibNetwork].
+ * Wires [ItszuLib.TEAMS] into the server: loaded and saved with the server as a [ServerStores] store
+ * (`<world>/data/itszulib/teams.dat`), each joining player given a solo team, each player's team synced, and
+ * `/itszulib team` registered. The sync payload is registered with ItszuLib's others in
+ * [com.itszuvalex.itszulib.network.ItszuLibNetwork].
  */
 object TeamEvents {
     @JvmStatic
     fun register() {
-        NeoForge.EVENT_BUS.addListener(::onServerStarting)
-        NeoForge.EVENT_BUS.addListener(::onLevelSave)
-        NeoForge.EVENT_BUS.addListener(::onServerStopped)
+        ServerStores.register(Identifier.fromNamespaceAndPath(ItszuLib.ID, "teams.dat"), ItszuLib.TEAMS, ::TeamStore)
         NeoForge.EVENT_BUS.addListener(::onLogin)
         NeoForge.EVENT_BUS.addListener { event: RegisterCommandsEvent -> TeamCommands.register(event.dispatcher) }
         ItszuLib.TEAMS.onChange(::syncChanged)
-    }
-
-    private fun onServerStarting(event: ServerStartingEvent) {
-        val server = event.server
-        val file = server.getWorldPath(LevelResource.DATA).resolve(ItszuLib.ID).resolve("teams.dat")
-        ItszuLib.TEAMS.load(TeamStore(file), server.registryAccess().createSerializationContext(NbtOps.INSTANCE))
-    }
-
-    private fun onLevelSave(event: LevelEvent.Save) {
-        val level = event.level as? ServerLevel ?: return
-        if (level.dimension() == Level.OVERWORLD) ItszuLib.TEAMS.save()
-    }
-
-    private fun onServerStopped(event: ServerStoppedEvent) {
-        ItszuLib.TEAMS.save()
-        ItszuLib.TEAMS.unload()
     }
 
     private fun onLogin(event: PlayerEvent.PlayerLoggedInEvent) {

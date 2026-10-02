@@ -80,7 +80,8 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │   │                      DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
-│   │                      (Fragments.kt), networks (Networks.kt), Sided{Item,Fluid}StorageConfiguration
+│   │                      (Fragments.kt), networks (Networks.kt), producer/consumer distribution (Distribution.kt),
+│   │                      Sided{Item,Fluid}StorageConfiguration
 │   └── frag/              Fragment base classes; FragColorable, FragDropInventory; storage fragments
 │                          (FragItem/Fluid/EnergyStorage, FragSidedConfiguration, FragItem/Fluid/EnergyAutoIO); multiblock fragments
 │                          (FragMultiblockPart, FragMultiblockTickable); FragMenu;
@@ -89,6 +90,8 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          MenuSyncPayload, MenuActionPayload, MenuSideConfig (SideConfigMode/Modes/Cyclers),
 │                          IMenuHost, BlockMenus
 ├── network/               PacketHandler, ItszuLibNetwork (registers ItszuLib's payloads)
+├── store/                 Crash-safe server data: SafeStore + StoreFormat (file), StoreManager (state, change, save),
+│                          ServerStores (server lifecycle)
 ├── research/              Tech trees: Technology (datapack registry itszulib:technology), Technologies (rules),
 │                          TechTree (registry, team progress, gating, TechnologyResearchedEvent), TechTreeLayout
 ├── team/                  Teams and per-team data: Team/TeamState (rules + invariants), TeamDataType + Research,
@@ -152,10 +155,15 @@ energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLi
 ### Networks
 `INetwork`/`TileNetwork` group `INetworkNode`s (by `Loc4`) into server-side networks in `ItszuLib.NETWORK_MANAGER`, ticked from `ServerTickEvent.Pre/Post`. Nodes are found through the network module on the block entity (`TileNetwork#networkModule`). Chunk unloads drop that chunk's nodes as a batch; block entities must re-add their node when they load. Splits explore iteratively.
 
+A `DistributingTileNetwork` also moves an amount between producers, storage and consumers every tick (DECISIONS D15): its `IDistributionNode` nodes return `DistributionParticipant(key, role, Distributable)`s (each key once), and `DistributionAlgorithm` moves within each participant's transfer limit. `DistributableBattery` adapts an `IBattery`; the algorithm can also be run directly on lists of `Distributable`s.
+
 ### Teams and per-team data
 Every player is always in exactly one team (a new player gets a solo team they own). Mods register per-team data with `TeamDataTypes.register(TeamDataType(id, codec, empty, merge, copy))` during mod construction; ItszuLib registers `Research.TYPE` (`itszulib:research`: unlocked ids, merged by union, plus partial progress per technology, merged by maximum). Joining (invite and accept) merges the joiner's data into the team; leaving or being removed gives the player a solo team with a copy; disbanding gives every member a copy. Roles: owner (promote/demote officers, hand over ownership, rename, disband; cannot leave a shared team without handing it over), officers (invite, revoke, remove anyone but the owner), members. Read `ItszuLib.TEAMS.state`; change only through `ItszuLib.TEAMS.change { state -> newState }` on the server thread.
 
-Data integrity (do not weaken): `TeamState` is immutable and checks its invariants on construction, so an operation yields a valid state or changes nothing. Persistence is `TeamStore`, not vanilla `SavedData` (vanilla replaces unreadable saved data with a fresh empty instance and later saves it over the file): strict decoding, fallback to `teams.dat.bak` with the bad file moved aside, refusal to save for the session if neither file reads, and temp-file + read-back + atomic-move saves. Unregistered data types are kept raw. Stored at `<world>/data/itszulib/teams.dat`; clients get their own team through `TeamSyncPayload` (only connections that negotiated it). See DECISIONS D10.
+Data integrity (do not weaken): `TeamState` is immutable and checks its invariants on construction, so an operation yields a valid state or changes nothing. Persistence is `TeamStore` (a `SafeStore`, below), not vanilla `SavedData` (vanilla replaces unreadable saved data with a fresh empty instance and later saves it over the file): strict decoding, fallback to `teams.dat.bak` with the bad file moved aside, refusal to save for the session if neither file reads, and temp-file + read-back + atomic-move saves. Unregistered data types are kept raw. Stored at `<world>/data/itszulib/teams.dat`; clients get their own team through `TeamSyncPayload` (only connections that negotiated it). See DECISIONS D10.
+
+### Server data stores
+For server data that must not be lost, use `store/` rather than `SavedData` (DECISIONS D14): an immutable value, a `StoreFormat<T>` (empty, encode, strict decode that throws on anything unreadable), a `StoreManager<T>` changed only through `change { old -> new }` on the server thread, and `ServerStores.register(Identifier(ns, "file.dat"), manager, format)` to load it at server start (`<world>/data/<ns>/file.dat`), save it with the overworld and unload it at stop. `SafeStore` keeps a backup, moves an unreadable file aside, refuses to save over data it could not read, and writes through a verified temp file and an atomic move.
 
 ### Tech trees
 Technologies are a synced datapack registry, `itszulib:technology` (`data/<ns>/itszulib/technology/<path>.json`: `tree`, `prerequisites`, `cost`, `icon`, optional `name`, `description`, `position`, `hidden`, `unlocked_by_default`). Research is per team (`Research` team data). `TechTree.of(registryAccess)` gives the `Technologies` (rules: `state` is RESEARCHED, AVAILABLE when every prerequisite is researched, LOCKED, or HIDDEN; `problems()`; `layout(tree)`). Mods produce progress and call `TechTree.addProgress(server, team, id, amount)` (returns what it used; unlocks at the cost and posts `TechnologyResearchedEvent`) in batches, since each change syncs the team; gate with `TechTree.isResearched(player, id)` on either side. Draw a tree with `TechTreeView` in a `ComponentScreen`. Data meant only for dev runs takes `"neoforge:conditions": [{"type": "itszulib:dev_environment"}]`. See DECISIONS D13.
