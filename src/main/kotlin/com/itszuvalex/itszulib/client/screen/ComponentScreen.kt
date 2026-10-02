@@ -102,7 +102,8 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
     override fun <T> addHostWidget(widget: T): T where T : GuiEventListener, T : Renderable, T : NarratableEntry = addRenderableWidget(widget)
 
     /**
-     * Adds this screen's components and panels; called once, on the first [init].
+     * Adds this screen's components and panels; called once, at the start of the first [init] (before the screen's
+     * position is known: components are placed relative to the image).
      */
     protected open fun addComponents() {}
 
@@ -139,11 +140,16 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
     }
 
     override fun init() {
-        super.init()
         if (!built) {
             built = true
             addComponents()
             defaultPanels().forEach(::addPanel)
+        }
+        super.init()
+        // Centre the image, the tabs and the open panel together, so the panel stays on screen.
+        if (panels.isNotEmpty()) {
+            val extra = TAB_SIZE + TAB_GAP + (openPanel?.component?.width ?: 0)
+            leftPos = maxOf(0, (width - imageWidth - extra) / 2)
         }
         for (p in placed) {
             p.component.x = leftPos + p.x
