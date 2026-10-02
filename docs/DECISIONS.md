@@ -305,6 +305,9 @@ where items go, since generated screens draw no art.
   may give a hint (`SlotLook.hint()`; `addStorageSlots(..., hint = stack)`) shown faded while it is empty, to say
   what goes there. Screens with hand-drawn art can still call `extractSlots` for these.
 - Title and inventory labels use the theme's text colour.
+- **Side configuration background** (maintainer): the 3D side configuration view has its own background toggle (the
+  "Bg" button beside the mode button), dark (the theme's well) or light, whichever shows the blocks better; it is
+  remembered in the client config (`sideConfigLight`).
 
 Not done: themed tab buttons (still vanilla buttons), and themes for screens other than `ComponentScreen`s.
 

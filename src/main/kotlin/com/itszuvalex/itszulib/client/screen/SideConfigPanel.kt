@@ -25,7 +25,8 @@ import org.joml.Vector3f
  * pulled out around it at half size, each face shaded by its automatic IO (blue pulls in, orange pushes out). Drag to
  * rotate (it starts with the front towards the player); hover a face for its direction, IO and storage; click a face,
  * or the neighbour on that side, to cycle it with the mode's [SideConfigMode.cycler] (shift cycles backwards); the
- * button switches between the menu's modes. Reads the configurations from the client block entity (they sync with
+ * button switches between the menu's modes, and the small one beside it the view's background between dark and light
+ * (whichever shows the blocks better; remembered in [ScreenThemeConfig.sideConfigLight]). Reads the configurations from the client block entity (they sync with
  * it) and changes them through [MenuCore.ACTION_SIDE_CONFIG].
  */
 class SideConfigPanel(private val side: MenuSideConfig, private val containerId: Int) :
@@ -49,9 +50,15 @@ class SideConfigPanel(private val side: MenuSideConfig, private val containerId:
         val button = Button.builder(label()) { b ->
             modeIndex = (modeIndex + 1) % side.modes.size
             b.message = label()
-        }.bounds(x + PAD, y + 2 * PAD + VIEW, VIEW, BUTTON_H).build()
+        }.bounds(x + PAD, y + 2 * PAD + VIEW, VIEW - BUTTON_H - PAD, BUTTON_H).build()
         button.active = side.modes.size > 1
         host.addHostWidget(button)
+        host.addHostWidget(
+            Button.builder(Component.literal("Bg")) { ScreenThemeConfig.setSideConfigLight(!ScreenThemeConfig.sideConfigLight()) }
+                .bounds(x + PAD + VIEW - BUTTON_H, y + 2 * PAD + VIEW, BUTTON_H, BUTTON_H)
+                .tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("gui.itszulib.side_config.background")))
+                .build(),
+        )
     }
 
     private fun neighbours(): List<Direction> {
@@ -74,7 +81,7 @@ class SideConfigPanel(private val side: MenuSideConfig, private val containerId:
 
     override fun extract(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, host: ComponentHost) {
         ScreenStyle.panel(graphics, x, y, width, height)
-        graphics.fill(view.x, view.y, view.x + VIEW, view.y + VIEW, ScreenStyle.DARK)
+        graphics.fill(view.x, view.y, view.x + VIEW, view.y + VIEW, if (ScreenThemeConfig.sideConfigLight()) LIGHT_BACKGROUND else ScreenStyle.DARK)
         val be = side.blockEntity
         val level = be.level as? ClientLevel ?: return
         val config = side.configuration(mode)
@@ -127,6 +134,7 @@ class SideConfigPanel(private val side: MenuSideConfig, private val containerId:
          * Overlays sit a little outside the faces so they never fight them for depth.
          */
         const val OVERLAY_SIZE = 1.04f
+        const val LIGHT_BACKGROUND = 0xFFE6E6E6.toInt()
         const val INPUT = 0x803399FF.toInt()
         const val OUTPUT = 0x80FF9933.toInt()
 

@@ -86,7 +86,8 @@ object ScreenGrain {
 
 /**
  * ItszuLib's client settings for screens (`config/itszulib-client.toml`, editable from the Mods screen): the theme to
- * draw every ItszuLib screen with (empty: each screen's own default), and whether panels show grain.
+ * draw every ItszuLib screen with (empty: each screen's own default), whether panels show grain, and the side
+ * configuration view's background.
  */
 object ScreenThemeConfig {
     private val builder = ModConfigSpec.Builder()
@@ -101,6 +102,11 @@ object ScreenThemeConfig {
         .translation("itszulib.configuration.grain")
         .define("grain", true)
 
+    private val SIDE_CONFIG_LIGHT: ModConfigSpec.BooleanValue = builder
+        .comment("Light background behind the 3D side configuration view (dark if false).")
+        .translation("itszulib.configuration.side_config_light")
+        .define("sideConfigLight", false)
+
     @JvmField
     val SPEC: ModConfigSpec = builder.build()
 
@@ -112,4 +118,16 @@ object ScreenThemeConfig {
 
     @JvmStatic
     fun grain(): Boolean = runCatching { GRAIN.get() }.getOrDefault(true)
+
+    @JvmStatic
+    fun sideConfigLight(): Boolean = runCatching { SIDE_CONFIG_LIGHT.get() }.getOrDefault(false)
+
+    /** Sets and saves the side configuration view's background (does nothing before the config loads). */
+    @JvmStatic
+    fun setSideConfigLight(light: Boolean) {
+        runCatching {
+            SIDE_CONFIG_LIGHT.set(light)
+            SIDE_CONFIG_LIGHT.save()
+        }
+    }
 }

@@ -30,5 +30,8 @@
   "itszulib.configuration.theme": "Screen theme",
   "itszulib.configuration.theme.tooltip": "A theme id such as itszulib:light or itszulib:dark for every ItszuLib-based screen. Empty: each screen's own default.",
   "itszulib.configuration.grain": "Panel grain",
-  "itszulib.configuration.grain.tooltip": "A faint per-pixel grain on screen panels."
+  "itszulib.configuration.grain.tooltip": "A faint per-pixel grain on screen panels.",
+  "gui.itszulib.side_config.background": "Background: dark / light",
+  "itszulib.configuration.side_config_light": "Light side configuration background",
+  "itszulib.configuration.side_config_light.tooltip": "A light background behind the 3D side configuration view, for dark blocks."
 }
