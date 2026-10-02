@@ -76,7 +76,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
 ├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath; ItszuLibClient (client
 │   │                      registrations); screen/ (ComponentScreen, ScreenComponent, SidePanel, ScreenStyle, gauges,
-│   │                      SideConfigPanel, TechTreeView, ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
+│   │                      SideConfigPanel, TechTreeView, ThemedButton, ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
 │   │                      DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
@@ -156,7 +156,8 @@ energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLi
 (DECISIONS D16): `ScreenThemes` holds `itszulib:light`, `itszulib:dark` and JSON themes from
 `assets/<ns>/itszulib/themes/*.json` (`parent` plus any `colors`); a screen picks its default with `defaultTheme()`,
 the client config (`ScreenThemeConfig`) can force one and turn grain off, and components read colours from
-`ScreenStyle` (pointed at the screen's theme while it draws). Slots are drawn as insets, take-only slots ringed and
+`ScreenStyle` (pointed at the screen's theme while it draws); use `ThemedButton` rather than vanilla buttons so
+buttons follow the theme too. Slots are drawn as insets, take-only slots ringed and
 hints (`addStorageSlots(..., hint = stack)`, `SlotLook`) faded into empty slots. Anything a screen
 draws outside its image belongs in `ComponentScreen.extraAreas()`, which the JEI plugin reports so JEI's overlays stay
 clear. JEI is a `compileOnly` dependency plus a dev-run `localRuntime` (`-Pjei=false` leaves it out).

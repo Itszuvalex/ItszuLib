@@ -12,7 +12,6 @@ import com.itszuvalex.itszulib.menu.MenuSideConfig
 import com.itszuvalex.itszulib.menu.SideConfigMode
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.gui.components.Button
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.Direction
@@ -47,17 +46,19 @@ class SideConfigPanel(private val side: MenuSideConfig, private val containerId:
         view.width = VIEW
         view.height = VIEW
         val label = { Component.translatable("gui.itszulib.side_config.mode", mode.label) }
-        val button = Button.builder(label()) { b ->
+        val button = ThemedButton(x + PAD, y + 2 * PAD + VIEW, VIEW - BUTTON_H - PAD, BUTTON_H, label(), { b ->
             modeIndex = (modeIndex + 1) % side.modes.size
             b.message = label()
-        }.bounds(x + PAD, y + 2 * PAD + VIEW, VIEW - BUTTON_H - PAD, BUTTON_H).build()
+        })
         button.active = side.modes.size > 1
         host.addHostWidget(button)
         host.addHostWidget(
-            Button.builder(Component.literal("Bg")) { ScreenThemeConfig.setSideConfigLight(!ScreenThemeConfig.sideConfigLight()) }
-                .bounds(x + PAD + VIEW - BUTTON_H, y + 2 * PAD + VIEW, BUTTON_H, BUTTON_H)
-                .tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("gui.itszulib.side_config.background")))
-                .build(),
+            ThemedButton(
+                x + PAD + VIEW - BUTTON_H, y + 2 * PAD + VIEW, BUTTON_H, BUTTON_H, Component.literal("Bg"),
+                { ScreenThemeConfig.setSideConfigLight(!ScreenThemeConfig.sideConfigLight()) },
+                Component.translatable("gui.itszulib.side_config.background"),
+                selected = ScreenThemeConfig::sideConfigLight,
+            ),
         )
     }
 

@@ -30,6 +30,20 @@ class ScreenThemeTests {
     }
 
     @Test
+    fun Definition_ButtonColours_OverriddenOrInherited() {
+        val theme = definition("""{"colors": {"button_hover": "#123456"}}""").resolve(ScreenTheme.DARK)
+        Assertions.assertEquals(0xFF123456.toInt(), theme.buttonHover)
+        Assertions.assertEquals(ScreenTheme.DARK.button, theme.button)
+    }
+
+    @Test
+    fun Theme_WithoutButtonColours_DerivesThemFromThePanel() {
+        val theme = ScreenTheme(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 0f)
+        Assertions.assertEquals(theme.panel, theme.button)
+        Assertions.assertEquals(theme.panelLight, theme.buttonHover)
+    }
+
+    @Test
     fun Definition_UnknownColourName_IsRejected() {
         val result = ThemeDefinition.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString("""{"colors": {"panle": "#000000"}}"""))
         Assertions.assertTrue(result.isError)

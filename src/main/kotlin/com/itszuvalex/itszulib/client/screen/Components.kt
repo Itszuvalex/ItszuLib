@@ -77,6 +77,36 @@ object ScreenStyle {
      */
     @JvmStatic
     fun frame(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int, height: Int) = graphics.fill(x - 1, y - 1, x + width + 1, y + height + 1, theme.frame)
+
+    /** How a [button] is drawn. */
+    enum class ButtonState { IDLE, HOVERED, SELECTED, INACTIVE }
+
+    /**
+     * A button's background: an outline with cut corners around a raised face (the panel's bevel) in the theme's
+     * button colour, its hover colour while [ButtonState.HOVERED], pressed in like a slot while
+     * [ButtonState.SELECTED], and flat in the panel colour while [ButtonState.INACTIVE].
+     */
+    @JvmStatic
+    fun button(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int, height: Int, state: ButtonState) {
+        val t = theme
+        val r = x + width
+        val b = y + height
+        graphics.fill(x + 1, y, r - 1, y + 1, t.outline)
+        graphics.fill(x + 1, b - 1, r - 1, b, t.outline)
+        graphics.fill(x, y + 1, x + 1, b - 1, t.outline)
+        graphics.fill(r - 1, y + 1, r, b - 1, t.outline)
+        when (state) {
+            ButtonState.SELECTED -> inset(graphics, x + 1, y + 1, width - 2, height - 2)
+            ButtonState.INACTIVE -> graphics.fill(x + 1, y + 1, r - 1, b - 1, t.panel)
+            else -> {
+                graphics.fill(x + 1, y + 1, r - 1, b - 1, if (state == ButtonState.HOVERED) t.buttonHover else t.button)
+                graphics.fill(x + 1, y + 1, r - 2, y + 2, t.panelLight)
+                graphics.fill(x + 1, y + 1, x + 2, b - 2, t.panelLight)
+                graphics.fill(x + 2, b - 2, r - 1, b - 1, t.panelDark)
+                graphics.fill(r - 2, y + 2, r - 1, b - 1, t.panelDark)
+            }
+        }
+    }
 }
 
 /**

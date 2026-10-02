@@ -4,9 +4,7 @@ import com.itszuvalex.itszulib.menu.MenuCore
 import com.itszuvalex.itszulib.menu.SlotLook
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.Renderable
-import net.minecraft.client.gui.components.Tooltip
 import net.minecraft.client.gui.components.events.GuiEventListener
 import net.minecraft.client.gui.narration.NarratableEntry
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -16,6 +14,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.item.ItemStack
 
 /**
  * What a [ScreenComponent] can reach in its screen.
@@ -68,13 +67,18 @@ abstract class ScreenComponent(var width: Int, var height: Int) {
 
 /**
  * A component shown beside the screen while its tab is selected. [tab] is the tab button's short label and [title]
- * its tooltip.
+ * its tooltip; a non-empty [icon] is drawn on the tab instead of the label.
  */
-class SidePanel(@JvmField val tab: Component, @JvmField val title: Component, @JvmField val component: ScreenComponent)
+class SidePanel @JvmOverloads constructor(
+    @JvmField val tab: Component,
+    @JvmField val title: Component,
+    @JvmField val component: ScreenComponent,
+    @JvmField val icon: ItemStack = ItemStack.EMPTY,
+)
 
 /**
  * A container screen built from [ScreenComponent]s: components placed in the screen's image ([addComponent]) and side
- * panels ([addPanel]) toggled by tab buttons along the image's right edge, one open at a time. Menus with side
+ * panels ([addPanel]) toggled by tab buttons ([ThemedButton]s) along the image's right edge, one open at a time. Menus with side
  * configuration ([MenuCore.enableSideConfig]) get a side configuration panel by default ([defaultPanels]).
  *
  * It draws in a [ScreenTheme]: the player's chosen one ([ScreenThemeConfig]) or the screen's [defaultTheme]. The
@@ -163,9 +167,10 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
         }
         panels.forEachIndexed { i, panel ->
             addRenderableWidget(
-                Button.builder(panel.tab) { togglePanel(panel) }
-                    .bounds(leftPos + imageWidth, topPos + TAB_GAP + i * (TAB_SIZE + TAB_GAP), TAB_SIZE, TAB_SIZE)
-                    .tooltip(Tooltip.create(panel.title)).build(),
+                ThemedButton(
+                    leftPos + imageWidth, topPos + TAB_GAP + i * (TAB_SIZE + TAB_GAP), TAB_SIZE, TAB_SIZE, panel.tab,
+                    { togglePanel(panel) }, panel.title, panel.icon, selected = { openPanel === panel },
+                ),
             )
         }
         openPanel?.component?.let {

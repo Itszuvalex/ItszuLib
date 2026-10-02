@@ -289,7 +289,7 @@ where items go, since generated screens draw no art.
 - **Defining themes.** Mods and resource packs add JSON files at `assets/<namespace>/itszulib/themes/<path>.json`
   (id `<namespace>:<path>`, reloaded with resources): `parent` (default `itszulib:light`; may be another file),
   `colors` (any of `panel`, `panel_light`, `panel_dark`, `outline`, `slot`, `slot_shadow`, `slot_light`,
-  `slot_output`, `frame`, `well`, `text`, `text_muted`, `progress`, `energy`, as `#RRGGBB` or `#AARRGGBB`; unknown
+  `slot_output`, `frame`, `well`, `text`, `text_muted`, `progress`, `energy`, `button`, `button_hover`, as `#RRGGBB` or `#AARRGGBB`; unknown
   names are an error) and `grain`. A file may replace a theme of the same id, built-ins included. Code can
   `ScreenThemes.register`. Parent cycles and unknown parents are logged and the theme skipped.
 - **Choosing.** Each `ComponentScreen` kind has a default (`defaultTheme()`, `itszulib:light` unless overridden). The
@@ -309,7 +309,13 @@ where items go, since generated screens draw no art.
   "Bg" button beside the mode button), dark (the theme's well) or light, whichever shows the blocks better; it is
   remembered in the client config (`sideConfigLight`).
 
-Not done: themed tab buttons (still vanilla buttons), and themes for screens other than `ComponentScreen`s.
+- **Buttons** (maintainer, 2026-10-02): side panel tabs and the side configuration buttons are `ThemedButton`s, drawn
+  by `ScreenStyle.button` in the theme: raised in the theme's `button` colour, `button_hover` while hovered, pressed in
+  (a slot's inset) while selected (the open panel's tab, the light background toggle), flat with muted text while
+  inactive. Both colours are optional in code and JSON (they default to the panel and its light bevel). Mods use
+  `ThemedButton` for their own buttons; a `SidePanel` may give an item `icon` for its tab instead of a label.
+
+Not done: themes for screens other than `ComponentScreen`s.
 
 ## B1. Shape of the ported ItszuLib API — DECIDED: a fragment/module framework (option 2)
 
