@@ -97,6 +97,8 @@ src/main/kotlin/com/itszuvalex/itszulib/
 ├── team/                  Teams and per-team data: Team/TeamState (rules + invariants), TeamDataType + Research,
 │                          TeamCodec, TeamStore (file persistence), TeamManager, TeamNetwork (sync + lifecycle),
 │                          TeamCommands (/itszulib team, /itszulib research unlock|progress)
+├── compat/jei/            Optional JEI plugin: keeps JEI's overlays clear of ComponentScreen side panels (loads only
+│                          with JEI)
 ├── dev/                   Dev-only blocks, menu, screen and game tests (never registered in production)
 └── util/                  Color, InventoryUtils (item dropping), StorageUtils (item counting/removal), FaceBitSet, Task,
                            Singleton, DevEnvironmentCondition (load condition itszulib:dev_environment)
@@ -150,7 +152,9 @@ Build machine screens on `ComponentScreen` (DECISIONS D12): place components in 
 that calls `enableSideConfig(blockEntity[, modes])` gets the 3D side configuration panel automatically; modes default
 to item, fluid and energy (`SideConfigModes`), and a mode's `SideConfigCycler` decides what a click changes. Sync
 energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLib's own menu actions use negative ids
-(`MenuCore.ACTION_SIDE_CONFIG`); give yours non-negative ids and handle them in `handleAction`.
+(`MenuCore.ACTION_SIDE_CONFIG`); give yours non-negative ids and handle them in `handleAction`. Anything a screen
+draws outside its image belongs in `ComponentScreen.extraAreas()`, which the JEI plugin reports so JEI's overlays stay
+clear. JEI is a `compileOnly` dependency plus a dev-run `localRuntime` (`-Pjei=false` leaves it out).
 
 ### Networks
 `INetwork`/`TileNetwork` group `INetworkNode`s (by `Loc4`) into server-side networks in `ItszuLib.NETWORK_MANAGER`, ticked from `ServerTickEvent.Pre/Post`. Nodes are found through the network module on the block entity (`TileNetwork#networkModule`). Chunk unloads drop that chunk's nodes as a batch; block entities must re-add their node when they load. Splits explore iteratively.

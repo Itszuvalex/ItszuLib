@@ -77,6 +77,8 @@ actions that reach only the player's open menu. `ComponentScreen` builds screens
 gauges, progress bars, labels, your own) and side panels behind tabs. Menus with sided configuration get a **3D side
 configuration panel**: the machine and its neighbours, rotated by dragging, faces clicked to configure.
 
+Recipe viewers are kept clear: with JEI installed, its overlays avoid the side panels and their tabs.
+
 *For:* functional machine screens with little code, and in-world-feeling configuration.
 
 ### Teams

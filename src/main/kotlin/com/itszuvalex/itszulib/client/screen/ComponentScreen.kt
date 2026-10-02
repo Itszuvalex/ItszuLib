@@ -10,6 +10,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener
 import net.minecraft.client.gui.narration.NarratableEntry
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.renderer.Rect2i
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
@@ -201,6 +202,18 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
 
     override fun mouseScrolled(x: Double, y: Double, scrollX: Double, scrollY: Double): Boolean =
         activeComponents().any { it.mouseScrolled(x, y, scrollX, scrollY) } || super.mouseScrolled(x, y, scrollX, scrollY)
+
+    /**
+     * Areas this screen draws outside its image, in screen coordinates: the tab column and the open side panel.
+     * Recipe viewers keep their overlays out of them (ItszuLib's JEI plugin reports them), so panels stay clickable.
+     */
+    fun extraAreas(): List<Rect2i> {
+        if (panels.isEmpty()) return emptyList()
+        val areas = ArrayList<Rect2i>()
+        areas += Rect2i(leftPos + imageWidth, topPos, TAB_SIZE + TAB_GAP, panels.size * (TAB_SIZE + TAB_GAP) + TAB_GAP)
+        openPanel?.component?.let { areas += Rect2i(it.x, it.y, it.width, it.height) }
+        return areas
+    }
 
     /**
      * Clicks on the open panel or the tabs are not "outside" (which would drop the carried stack).
