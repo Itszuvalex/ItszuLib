@@ -175,6 +175,11 @@ batteries or NeoForge's energy handler, though no consumer uses it yet).
   `FragEnergyStorage` + `addEnergyStorage` (the battery per side and NeoForge's energy capability), `FragEnergyAutoIO`.
   Menus sync energy into an `EnergyView` with `syncEnergy` (a battery) or `syncEnergyHandler` (a NeoForge handler).
 
+Recipe viewers draw beside the screen too: JEI's ingredient list covered the side panel, so its faces could not be
+clicked. `ComponentScreen.extraAreas()` reports the tab column and the open panel, and an optional JEI plugin
+(`compat/jei/ItszuLibJeiPlugin`, compiled against JEI's API only and loaded only when JEI is installed) hands them to
+JEI for every `ComponentScreen`, so JEI keeps clear of them.
+
 The dev machine uses all of it (`DevScreen`: tank and energy gauges, the "IO" tab). Not done: textured styles, layout
 helpers beyond fixed positions, and a 3D view of multiblocks (each member shows its own block).
 

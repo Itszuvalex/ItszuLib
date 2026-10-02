@@ -33,6 +33,14 @@ repositories {
         url = 'https://thedarkcolour.github.io/KotlinForForge/'
         content { includeGroup 'thedarkcolour' }
     }
+    maven {
+        name = 'BlameJared (JEI)'
+        url = 'https://maven.blamejared.com/'
+        content {
+            includeGroup 'mezz.jei'
+            includeGroup 'net.mezzdev.config' // JEI's config library
+        }
+    }
 }
 
 base {
@@ -129,12 +137,13 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // Example optional mod dependency with JEI
-    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
-    // compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
-    // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
-    // localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
+    // JEI (optional): ItszuLib's plugin compiles against the API only and loads only when JEI is installed. Dev runs get
+    // the full mod through localRuntime, which is not published as a dependency; -Pjei=false leaves it out of the runs.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    if (project.findProperty('jei') != 'false') {
+        localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    }
 
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
