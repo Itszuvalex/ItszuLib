@@ -9,7 +9,7 @@ ItszuLib is Itszuvalex's shared library mod. On this branch it is the **Kotlin v
 - **Minecraft 26.1.2 / NeoForge 26.1.2.112 / Java 25**, ModDevGradle (`net.neoforged.moddev` 2.0.148), Gradle 9.2.1.
 - Written in **Kotlin 2.4.0**, loaded through **Kotlin for Forge 6.3.0** (`thedarkcolour:kotlinforforge-neoforge`, `modLoader="kotlinforforge"`). KFF is a required runtime mod: it provides the language loader and the Kotlin stdlib, reflect, coroutines and serialization. Do not add a second copy of the stdlib (`kotlin.stdlib.default.dependency=false`).
 - Mod id `itszulib`, package `com.itszuvalex.itszulib`, GPL-2.0-or-later.
-- Being ported from Forge 1.7.10 / Scala 2.11 on branch `neoforge-26.1` (from `develop`). `master`/`develop` still hold the 1.7.10 code. Port status: [docs/PORTING.md](docs/PORTING.md). Decisions and open questions: [docs/DECISIONS.md](docs/DECISIONS.md). Review findings (fixed and open) and the framework changes to mirror into TechnoLich: [docs/REVIEW.md](docs/REVIEW.md).
+- Ported from Forge 1.7.10 / Scala 2.11 on branch `neoforge-26.1` (from `develop`), merged into `main`, the default branch. `develop` and the other `develop-*` branches hold the 1.12.2 and older code. Port status: [docs/PORTING.md](docs/PORTING.md). Decisions and open questions: [docs/DECISIONS.md](docs/DECISIONS.md). Review findings (fixed and open) and the framework changes to mirror into TechnoLich: [docs/REVIEW.md](docs/REVIEW.md).
 
 ## Build and run
 
