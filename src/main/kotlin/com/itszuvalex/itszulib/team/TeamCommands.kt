@@ -1,7 +1,10 @@
 package com.itszuvalex.itszulib.team
 
 import com.itszuvalex.itszulib.ItszuLib
+import com.itszuvalex.itszulib.research.TechTree
+import com.itszuvalex.itszulib.research.TechnologyState
 import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.arguments.LongArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
@@ -60,7 +63,16 @@ object TeamCommands {
                         .then(
                             Commands.literal("unlock").then(
                                 Commands.argument("player", EntityArgument.player()).then(
-                                    Commands.argument("research", IdentifierArgument.id()).executes(::unlock),
+                                    Commands.argument("research", IdentifierArgument.id()).suggests(::technologies).executes(::unlock),
+                                ),
+                            ),
+                        )
+                        .then(
+                            Commands.literal("progress").then(
+                                Commands.argument("player", EntityArgument.player()).then(
+                                    Commands.argument("research", IdentifierArgument.id()).suggests(::technologies).then(
+                                        Commands.argument("amount", LongArgumentType.longArg(1)).executes(::progress),
+                                    ),
                                 ),
                             ),
                         ),
@@ -121,10 +133,27 @@ object TeamCommands {
         val target = EntityArgument.getPlayer(ctx, "player")
         val id = IdentifierArgument.getId(ctx, "research")
         val team = ItszuLib.TEAMS.state.teamOf(target.uuid) ?: return fail(ctx, "That player is not in a team yet.")
-        ItszuLib.TEAMS.change { it.update(team.id, Research.TYPE) { research -> research.unlock(id) } }
+        if (!TechTree.unlock(ctx.source.server, team.id, id)) return fail(ctx, "Team ${team.name} already has $id.")
         ctx.source.sendSuccess({ Component.literal("Unlocked $id for team ${team.name}.") }, true)
         return 1
     }
+
+    private fun progress(ctx: CommandContext<CommandSourceStack>): Int {
+        val target = EntityArgument.getPlayer(ctx, "player")
+        val id = IdentifierArgument.getId(ctx, "research")
+        val team = ItszuLib.TEAMS.state.teamOf(target.uuid) ?: return fail(ctx, "That player is not in a team yet.")
+        val techs = TechTree.of(ctx.source.server.registryAccess())
+        val state = techs.state(id, team[Research.TYPE]) ?: return fail(ctx, "No technology $id.")
+        if (state != TechnologyState.AVAILABLE) return fail(ctx, "$id is ${state.name.lowercase()} for team ${team.name}.")
+        val used = TechTree.addProgress(ctx.source.server, team.id, id, LongArgumentType.getLong(ctx, "amount"))
+        val now = ItszuLib.TEAMS.state.team(team.id)?.get(Research.TYPE)
+        val done = now?.has(id) == true
+        ctx.source.sendSuccess({ Component.literal(if (done) "Added $used: $id is researched by team ${team.name}." else "Added $used: $id is at ${now?.progressOf(id)} / ${techs[id]?.cost}.") }, true)
+        return 1
+    }
+
+    private fun technologies(ctx: CommandContext<CommandSourceStack>, builder: com.mojang.brigadier.suggestion.SuggestionsBuilder) =
+        SharedSuggestionProvider.suggestResource(TechTree.of(ctx.source.registryAccess()).all.keys, builder)
 
     private fun onPlayer(ctx: CommandContext<CommandSourceStack>, message: String, op: (TeamState, UUID, UUID) -> TeamState): Int {
         val target = onePlayer(ctx).id()

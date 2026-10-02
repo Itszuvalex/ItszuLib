@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "itszulib:dev_environment"
+    }
+  ],
+  "tree": "itszulib:dev",
+  "prerequisites": [
+    "itszulib:dev_root",
+    "itszulib:dev_secret"
+  ],
+  "cost": 0,
+  "icon": "minecraft:diamond"
+}

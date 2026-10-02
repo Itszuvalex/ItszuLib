@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "itszulib:dev_environment"
+    }
+  ],
+  "tree": "itszulib:dev",
+  "unlocked_by_default": true,
+  "icon": "minecraft:book",
+  "name": {
+    "text": "Dev free technology"
+  }
+}

@@ -178,6 +178,75 @@ batteries or NeoForge's energy handler, though no consumer uses it yet).
 The dev machine uses all of it (`DevScreen`: tank and energy gauges, the "IO" tab). Not done: textured styles, layout
 helpers beyond fixed positions, and a 3D view of multiblocks (each member shows its own block).
 
+## D13. Tech trees: datapack technologies, team research with progress — DECIDED (maintainer, 2026-10-02)
+
+The maintainer asked for the 1.7.10 Femtocraft tech tree (technologies with prerequisites, a research screen laid out
+as a layered graph) in ItszuLib, noting the layout may change. Its 61 technologies stay Femtocraft content; ItszuLib
+keeps only the mechanism.
+
+- **Definitions.** Technologies are entries of the synced datapack registry `itszulib:technology`
+  (`data/<ns>/itszulib/technology/*.json`, `research/Technology.kt`): tree, prerequisites, cost, icon, optional name,
+  description, position, `hidden`, `unlocked_by_default`. A registry (loaded at world load, synced to clients, ids
+  shared) rather than a reloadable resource listener, so a `/reload` cannot change what a team can research mid-game.
+  Mistakes (unknown prerequisites, cycles) are logged at server start (`Technologies.problems()`), not fatal.
+- **Research belongs to teams** (D10), not players: a solo player's team is theirs alone, and joining shares research.
+  `Research` team data gained `progress` (partial progress per technology; positive, never for an unlocked id). Its
+  codec still reads the old list-only form, so saves from before progress load. Merging keeps the larger progress.
+- **Rules** (`research/TechTree.kt`, pure `Technologies`): researched (stored, or `unlocked_by_default`); available
+  (every prerequisite researched); locked (shown, not available); hidden (`hidden` and not available). The
+  1.7.10 "discovered" state is replaced by available/locked, so locked technologies show what is coming unless hidden.
+- **Progress.** What produces it is the mod's choice. `TechTree.addProgress(server, team, id, amount)` takes only what
+  the cost still needs (returned, so a machine keeps the rest), unlocks at the cost and posts
+  `TechnologyResearchedEvent`; `TechTree.unlock` forces. Every change syncs the team, so mods add progress in batches.
+  Gating: `TechTree.isResearched(player, id)` on either side (the client reads its synced team).
+- **Layout** (`research/TechTreeLayout.kt`): the 1.7.10 layered layout, reimplemented: columns by longest prerequisite
+  path (left to right), waypoints on links that skip columns, barycentre ordering sweeps keeping the fewest crossings
+  (the 1.7.10 code hill-climbed with an O(n⁴) crossing count), then rows pulled towards neighbours with a minimum gap.
+  A technology's `position` overrides it, which leaves room for a different layout later.
+- **Screen.** `client/screen/TechTreeView`, a `ScreenComponent`: icons framed by state, progress bars, links, tooltips
+  (name, description, progress, missing prerequisites), drag or scroll to pan, click to select (`onSelect`). Mods put
+  it in their own screens; there is no standalone research screen or item.
+- **Commands.** `/itszulib research unlock <player> <id>` and `progress <player> <id> <amount>` (operators).
+- **Dev data.** Test technologies ship in the jar but load only in dev, through the load condition
+  `itszulib:dev_environment` (`util/DevEnvironmentCondition.kt`, registered in production so the files are skipped
+  there rather than failing).
+
+Not done: costs other than one number (items, several resources), per-technology rewards, and research screens beyond
+the component.
+
+## D14. Crash-safe server data stores, generalised from teams — DECIDED (maintainer, 2026-10-02)
+
+Teams were persisted by `TeamStore` rather than vanilla `SavedData` (D10), and other server data (saved places,
+registries of things in the world) needs the same protection. The mechanism is now generic (`store/`):
+
+- `SafeStore<T>(file, format)`: one immutable value in one file, with a `StoreFormat<T>` (empty value, encode,
+  strict decode). Backup fallback, the unreadable file moved aside, refusal to save for the session when neither file
+  reads, and temp-file + read-back + atomic-move saves, exactly as teams had.
+- `StoreManager<T>`: the value's one place of change: `change { old -> new }` on the server thread (an exception
+  changes nothing), change listeners, dirty tracking, `save`.
+- `ServerStores.register(id, manager, format)`: loads at server start from `<world>/data/<namespace>/<path>`, saves
+  with the overworld, saves and unloads at server stop.
+
+`TeamStore` is now a `SafeStore<TeamState>` (its format repairs what `TeamState.repaired` can), `TeamManager` a
+`StoreManager<TeamState>`, registered as `itszulib:teams.dat`; the file and its behaviour are unchanged.
+
+## D15. Producer/consumer distribution over networks — DECIDED (maintainer, 2026-10-02)
+
+Several systems move an amount between producers, storage and consumers over a network each tick (power over
+conduits, and later computation over cables). This is energy-style distribution, not the task/worker matching some
+mods build. ItszuLib now has one resource-agnostic algorithm for it (`core/Distribution.kt`):
+
+- `Distributable` (max, amount, room, per-tick `transferMax`, add, remove) and `DistributableBattery` for an
+  `IBattery`.
+- `DistributionAlgorithm(producers, storage, consumers).distribute()`: producers (then storage) give to consumers
+  (then storage), within transfer limits; producers with the least room give first, consumers with the least fill
+  first; surplus fills storage, shortfall drains it. Each step removes from the source only what the sink accepted.
+- `DistributingTileNetwork`: a `TileNetwork` that distributes over its participants at the end of every tick. Nodes
+  that are `IDistributionNode`s bring `DistributionParticipant(key, role, resource)`s; a key takes part once, so a
+  block (or multiblock) reached through several nodes is not counted twice. `lastResult` keeps what moved.
+
+Not done: per-connection throughput caps (every participant has its own transfer limit; the network has none).
+
 ---
 
 ## B1. Shape of the ported ItszuLib API — DECIDED: a fragment/module framework (option 2)

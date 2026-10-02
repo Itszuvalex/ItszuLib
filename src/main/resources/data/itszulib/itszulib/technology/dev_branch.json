@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "itszulib:dev_environment"
+    }
+  ],
+  "tree": "itszulib:dev",
+  "prerequisites": [
+    "itszulib:dev_root"
+  ],
+  "cost": 50,
+  "icon": "minecraft:iron_ingot"
+}

@@ -88,6 +88,7 @@ object DevGameTests {
         test("handler_adapter_joins_open_transaction", ::handlerAdapterJoinsOpenTransaction)
         DevStorageGameTests.register(::test)
         DevMenuGameTests.register(::test)
+        DevResearchGameTests.register(::test)
     }
 
     fun register(modBus: IEventBus) {
