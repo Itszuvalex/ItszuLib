@@ -23,5 +23,12 @@
   "gui.itszulib.research.researched": "Researched",
   "gui.itszulib.research.progress": "Progress: %s / %s",
   "gui.itszulib.research.requires": "Requires:",
-  "gui.itszulib.research.queued": "Queued: #%s"
+  "gui.itszulib.research.queued": "Queued: #%s",
+  "itszulib.configuration.title": "ItszuLib",
+  "itszulib.configuration.section.itszulib.client.toml": "Screens",
+  "itszulib.configuration.section.itszulib.client.toml.title": "Screens",
+  "itszulib.configuration.theme": "Screen theme",
+  "itszulib.configuration.theme.tooltip": "A theme id such as itszulib:light or itszulib:dark for every ItszuLib-based screen. Empty: each screen's own default.",
+  "itszulib.configuration.grain": "Panel grain",
+  "itszulib.configuration.grain.tooltip": "A faint per-pixel grain on screen panels."
 }

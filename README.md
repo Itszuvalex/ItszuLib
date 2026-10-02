@@ -77,6 +77,11 @@ actions that reach only the player's open menu. `ComponentScreen` builds screens
 gauges, progress bars, labels, your own) and side panels behind tabs. Menus with sided configuration get a **3D side
 configuration panel**: the machine and its neighbours, rotated by dragging, faces clicked to configure.
 
+Screens are **themed**: a light (vanilla) and a dark theme are built in, mods and resource packs add their own as
+JSON palettes, each screen picks a default and players can force one or turn off the panels' faint grain. Generated
+screens still show where items go: slots are drawn inset, outputs ringed, and empty slots can show a faded hint of
+what belongs in them.
+
 Recipe viewers are kept clear: with JEI installed, its overlays avoid the side panels and their tabs.
 
 *For:* functional machine screens with little code, and in-world-feeling configuration.

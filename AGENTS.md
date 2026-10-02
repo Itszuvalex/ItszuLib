@@ -76,7 +76,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
 ├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath; ItszuLibClient (client
 │   │                      registrations); screen/ (ComponentScreen, ScreenComponent, SidePanel, ScreenStyle, gauges,
-│   │                      SideConfigPanel, TechTreeView); scene/ (BlockScene*: 3D blocks in a screen). Client only.
+│   │                      SideConfigPanel, TechTreeView, ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
 │   │                      DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
@@ -152,7 +152,12 @@ Build machine screens on `ComponentScreen` (DECISIONS D12): place components in 
 that calls `enableSideConfig(blockEntity[, modes])` gets the 3D side configuration panel automatically; modes default
 to item, fluid and energy (`SideConfigModes`), and a mode's `SideConfigCycler` decides what a click changes. Sync
 energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLib's own menu actions use negative ids
-(`MenuCore.ACTION_SIDE_CONFIG`); give yours non-negative ids and handle them in `handleAction`. Anything a screen
+(`MenuCore.ACTION_SIDE_CONFIG`); give yours non-negative ids and handle them in `handleAction`. Screens draw in a theme
+(DECISIONS D16): `ScreenThemes` holds `itszulib:light`, `itszulib:dark` and JSON themes from
+`assets/<ns>/itszulib/themes/*.json` (`parent` plus any `colors`); a screen picks its default with `defaultTheme()`,
+the client config (`ScreenThemeConfig`) can force one and turn grain off, and components read colours from
+`ScreenStyle` (pointed at the screen's theme while it draws). Slots are drawn as insets, take-only slots ringed and
+hints (`addStorageSlots(..., hint = stack)`, `SlotLook`) faded into empty slots. Anything a screen
 draws outside its image belongs in `ComponentScreen.extraAreas()`, which the JEI plugin reports so JEI's overlays stay
 clear. JEI is a `compileOnly` dependency plus a dev-run `localRuntime` (`-Pjei=false` leaves it out).
 

@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.client.screen
 
 import com.itszuvalex.itszulib.menu.MenuCore
+import com.itszuvalex.itszulib.menu.SlotLook
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -12,6 +13,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.renderer.Rect2i
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
 
@@ -75,7 +77,9 @@ class SidePanel(@JvmField val tab: Component, @JvmField val title: Component, @J
  * panels ([addPanel]) toggled by tab buttons along the image's right edge, one open at a time. Menus with side
  * configuration ([MenuCore.enableSideConfig]) get a side configuration panel by default ([defaultPanels]).
  *
- * The background is [ScreenStyle]'s plain panel with slot outlines; override [extractPanel] to draw your own.
+ * It draws in a [ScreenTheme]: the player's chosen one ([ScreenThemeConfig]) or the screen's [defaultTheme]. The
+ * background is the theme's bevelled panel with every slot inset, take-only slots ringed and empty slots' hints faded
+ * in ([SlotLook]); override [extractPanel] to draw your own (hand-drawn art can still call [extractSlots]).
  */
 abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads constructor(
     menu: M,
@@ -177,7 +181,16 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
     fun activeComponents(): List<ScreenComponent> =
         placed.map { it.component }.filter { it.visible } + listOfNotNull(openPanel?.component?.takeIf { it.visible })
 
+    /**
+     * The theme this screen draws with unless the player chose one: a screen kind's look.
+     */
+    protected open fun defaultTheme(): Identifier = ScreenThemes.LIGHT
+
+    /** The theme this screen draws with now. */
+    val theme: ScreenTheme get() = ScreenThemes.resolve(defaultTheme())
+
     override fun extractBackground(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
+        ScreenStyle.theme = theme
         super.extractBackground(graphics, mouseX, mouseY, a)
         extractPanel(graphics, mouseX, mouseY)
         for (component in activeComponents()) component.extract(graphics, mouseX, mouseY, this)
@@ -188,7 +201,32 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
      */
     protected open fun extractPanel(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         ScreenStyle.panel(graphics, leftPos, topPos, imageWidth, imageHeight)
+        extractSlots(graphics)
+    }
+
+    /**
+     * Every slot's inset, take-only slots' rings (first, so neighbouring outputs share an outline), and the faded
+     * hints of empty slots.
+     */
+    protected fun extractSlots(graphics: GuiGraphicsExtractor) {
+        for (slot in menu.slots) if ((slot as? SlotLook)?.isOutput == true) ScreenStyle.outputRing(graphics, leftPos + slot.x, topPos + slot.y)
         for (slot in menu.slots) ScreenStyle.slot(graphics, leftPos + slot.x, topPos + slot.y)
+        val hinted = menu.slots.filter { !it.hasItem() && (it as? SlotLook)?.hint()?.isEmpty == false }
+        if (hinted.isEmpty()) return
+        for (slot in hinted) graphics.fakeItem((slot as SlotLook).hint(), leftPos + slot.x, topPos + slot.y)
+        // Over the hints (items draw above fills within a stratum): the slot's face, mostly opaque, fades them.
+        graphics.nextStratum()
+        val fade = (theme.slot and 0xFFFFFF) or (HINT_FADE shl 24)
+        for (slot in hinted) graphics.fill(leftPos + slot.x, topPos + slot.y, leftPos + slot.x + 16, topPos + slot.y + 16, fade)
+    }
+
+    /**
+     * The title and the inventory label in the theme's text colour.
+     */
+    override fun extractLabels(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+        ScreenStyle.theme = theme
+        graphics.text(font, title, titleLabelX, titleLabelY, ScreenStyle.TEXT, false)
+        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ScreenStyle.TEXT, false)
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean =
@@ -227,5 +265,8 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
     companion object {
         const val TAB_SIZE = 20
         const val TAB_GAP = 2
+
+        /** How opaque the slot face is over a hint (0-255). */
+        const val HINT_FADE = 0xC8
     }
 }

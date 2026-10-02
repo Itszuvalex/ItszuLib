@@ -173,7 +173,8 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
      * Adds [count] slots over [storage] starting at storage index [first], in rows of [columns] from ([x], [y]), 18
      * pixels apart. Must be called before [addPlayerInventorySlots].
      *
-     * @param output True for take-only slots.
+     * @param output True for take-only slots (screens ring them).
+     * @param hint Shown faded in the slots while empty, to say what goes there.
      */
     @JvmOverloads
     fun addStorageSlots(
@@ -184,13 +185,16 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
         first: Int = 0,
         count: Int = storage.size() - first,
         output: Boolean = false,
+        hint: ItemStack = ItemStack.EMPTY,
     ): IntRange {
         val container = WrapperContainerIItemStorage(storage)
         val start = slots.size
         for (i in 0 until count) {
             val slotX = x + (i % columns) * SLOT_SIZE
             val slotY = y + (i / columns) * SLOT_SIZE
-            addBlockSlot(if (output) OutputSlot(storage, container, first + i, slotX, slotY) else StorageSlot(storage, container, first + i, slotX, slotY))
+            val slot = if (output) OutputSlot(storage, container, first + i, slotX, slotY) else StorageSlot(storage, container, first + i, slotX, slotY)
+            slot.hint = hint
+            addBlockSlot(slot)
         }
         return start until slots.size
     }
@@ -303,9 +307,26 @@ class EnergyView {
 }
 
 /**
- * A slot over one index of an [IItemStorage], honouring its per-slot limit and [IItemStorage.canInsert].
+ * How a screen should draw a slot. [isOutput] slots (take-only) get an output ring; while empty, a slot with a
+ * [hint] shows it faded, to say what goes there.
  */
-open class StorageSlot(@JvmField val storage: IItemStorage, container: Container, index: Int, x: Int, y: Int) : Slot(container, index, x, y) {
+interface SlotLook {
+    val isOutput: Boolean get() = false
+
+    fun hint(): ItemStack = ItemStack.EMPTY
+}
+
+/**
+ * A slot over one index of an [IItemStorage], honouring its per-slot limit and [IItemStorage.canInsert]. Set [hint]
+ * to show what goes in it while it is empty.
+ */
+open class StorageSlot(@JvmField val storage: IItemStorage, container: Container, index: Int, x: Int, y: Int) : Slot(container, index, x, y), SlotLook {
+    /** Shown faded while the slot is empty (client side only matters). */
+    @JvmField
+    var hint: ItemStack = ItemStack.EMPTY
+
+    override fun hint(): ItemStack = hint
+
     override fun mayPlace(stack: ItemStack): Boolean = storage.canInsert(containerSlot, IItemStack.of(stack))
 
     override fun getMaxStackSize(): Int = storage.maxStackSize(containerSlot)
@@ -317,5 +338,7 @@ open class StorageSlot(@JvmField val storage: IItemStorage, container: Container
  * A take-only [StorageSlot], e.g. a machine's output (port of 1.12.2's `OutputSlot`).
  */
 open class OutputSlot(storage: IItemStorage, container: Container, index: Int, x: Int, y: Int) : StorageSlot(storage, container, index, x, y) {
+    override val isOutput: Boolean get() = true
+
     override fun mayPlace(stack: ItemStack): Boolean = false
 }
