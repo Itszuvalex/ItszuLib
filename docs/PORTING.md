@@ -9,7 +9,7 @@ mirror: the newer history (Forge 1.8.9 through 1.12.2, up to Nov 2020) is on Git
 **`gitlab/develop-1.12.2-types`** (2020-11-03, "Maybe fix GuiFluidTank to work with Fluids without Blocks").
 
 `neoforge-26.1` records it as an ancestor with `git merge -s ours` (e08a911): the tree is unchanged, because the 26.1
-framework is the Kotlin port of TechnoLich's framework (DECISIONS B1), which itself descends from this 1.12.2 code.
+framework (DECISIONS B1) descends from this 1.12.2 code.
 What the 1.12.2 branch adds over the framework is ported on top, listed in [1.12.2 features](#1122-features-to-port).
 See DECISIONS D2.
 
@@ -33,10 +33,10 @@ framework lacks, in the order it is ported.
 | F1 | Fluid stacks and storage | `api/wrappers/IFluidStack`, `WrapperVanillaFluidStack`, `api/storage/IFluidStorage`, `IFluidStorageModifiable`, `FluidStorageArray`, `FluidStorageModifiableSlice`, `Dynamic*` | `api/adapters/IFluidStack`, `api/storage/IFluidStorage` family (fill/drain algorithms kept), `WrapperResourceHandlerIFluidStorage` (NeoForge fluid `ResourceHandler`, transactional) | Done |
 | F2 | Sided fluid configuration and automatic IO | `core/SidedFluidStorageConfiguration`, `ModuleIItemAutoIO`, `ModuleIFluidAutoIO`, `util/TileEntityUtils.checkDo*IO`, `Module*SidedConfiguration` | `SidedFluidStorageConfiguration`; `FragSidedConfiguration`, `FragItemAutoIO`, `FragFluidAutoIO` (push/pull through neighbours' `ResourceHandler` capabilities) | Done |
 | F3 | Storage fragments and capability exposure | `ModuleIItemStorage`, `ModuleIFluidStorage`, `ModuleI*HandlerConverter` | `FragItemStorage`, `FragFluidStorage`: expose `Capabilities.Item/Fluid.BLOCK` per side (sided config aware) and save the storage | Done |
-| F4 | Multiblocks | `api/multiblock/*` (`IBlockPattern`, `BlockPatternStatic`, `IMultiblock`, `MultiblockStatic`, `MultiBlockInfo`, `MultiblockStateHolder`, `MultiblockUtils`, `Multiblock*StorageConfiguration`), `ModuleMultiblockInfo`, `TileEntityMultiblockTickableModule`, `ModuleMultiblock*` | Replaced by TechnoLich's controller-less multiblocks with home-held shared state (DECISIONS D11): `api/multiblock` (`MultiblockShape`, `IMultiblockMember`, `IMultiblockState`, `MultiblockManager`, `Multiblock*StorageConfiguration`), `FragMultiblockPart`, `FragMultiblockTickable` | Done (state-forwarding storage is `FragItemStorage(DynamicIItemStorage { ... }, persist = false)` over `FragMultiblockPart.sharedState()`) |
+| F4 | Multiblocks | `api/multiblock/*` (`IBlockPattern`, `BlockPatternStatic`, `IMultiblock`, `MultiblockStatic`, `MultiBlockInfo`, `MultiblockStateHolder`, `MultiblockUtils`, `Multiblock*StorageConfiguration`), `ModuleMultiblockInfo`, `TileEntityMultiblockTickableModule`, `ModuleMultiblock*` | Replaced by controller-less multiblocks with home-held shared state (DECISIONS D11): `api/multiblock` (`MultiblockShape`, `IMultiblockMember`, `IMultiblockState`, `MultiblockManager`, `Multiblock*StorageConfiguration`), `FragMultiblockPart`, `FragMultiblockTickable` | Done (state-forwarding storage is `FragItemStorage(DynamicIItemStorage { ... }, persist = false)` over `FragMultiblockPart.sharedState()`) |
 | F5 | Menus and value sync | `container/ContainerBase`, `ContainerInv`, `container/sync/*` (`ISync`, `SyncInt/Long/Float/Double/StringArray/EnumAutomaticIOArray/IItemStack/IFluidStack`), `MessageSync` | `menu/MenuCore` (`AbstractContainerMenu`: storage slots, shift-click, typed syncs sent by a `MenuSyncPayload` with `StreamCodec`s) and `MenuActionPayload` (client to server: action id + data, for side config and similar buttons) | Done: `menu/MenuCore`, `MenuSync`/`MenuSyncs`, `MenuSyncPayload`, `MenuActionPayload` |
 | F6 | Open a menu from a block | `ModuleGui`, `ModuleMultiblockGui`, `gui/ItszuGuiHandler` | `FragMenu` (opens a `MenuProvider` on use, writes the position for the client), multiblock variant opens only while formed | Done: `core/frag/FragMenu` (multiblock variant via its `multiblock` parameter), `Modules.MENU`, opened by `EntityBlockCore.useWithoutItem` |
-| F7 | Network messages | `network/PacketHandler`, `MessageBase`, `MessageUpdateNBT`, `MessageSync` | `network/PacketHandler` (as in TechnoLich) + the payloads in F5. `MessageUpdateNBT`'s job is done by the description packet; `MessageContainerUpdate` by `DataSlot`s | Done: `network/PacketHandler`, `ItszuLibNetwork` |
+| F7 | Network messages | `network/PacketHandler`, `MessageBase`, `MessageUpdateNBT`, `MessageSync` | `network/PacketHandler` + the payloads in F5. `MessageUpdateNBT`'s job is done by the description packet; `MessageContainerUpdate` by `DataSlot`s | Done: `network/PacketHandler`, `ItszuLibNetwork` |
 | F8 | Horizontal facing | `core/behaviors/BlockBehaviorHorizontalFacing`, `BlockBehaviors` | `HorizontalEntityBlockCore` (`FACING` state, placed facing the player, rotate/mirror) | Done: `core/HorizontalFacing`, `HorizontalEntityBlockCore`, `TickableHorizontalEntityBlockCore` |
 | F9 | Sided connections and wire networks | `ModuleSidedConnectable`, `ModuleSidedBlockableConnectable`, `ModuleNetworkedWire`, `logistics/IPersistedConnectableNetworkNode`, `util/FaceBitSet` | `util/FaceBitSet`, `core/frag/FragConnectable` (connected/blocked faces), `IPersistedConnectableNetworkNode`, `FragNetworkedWire` on `TileNetwork` | Done: `util/FaceBitSet`, `core/frag/FragConnectable`, `IPersistedConnectableNetworkNode`, `FragNetworkedWire` |
 | F10 | Power-driven task | `util/Task` | `util/Task` (progress, speed/efficiency scaling) | Done: `util/Task` (+ `contributeFrom(battery)`, from 1.12.2's `BatteryPoweredTask`) |
@@ -81,17 +81,17 @@ each legacy area went.
 
 ### 1.7.10 inventory and target mapping
 
-Legend: **Port** = same concept, new implementation; **Replace** = the vanilla/Forge mechanism is gone, use the modern equivalent; **Drop** = no longer meaningful. "technolich" means the same author's later framework in `F:\Projects\technolich` (already on 26.1.2), which descends from these classes.
+Legend: **Port** = same concept, new implementation; **Replace** = the vanilla/Forge mechanism is gone, use the modern equivalent; **Drop** = no longer meaningful.
 
 | Area (legacy path under `src/main/scala/com/itszuvalex/itszulib`) | Lines | What it does | 26.1.2 target |
 |---|---|---|---|
 | `ItszuLib.scala`, `proxy/*`, `Version.scala` | ~150 | `@Mod` object, sided proxies, GUI handler, test block registration | Kotlin `@Mod object` (KFF), `DeferredRegister`, client-only event subscribers instead of proxies. **Done (skeleton)** |
-| `api/core/Loc4`, `api/OverridableFunction` | 170 | Dimension+xyz location, NBT save, world lookup with test seam | Port (technolich `Loc4`: `ResourceKey<Level>` dimension, codec) |
+| `api/core/Loc4`, `api/OverridableFunction` | 170 | Dimension+xyz location, NBT save, world lookup with test seam | Port (`Loc4` with a `ResourceKey<Level>` dimension and codec) |
 | `api/core/Saveable` + `util/DataUtils.java` | 1080 | Reflection-driven `@Saveable(world, desc, item)` field serialization to NBT | Port onto `ValueOutput`/`ValueInput` + codecs (see DECISIONS B1) |
 | `api/core/NBTSerializable`, `implicits/NBTHelpers` | 190 | Manual NBT save/load, Scala NBT DSL | Replace with `ValueIOSerializable`-style interface and Kotlin helpers over `ValueOutput`/`CompoundTag` |
 | `api/core/XMLSerializable`, `configuration/xml` | ~150 | XML config load/save | Drop (XML configs) or replace with `ModConfigSpec`; see `configuration` |
 | `api/core/Configurable`, `configuration/*` | ~400 | `@Configurable` static fields auto-bound to Forge `Configuration` by classpath scan | Replace with NeoForge `ModConfigSpec`; keep the annotation-driven idea only if needed |
-| `api/access/*`, `api/storage/*` | ~1100 | `IItemAccess` / `IItemCollectionAccess` views over arrays, `IInventory`, NBT; `IItemStorage` (`ArrayItemStorage`); `Revisioned` | Port (technolich `IItemStorage` family) + NeoForge transfer API adapters (`ResourceHandler<ItemResource>`) |
+| `api/access/*`, `api/storage/*` | ~1100 | `IItemAccess` / `IItemCollectionAccess` views over arrays, `IInventory`, NBT; `IItemStorage` (`ArrayItemStorage`); `Revisioned` | Port (`IItemStorage` family) + NeoForge transfer API adapters (`ResourceHandler<ItemResource>`) |
 | `api/multiblock/*`, `core/traits/*/MultiBlock*`, `SpatialReactions` | ~350 | Multiblock form/break protocol, controller forwarding | Port (block entity + block state helpers) |
 | `api/IPreviewable*`, `render/Previewable*` | ~120 | Ghost preview of multiblocks under the cursor | Replace: client `RenderLevelStageEvent` + 26.1 rendering |
 | `api/player/*`, `player/PlayerProperties` | ~180 | `IExtendedEntityProperties` per-player data + sync | Replace with NeoForge data attachments (`AttachmentType`, `.sync()`) |
@@ -101,7 +101,7 @@ Legend: **Port** = same concept, new implementation; **Replace** = the vanilla/F
 | `core/traits/block/*` | ~450 | Droppable inventory, rotate on place, 6-way "MultiSided" metadata textures | Replace with block states (`FACING`) + `preRemoveSideEffects` drops |
 | `container/*`, `gui/*` | ~1500 | `Container` bases, shift-click logic, a small GUI widget toolkit (panels, flow layout, buttons, text box, fluid tank, item stack) | Replace with `AbstractContainerMenu` + `MenuType` and `AbstractContainerScreen` (+ `GuiGraphics`); widget toolkit ported onto 26.1 widgets where still needed |
 | `network/*` | ~500 | SimpleNetworkWrapper channel + messages (container update, fluid slot click, fluid tank update, player property, GUI item stack) | Replace with `CustomPacketPayload` + `StreamCodec` via `RegisterPayloadHandlersEvent` |
-| `logistics/*` | ~650 | `INetwork`/`TileNetwork`/`ManagerNetwork` graph networks of tiles, `LocationTracker` | Port (technolich `TileNetwork`/`NetworkManager`/`LocationTracker`, server tick events) |
+| `logistics/*` | ~650 | `INetwork`/`TileNetwork`/`ManagerNetwork` graph networks of tiles, `LocationTracker` | Port (`TileNetwork`/`NetworkManager`/`LocationTracker`, server tick events) |
 | `pathfinding/*` | ~350 | BFS/DFS/simple pathfinders over `Loc4` | Port (pure logic, unit-testable) |
 | `render/*` | ~1060 | Immediate-mode `Tessellator` helpers, quad/model math, `Vector3`/`Point3D`, GLSL shader loader | Replace: 26.1 render pipeline (`BlockEntityRenderer` with render states, `VertexConsumer`, `RenderPipeline`); keep `Vector3`-style math or use JOML |
 | `util/*` | ~1600 | Color, comparators (ID/damage/NBT wildcard), inventory utils, player utils, string utils, `ValueTracker`, file utils | Port; comparators become component-aware (`ItemStack.isSameItemSameComponents`), "damage wildcard" becomes item-only match |
@@ -116,8 +116,8 @@ Legacy Scala/Java sources are kept under `src/main/scala` and `src/test/scala` a
 
 - [x] Branch `neoforge-26.1` from `develop`.
 - [x] Build: ModDevGradle 2.0.148, Gradle 9.2.1, Java 25, Kotlin 2.4.0 + Kotlin for Forge 6.3.0. `./gradlew build` and `./gradlew runGameTestServer` pass with a skeleton mod (1 JUnit test, 1 game test).
-- [x] B1 decided: ItszuLib becomes the Kotlin version of TechnoLich's framework (DECISIONS B1).
-- [x] Framework ported from technolich@f021246: 00594ed (Loc4, trackers, modules, storage, batteries, adapters, sided storage), 76501a4 (fragment core, colorable, ITEM scope, networks, dev block and game tests). 165 JUnit tests, 10 ItszuLib game tests (+1 vanilla) passing.
+- [x] B1 decided: ItszuLib becomes a Kotlin fragment/module framework (DECISIONS B1).
+- [x] Framework core: 00594ed (Loc4, trackers, modules, storage, batteries, adapters, sided storage), 76501a4 (fragment core, colorable, ITEM scope, networks, dev block and game tests). 165 JUnit tests, 10 ItszuLib game tests (+1 vanilla) passing.
 - [x] Legacy Scala sources removed (still on `develop`). The inventory table above records what each legacy area was and where its replacement lives.
 - [x] Source moved to GitLab `develop-1.12.2-types`, recorded with `merge -s ours` (e08a911).
 - [x] F1-F4 (fluid storage, sided configuration and automatic IO, storage fragments, multiblocks), with JUnit tests
@@ -165,7 +165,7 @@ rows still hold (`MultiblockSidedConfigurationTest`), and the `MultiblockUtils` 
 
 | Legacy area | Outcome |
 |---|---|
-| `Loc4`, `OverridableFunction`, `logistics/*` (networks, `LocationTracker`) | Replaced by the TechnoLich versions (`api/utility`, `core/Networks.kt`), which descend from them |
+| `Loc4`, `OverridableFunction`, `logistics/*` (networks, `LocationTracker`) | Replaced by the framework's versions (`api/utility`, `core/Networks.kt`), which descend from them |
 | `api/access/*`, `api/storage/*`, `core/traits/tile/TileInventory` | Replaced by `IItemStorage` family + `WrapperResourceHandlerIItemStorage` |
 | `@Saveable` + `DataUtils`, `NBTSerializable`, `NBTHelpers`, `TileDescriptionPacket` | Replaced by fragment scoped serialization (LEVEL/DESCRIPTION/ITEM) over Value I/O |
 | `TileEntityBase`, `TileContainer`, `core/traits/*` | Replaced by `BlockEntityCore` + fragments, `EntityBlockCore`; traits become fragments |

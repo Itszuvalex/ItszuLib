@@ -22,7 +22,7 @@ import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
 
 /**
- * Fragment-based [IMultiblockMember]. Port of TechnoLich's `FragMultiblockPart`, with shared state and client sync.
+ * Fragment-based [IMultiblockMember], with shared state and client sync.
  *
  * Persists [membership] (LEVEL scope, and DESCRIPTION scope so clients know whether the block is formed). As the home
  * member of a stateful shape it also creates the shape's state on [join] and saves it (LEVEL scope, under

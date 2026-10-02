@@ -39,38 +39,3 @@ Not fixed; each needs a maintainer call or is a documented limitation. Numbers a
 R18; O2 is R19; O3, multiblock state across chunks, was decided as DECISIONS D11; O4 is R20; O5 was decided as DECISIONS D6).
 
 None open.
-
-## Framework changes to mirror into TechnoLich
-
-The fragment/module framework is shared with TechnoLich (DECISIONS B1). These changes to shared code were made here:
-
-- `IItemStorage.split`: non-positive amounts return `IItemStack.Empty` (R12).
-- `IItemStorage.transferSlotIntoStorageSlot`: re-reads the source slot after the insert (R11).
-- Multiblocks (DECISIONS D11): ItszuLib took TechnoLich's controller-less `Multiblocks.kt` and added, which TechnoLich
-  can take back: a required home slot (0,0,0) holding the structure's `IMultiblockState` (saved with the home member,
-  `onBreak` when it breaks); a home chunk ticket refreshed only from ticking members (`IChunkTickets`,
-  `itszulib:multiblock` ticket type); verification of reloaded members against the home member, which fixes
-  TechnoLich's documented `DISSOLVE` gap; `MultiblockManager.form`/`disband` and `IMultiblockMember.autoForm`;
-  membership synced to clients (DESCRIPTION scope); `FragMultiblockTickable` (once per game tick per structure);
-  `MultiblockShape.box`. Also the `onChunkUnloaded` fragment hook, which TechnoLich already has.
-- `ItemStorageResourceHandler`/`BatteryEnergyHandler`: mutate in `Transactions.openJoined()` (nested in an open
-  transaction, root otherwise, skipped while one is closing) instead of a root transaction (R20).
-- `IItemStorage.insert`: returns the stack untouched when `canInsert` refuses; new `insertUnchecked` (the old
-  behaviour) for owners filling their own slots, also forwarded by `DynamicIItemStorage`. `ItemStorageSlice` and
-  `ItemStorageAggregate` forward `canInsert` and `maxStackSize` (R19). Owner code that fills slots refusing outside
-  insertion must switch to `insertUnchecked`.
-- `PowerBattery.setStorage`/`setStorageQuietly`: clamp to `[0, maxStorage]` (R15).
-- `IBlockEntityBlockEventHandler.onLoad`/`onNeighborChanged` and `EntityBlockCore.useWithoutItem` (DECISIONS D8).
-
-ItszuLib-only code (fluid storage, multiblocks, menus, connectables, `StorageUtils`, and the screen components, 3D
-block scene, side configuration modes and energy storage fragments of DECISIONS D12) has no TechnoLich counterpart;
-TechnoLich can adopt the D12 pieces if it wants them, nothing it borrowed changed.
-
-TechnoLich's Kotlin code (88b2ca5) was compared with this branch on 2026-10-01: it is a copy of ItszuLib's framework
-from before these fixes, with no fixes of its own to bring back.
-
-Compared again at technolich@31457f7 (2026-10-01). TechnoLich has since taken R11, R12 and R15, renamed the storage
-and stack accessors to Kotlin properties, merged the fragment lifecycle hooks (`IFragmentLifecycle`), and added a
-controller-less multiblock subsystem (`Multiblocks.kt`) and teams (since brought here as `team/`). It has not addressed R19 (O2) and documented the
-root-transaction limitation (O4) the same way (since fixed here as R20). Its multiblocks took a different route on O3 (each member saves its own
-membership); ItszuLib has since adopted them, with shared state on top (DECISIONS D11).

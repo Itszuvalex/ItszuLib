@@ -376,7 +376,7 @@ class MultiblockManagerTest : MultiblockTestBase() {
     }
 
     /**
-     * The structure broke while this member's chunk was unloaded (TechnoLich's known limitation for DISSOLVE): when it
+     * The structure broke while this member's chunk was unloaded (a DISSOLVE break it never saw): when it
      * loads again, the home member no longer belongs to the structure, so it leaves.
      */
     @Test

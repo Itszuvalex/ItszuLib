@@ -33,9 +33,8 @@ interface IMultiblockState : ValueIOSerializable {
 }
 
 /**
- * A declarative multiblock pattern: relative-position slots, each requiring a named role. Port of TechnoLich's
- * `MultiblockShape`, with shared state: there is no controller block, but the slot at (0,0,0) is required and is the
- * structure's home, which holds its [IMultiblockState] if [stateFactory] is set.
+ * A declarative multiblock pattern: relative-position slots, each requiring a named role. There is no controller
+ * block, but the slot at (0,0,0) is required and is the structure's home, which holds its [IMultiblockState] if [stateFactory] is set.
  *
  * A role may occupy more than one slot; any part that can fill that role may occupy any of them. Matching is
  * axis-aligned and fixed-orientation only; a rotated variant needs its own registered shape.
@@ -241,8 +240,8 @@ class MultiblockInstance(val id: UUID, val shape: MultiblockShape, val level: IL
 }
 
 /**
- * Tracks formed multiblock structures; server only ([SERVER]). Port of TechnoLich's `MultiblockManager`, with shared
- * state, explicit formation and verification.
+ * Tracks formed multiblock structures, with shared state, explicit formation and verification; server only
+ * ([SERVER]).
  *
  * Formation: a member whose [IMultiblockMember.autoForm] is true tries, when it loads without a membership, every
  * shape and offset its [IMultiblockMember.candidateRoles] allow ([onPartLoaded]); [form] forms a given shape at a given

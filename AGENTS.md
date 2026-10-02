@@ -4,12 +4,12 @@ Guidance for coding agents (Claude Code, Codex, etc.) and humans working in this
 
 ## What this is
 
-ItszuLib is Itszuvalex's shared library mod. On this branch it is the **Kotlin version of TechnoLich's block entity framework**: block entities composed of fragments, a module/capability layer, scoped serialization, item/energy storage abstractions with NeoForge transfer-API adapters, and block entity networks. It is a standalone framework: it knows nothing about the mods built on it. TechnoLich (`../technolich`) is a separate mod that currently borrows a copy of this framework code and evolves on its own (see [docs/DECISIONS.md](docs/DECISIONS.md) B1).
+ItszuLib is Itszuvalex's shared library mod: a Kotlin **block entity framework** of block entities composed of fragments, a module/capability layer, scoped serialization, item/fluid/energy storage abstractions with NeoForge transfer-API adapters, block entity networks, multiblocks, menus and screens. It is a standalone framework: it knows nothing about the mods built on it (see [docs/DECISIONS.md](docs/DECISIONS.md) B1).
 
 - **Minecraft 26.1.2 / NeoForge 26.1.2.112 / Java 25**, ModDevGradle (`net.neoforged.moddev` 2.0.148), Gradle 9.2.1.
 - Written in **Kotlin 2.4.0**, loaded through **Kotlin for Forge 6.3.0** (`thedarkcolour:kotlinforforge-neoforge`, `modLoader="kotlinforforge"`). KFF is a required runtime mod: it provides the language loader and the Kotlin stdlib, reflect, coroutines and serialization. Do not add a second copy of the stdlib (`kotlin.stdlib.default.dependency=false`).
 - Mod id `itszulib`, package `com.itszuvalex.itszulib`, GPL-2.0-or-later.
-- Ported from Forge 1.7.10 / Scala 2.11 on branch `neoforge-26.1` (from `develop`), merged into `main`, the default branch. `develop` and the other `develop-*` branches hold the 1.12.2 and older code. Port status: [docs/PORTING.md](docs/PORTING.md). Decisions and open questions: [docs/DECISIONS.md](docs/DECISIONS.md). Review findings (fixed and open) and the framework changes to mirror into TechnoLich: [docs/REVIEW.md](docs/REVIEW.md).
+- Ported from Forge 1.7.10 / Scala 2.11 on branch `neoforge-26.1` (from `develop`), merged into `main`, the default branch. `develop` and the other `develop-*` branches hold the 1.12.2 and older code. Port status: [docs/PORTING.md](docs/PORTING.md). Decisions and open questions: [docs/DECISIONS.md](docs/DECISIONS.md). Review findings (fixed and open): [docs/REVIEW.md](docs/REVIEW.md).
 
 ## Build and run
 
@@ -49,8 +49,6 @@ NeoForge's API changes a lot between versions and many online examples are stale
 4. **ModDevGradle docs**: https://docs.neoforged.net/toolchain/docs/plugins/mdg/.
 5. **Kotlin for Forge**: https://github.com/thedarkcolour/KotlinForForge (branch `6.x` for 1.21.9–26.2).
 6. **Forge 1.7.10 era** (historical, for the legacy code's intent only).
-
-Framework source of truth: `../technolich` on branch `neoforge-26.1` (its `AGENTS.md` describes the same concepts). ItszuLib was synced to technolich@f021246; TechnoLich's Kotlin code at 88b2ca5 was compared on 2026-10-01 and is a copy of this code with nothing to bring back. Shared-framework changes made here since are listed in [docs/REVIEW.md](docs/REVIEW.md) for mirroring into TechnoLich.
 
 ## Source layout
 
@@ -102,7 +100,7 @@ The 1.7.10 Scala sources were removed on this branch (the framework replaced the
 
 ## Core concepts
 
-The concepts are TechnoLich's; see `../technolich/AGENTS.md` for the long form. Kotlin differences: lookups return nullable `T?` instead of `Optional<T>`, collections of locations/nodes are `Sequence`s, and `Loc4.x/y/z/pos/dimensionId`, `IModule.id/blockCapability/itemCapability` and `Color.alpha/red/green/blue` are properties.
+Kotlin conventions in the API: lookups return nullable `T?`, collections of locations/nodes are `Sequence`s, and `Loc4.x/y/z/pos/dimensionId`, `IModule.id/blockCapability/itemCapability` and `Color.alpha/red/green/blue` are properties.
 
 ### Fragments and BlockEntityCore
 A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose behaviour in the block entity's `init`:
@@ -135,7 +133,7 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 - NeoForge -> ItszuLib: `ItemStorageResourceHandler`, `BatteryEnergyHandler`; their writes join an open transaction (`Transactions.openJoined`), so inside one they commit or roll back with it.
 
 ### Multiblocks
-Controller-less, from TechnoLich, with shared state (DECISIONS D11). `MultiblockShape.register(id, slots, breakPolicy, state)` maps offsets to role names; the (0,0,0) slot is required and is the structure's home. A member exposes `IMultiblockMember` (usually `FragMultiblockPart(candidateRoles, autoForm)` through `Modules.MULTIBLOCK_MEMBER`) and saves its own membership. `MultiblockManager.SERVER` forms structures when auto-forming members load (all slots loaded, roles matching) or on `form(level, shape, anchor)`, and `disband`s them without break effects. Breaking a member breaks the structure: `DISSOLVE` frees the others, `DESTROY_ALL` destroys them (loading their chunks). A stateful shape's `IMultiblockState` lives on the home member, saved with its chunk; other members reach it with `FragMultiblockPart.sharedState()`, and it gets `onBreak` to drop its contents. While a member outside the home chunk is in a ticking chunk, the manager keeps the home chunk loaded without ticking it (an `itszulib:multiblock` ticket that lapses 60 ticks after the last refresh). Reloaded members are checked against the home member and leave if their structure is gone. `FragMultiblockTickable` runs once per game tick per structure. Faces between members: `Multiblock{Item,Fluid}StorageConfiguration`. `ItszuLib` ticks the manager (`ServerTickEvent.Post`) and clears it on server stop.
+Controller-less, with shared state (DECISIONS D11). `MultiblockShape.register(id, slots, breakPolicy, state)` maps offsets to role names; the (0,0,0) slot is required and is the structure's home. A member exposes `IMultiblockMember` (usually `FragMultiblockPart(candidateRoles, autoForm)` through `Modules.MULTIBLOCK_MEMBER`) and saves its own membership. `MultiblockManager.SERVER` forms structures when auto-forming members load (all slots loaded, roles matching) or on `form(level, shape, anchor)`, and `disband`s them without break effects. Breaking a member breaks the structure: `DISSOLVE` frees the others, `DESTROY_ALL` destroys them (loading their chunks). A stateful shape's `IMultiblockState` lives on the home member, saved with its chunk; other members reach it with `FragMultiblockPart.sharedState()`, and it gets `onBreak` to drop its contents. While a member outside the home chunk is in a ticking chunk, the manager keeps the home chunk loaded without ticking it (an `itszulib:multiblock` ticket that lapses 60 ticks after the last refresh). Reloaded members are checked against the home member and leave if their structure is gone. `FragMultiblockTickable` runs once per game tick per structure. Faces between members: `Multiblock{Item,Fluid}StorageConfiguration`. `ItszuLib` ticks the manager (`ServerTickEvent.Post`) and clears it on server stop.
 
 ### Screens
 Build machine screens on `ComponentScreen` (DECISIONS D12): place components in `addComponents()` (`EnergyGauge`,
@@ -151,7 +149,7 @@ energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLi
 ### Teams and per-team data
 Every player is always in exactly one team (a new player gets a solo team they own). Mods register per-team data with `TeamDataTypes.register(TeamDataType(id, codec, empty, merge, copy))` during mod construction; ItszuLib registers `Research.TYPE` (`itszulib:research`, a set of unlocked ids merged by union). Joining (invite and accept) merges the joiner's data into the team; leaving or being removed gives the player a solo team with a copy; disbanding gives every member a copy. Roles: owner (promote/demote officers, hand over ownership, rename, disband; cannot leave a shared team without handing it over), officers (invite, revoke, remove anyone but the owner), members. Read `ItszuLib.TEAMS.state`; change only through `ItszuLib.TEAMS.change { state -> newState }` on the server thread.
 
-Data integrity (do not weaken): `TeamState` is immutable and checks its invariants on construction, so an operation yields a valid state or changes nothing. Persistence is `TeamStore`, not vanilla `SavedData` (vanilla replaces unreadable saved data with a fresh empty instance and later saves it over the file): strict decoding, fallback to `teams.dat.bak` with the bad file moved aside, refusal to save for the session if neither file reads, and temp-file + read-back + atomic-move saves. Unregistered data types are kept raw. Stored at `<world>/data/itszulib/teams.dat`; clients get their own team through `TeamSyncPayload` (only connections that negotiated it). The same system exists in TechnoLich under its own namespace; see DECISIONS D10.
+Data integrity (do not weaken): `TeamState` is immutable and checks its invariants on construction, so an operation yields a valid state or changes nothing. Persistence is `TeamStore`, not vanilla `SavedData` (vanilla replaces unreadable saved data with a fresh empty instance and later saves it over the file): strict decoding, fallback to `teams.dat.bak` with the bad file moved aside, refusal to save for the session if neither file reads, and temp-file + read-back + atomic-move saves. Unregistered data types are kept raw. Stored at `<world>/data/itszulib/teams.dat`; clients get their own team through `TeamSyncPayload` (only connections that negotiated it). See DECISIONS D10.
 
 ### Engine seams for testing
 `ILevel`, `IBlockEntity`, `IItemStack` and `Overideable` let logic be unit tested without a game. Tests use `TestableLevel`, `TestableIItemStack`, `TestableLoc4`, `TestableNetwork*`, `TestableFragmentHost`; `MCAssert.failVanillaClass` marks methods tests must not reach.
@@ -167,7 +165,7 @@ Data integrity (do not weaken): `TeamState` is immutable and checks its invarian
 
 Keep this repo independent of any mod built on it: no mod-specific code, names or docs here. Mods consume it as
 `com.itszuvalex.itszulib:itszulib` (DECISIONS D4), often as a Gradle composite build of a sibling checkout. Keep
-framework changes generic, and list changes to the code TechnoLich borrowed in `docs/REVIEW.md` so it can take them.
+framework changes generic.
 
 ## Dev content and game tests
 
@@ -181,6 +179,6 @@ framework changes generic, and list changes to the code TechnoLich borrowed in `
 
 ## Testing conventions
 
-- Unit tests: `src/test/kotlin`, JUnit 5, names like `Method_ExpectedBehavior` (as in TechnoLich). ModDevGradle puts Minecraft classes on the test classpath, but anything needing registries or a level belongs in a game test.
+- Unit tests: `src/test/kotlin`, JUnit 5, names like `Method_ExpectedBehavior`. ModDevGradle puts Minecraft classes on the test classpath, but anything needing registries or a level belongs in a game test.
 - Add a game test for anything that crosses into vanilla/NeoForge (registries, block entities, capabilities, serialization with real items, networking).
 - Verify with `./gradlew build` **and** `./gradlew runGameTestServer`.
