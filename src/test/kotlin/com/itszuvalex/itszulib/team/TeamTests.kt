@@ -435,4 +435,25 @@ class TeamManagerTest : TeamTestBase() {
         manager.save()
         Assertions.assertArrayEquals(byteArrayOf(1), Files.readAllBytes(dir.resolve("teams.dat")))
     }
+
+    @Test
+    fun MembershipChanges_JoinLeaveAndNewPlayers() {
+        val ids = Ids()
+        val start = players(A to "a", B to "b", C to "c", ids = ids)
+        Assertions.assertEquals(listOf(A, B, C), TeamState.membershipChanges(TeamState.EMPTY, start).map { it.player })
+        Assertions.assertNull(TeamState.membershipChanges(TeamState.EMPTY, start).first().from, "new player")
+
+        val joined = start.invite(A, B).accept(B, start.teamOf(A)!!.id)
+        val join = TeamState.membershipChanges(start, joined)
+        Assertions.assertEquals(listOf(B), join.map { it.player }, "only the joiner moves")
+        Assertions.assertEquals(start.teamOf(B)!!.id, join.single().from!!.id)
+        Assertions.assertEquals(start.teamOf(A)!!.id, join.single().to.id)
+
+        val left = joined.leave(B, ids::next)
+        val leave = TeamState.membershipChanges(joined, left).single()
+        Assertions.assertEquals(B, leave.player)
+        Assertions.assertEquals(joined.teamOf(A)!!.id, leave.from!!.id)
+        Assertions.assertEquals(left.teamOf(B)!!.id, leave.to.id)
+        Assertions.assertTrue(TeamState.membershipChanges(left, left).isEmpty(), "no change, no event")
+    }
 }

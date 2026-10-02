@@ -61,8 +61,8 @@ object ClientTeam {
 
 /**
  * Wires [ItszuLib.TEAMS] into the server: loaded and saved with the server as a [ServerStores] store
- * (`<world>/data/itszulib/teams.dat`), each joining player given a solo team, each player's team synced, and
- * `/itszulib team` registered. The sync payload is registered with ItszuLib's others in
+ * (`<world>/data/itszulib/teams.dat`), each joining player given a solo team, each player's team synced,
+ * [TeamMembershipChangedEvent] posted when players change team, and `/itszulib team` registered. The sync payload is registered with ItszuLib's others in
  * [com.itszuvalex.itszulib.network.ItszuLibNetwork].
  */
 object TeamEvents {
@@ -72,6 +72,12 @@ object TeamEvents {
         NeoForge.EVENT_BUS.addListener(::onLogin)
         NeoForge.EVENT_BUS.addListener { event: RegisterCommandsEvent -> TeamCommands.register(event.dispatcher) }
         ItszuLib.TEAMS.onChange(::syncChanged)
+        ItszuLib.TEAMS.onChange(::postMembershipChanges)
+    }
+
+    private fun postMembershipChanges(old: TeamState, new: TeamState) {
+        val server = ServerLifecycleHooks.getCurrentServer() ?: return
+        for (change in TeamState.membershipChanges(old, new)) NeoForge.EVENT_BUS.post(TeamMembershipChangedEvent(server, change))
     }
 
     private fun onLogin(event: PlayerEvent.PlayerLoggedInEvent) {
@@ -97,4 +103,16 @@ object TeamEvents {
         val ops = player.registryAccess().createSerializationContext(NbtOps.INSTANCE)
         PacketDistributor.sendToPlayer(player, TeamSyncPayload(TeamCodec.encodeTeam(team, ops)))
     }
+}
+
+/**
+ * Posted on the game bus (server thread) after a change to [ItszuLib.TEAMS] moves a player to another team: joining
+ * (from their solo team to the one they accepted), leaving or being removed (to a new solo team with a copy of the
+ * team's data), a disband (once per member), or a new player's first solo team ([MembershipChange.from] null). Team
+ * data has already been merged or copied by then. Members who stay put get no event.
+ */
+class TeamMembershipChangedEvent(val server: net.minecraft.server.MinecraftServer, val change: MembershipChange) : net.neoforged.bus.api.Event() {
+    val player: java.util.UUID get() = change.player
+    val from: Team? get() = change.from
+    val to: Team get() = change.to
 }

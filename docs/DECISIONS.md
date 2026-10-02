@@ -109,6 +109,12 @@ Persistence deliberately avoids vanilla `SavedData`, whose load path replaces un
 instance that is later saved over the file. `TeamStore` decodes strictly, falls back to a backup, refuses to save when
 neither file reads, and writes through a verified temporary file and an atomic move (see `team/TeamStore.kt`).
 
+**Addendum (maintainer, 2026-10-02): membership events.** Mods need to react when players change team (a machine that
+works for its owner's team, a claim that should follow its owner). After any change to `ItszuLib.TEAMS`, each player
+whose team differs gets a `TeamMembershipChangedEvent` on the game bus: joining, leaving, removal, each member of a
+disbanded team, and a new player's first solo team (`from` null). It is posted after the change, so team data has been
+merged (joining) or copied (leaving). The diff is `TeamState.membershipChanges(old, new)`, testable without a game.
+
 ## D11. Multiblocks: controller-less, with home-held state — DECIDED (maintainer, 2026-10-02)
 
 The 1.12.2 port kept multiblock state on a controller block; a part in another chunk lost its state, menu and

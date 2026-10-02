@@ -27,15 +27,18 @@ object DevResearchGameTests {
     private val FREE = dev("dev_free")
 
     private val researched = ArrayList<Pair<UUID, Identifier>>()
+    private val moves = ArrayList<com.itszuvalex.itszulib.team.MembershipChange>()
 
     private fun dev(path: String) = Identifier.fromNamespaceAndPath(ItszuLib.ID, path)
 
     fun register(test: (String, (GameTestHelper) -> Unit) -> Unit) {
         NeoForge.EVENT_BUS.addListener { e: TechnologyResearchedEvent -> researched += e.team to e.technology }
+        NeoForge.EVENT_BUS.addListener { e: com.itszuvalex.itszulib.team.TeamMembershipChangedEvent -> moves += e.change }
         test("tech_tree_loads_datapack_technologies", ::loads)
         test("tech_tree_progress_unlocks_and_posts_event", ::progressUnlocks)
         test("tech_tree_states_follow_team_research", ::states)
         test("tech_tree_queue_focus_follows_research", ::queue)
+        test("team_moves_post_membership_events", ::membership)
     }
 
     private fun teamOf(helper: GameTestHelper): Pair<Player, UUID> {
@@ -95,6 +98,25 @@ object DevResearchGameTests {
         helper.assertTrue(TechTree.unqueue(server, team, BRANCH), "unqueued")
         helper.assertValueEqual(queue(), emptyList<Identifier>(), "dependents go with it")
         helper.assertTrue(TechTree.focus(server, team, TREE) == null, "no focus")
+        helper.succeed()
+    }
+
+    private fun membership(helper: GameTestHelper) {
+        val (owner, team) = teamOf(helper)
+        val (joiner, solo) = teamOf(helper)
+        helper.assertTrue(moves.any { it.player == joiner.uuid && it.from == null && it.to.id == solo }, "new player's solo team")
+        TechTree.queue(helper.level.server, solo, BRANCH)
+        moves.removeIf { it.player == joiner.uuid }
+        ItszuLib.TEAMS.change { it.invite(owner.uuid, joiner.uuid).accept(joiner.uuid, team) }
+        fun mine() = moves.filter { it.player == joiner.uuid }
+        val join = mine().singleOrNull()
+        helper.assertTrue(join != null && join.player == joiner.uuid && join.from?.id == solo && join.to.id == team, "join posted once, got $moves")
+        helper.assertValueEqual(join!!.to[Research.TYPE].queue, listOf(ROOT, BRANCH), "data already merged")
+        moves.removeIf { it.player == joiner.uuid }
+        ItszuLib.TEAMS.change { it.leave(joiner.uuid) }
+        val leave = mine().singleOrNull()
+        helper.assertTrue(leave != null && leave.from?.id == team && leave.to.id != team, "leave posted once, got $moves")
+        helper.assertValueEqual(leave!!.to[Research.TYPE].queue, listOf(ROOT, BRANCH), "leaver keeps a copy")
         helper.succeed()
     }
 
