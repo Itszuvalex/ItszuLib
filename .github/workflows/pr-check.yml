@@ -1,0 +1,60 @@
+name: Check pull request
+
+# Test-only run of a pull request (forks included) at a commit you have reviewed. Started by hand from the Actions
+# tab by someone with write access; the workflow file always comes from the branch it is started on (main), never
+# from the pull request. It builds and runs the tests at exactly `sha` and stops if the pull request has moved on.
+# Read-only token, nothing uploaded.
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number
+        required: true
+        type: number
+      sha:
+        description: Full commit SHA you reviewed (the pull request's head)
+        required: true
+        type: string
+
+run-name: Check PR #${{ inputs.pr }} at ${{ inputs.sha }}
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: nas-linux
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ inputs.pr }}/head
+          persist-credentials: false
+
+      - name: Pull request is still at the reviewed commit
+        env:
+          REVIEWED: ${{ inputs.sha }}
+        run: |
+          head=$(git rev-parse HEAD)
+          if [ "$head" != "$REVIEWED" ]; then
+            echo "::error::PR #${{ inputs.pr }} head is $head, not the reviewed $REVIEWED; review the new commits first."
+            exit 1
+          fi
+
+      # The build compiles with a JDK 25 toolchain; NeoForge's tooling also needs JDK 21.
+      - id: jdk21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - id: jdk25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Build and unit tests
+        run: ./gradlew build --stacktrace "-Porg.gradle.java.installations.paths=${{ steps.jdk21.outputs.path }},${{ steps.jdk25.outputs.path }}"
+
+      - name: Game tests
+        run: ./gradlew runGameTestServer --stacktrace "-Porg.gradle.java.installations.paths=${{ steps.jdk21.outputs.path }},${{ steps.jdk25.outputs.path }}"
