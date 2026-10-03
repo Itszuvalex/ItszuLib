@@ -45,6 +45,12 @@ abstract class ScreenComponent(var width: Int, var height: Int) {
     open val visible: Boolean get() = true
 
     /**
+     * Called each time the screen inits, before it is placed: set [width]/[height] if they depend on the screen (a
+     * label measuring its text). Containers measure their children here.
+     */
+    open fun measure(host: ComponentHost) {}
+
+    /**
      * Called each time the screen inits, after [x]/[y] are set; add widgets here.
      */
     open fun init(host: ComponentHost) {}
@@ -93,7 +99,11 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
     width: Int = 176,
     height: Int = 166,
 ) : AbstractContainerScreen<M>(menu, inventory, title, width, height), ComponentHost {
-    private class Placed(val component: ScreenComponent, val x: Int, val y: Int)
+    /**
+     * A placed component: at ([x], [y]) in the image, or, with an [anchor], anchored in the image or its content area
+     * ([inContent]) and moved inwards by ([x], [y]).
+     */
+    private class Placed(val component: ScreenComponent, val x: Int, val y: Int, val anchor: Anchor? = null, val inContent: Boolean = false)
 
     private val placed = ArrayList<Placed>()
     private val panels = ArrayList<SidePanel>()
@@ -134,6 +144,27 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
         return component
     }
 
+    /**
+     * Places [component] at [anchor] in the image (or, with [inContent], in [contentArea]), moved inwards from the
+     * anchored edges by ([dx], [dy]). Its size is measured each time the screen inits, so anchoring follows it.
+     */
+    @JvmOverloads
+    fun <C : ScreenComponent> addComponent(component: C, anchor: Anchor, dx: Int = 0, dy: Int = 0, inContent: Boolean = false): C {
+        placed += Placed(component, dx, dy, anchor, inContent)
+        return component
+    }
+
+    /**
+     * The part of the image for the machine's own content, in image coordinates: inside the 8 pixel border, below the
+     * title and above the player inventory's label (the whole inner image when the inventory label is hidden below
+     * it).
+     */
+    fun contentArea(): net.minecraft.client.renderer.Rect2i {
+        val top = titleLabelY + font.lineHeight + 2
+        val bottom = if (inventoryLabelY in (top + 1) until imageHeight) inventoryLabelY - 2 else imageHeight - 8
+        return net.minecraft.client.renderer.Rect2i(8, top, imageWidth - 16, bottom - top)
+    }
+
     fun addPanel(panel: SidePanel): SidePanel {
         panels += panel
         return panel
@@ -161,9 +192,19 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
             val extra = TAB_SIZE + TAB_GAP + (openPanel?.component?.width ?: 0)
             leftPos = maxOf(0, (width - imageWidth - extra) / 2)
         }
+        val content = contentArea()
         for (p in placed) {
-            p.component.x = leftPos + p.x
-            p.component.y = topPos + p.y
+            p.component.measure(this)
+            val anchor = p.anchor
+            if (anchor == null) {
+                p.component.x = leftPos + p.x
+                p.component.y = topPos + p.y
+            } else {
+                val (ax, ay, aw, ah) = if (p.inContent) listOf(content.x, content.y, content.width, content.height) else listOf(0, 0, imageWidth, imageHeight)
+                val (x, y) = LayoutMath.anchored(anchor, ax, ay, aw, ah, p.component.width, p.component.height, p.x, p.y)
+                p.component.x = leftPos + x
+                p.component.y = topPos + y
+            }
             p.component.init(this)
         }
         panels.forEachIndexed { i, panel ->
@@ -175,6 +216,7 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
             )
         }
         openPanel?.component?.let {
+            it.measure(this)
             it.x = leftPos + imageWidth + TAB_SIZE + TAB_GAP
             it.y = topPos
             it.init(this)

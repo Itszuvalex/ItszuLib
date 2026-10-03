@@ -186,8 +186,20 @@ clicked. `ComponentScreen.extraAreas()` reports the tab column and the open pane
 (`compat/jei/ItszuLibJeiPlugin`, compiled against JEI's API only and loaded only when JEI is installed) hands them to
 JEI for every `ComponentScreen`, so JEI keeps clear of them.
 
-The dev machine uses all of it (`DevScreen`: tank and energy gauges, the "IO" tab). Not done: textured styles and layout
-helpers beyond fixed positions.
+The dev machine uses all of it (`DevScreen`: tank and energy gauges, the "IO" tab). Not done: textured styles.
+
+**Addendum (maintainer, 2026-10-03): layout helpers.** Screens no longer have to hand-place every coordinate
+(`client/screen/Layout.kt`):
+
+- `Row`, `Column` and `Grid` are components holding components: they lay their children out (gap, alignment; a grid in
+  equal cells, children centred), pass drawing and input on, and take their size from their children. Hidden children
+  take no space. `Spacer` is empty space.
+- `addComponent(component, Anchor.X, dx, dy, inContent)` anchors a component in the image or in `contentArea()` (inside
+  the border, between the title and the inventory label); margins move inwards from the anchored edges.
+- Sizes are worked out each time the screen inits: `ScreenComponent.measure(host)` runs before placement (`Label`
+  measures its text unless given a `fixedWidth`; containers measure their children), then `init` once, so children add
+  their widgets once.
+- The arithmetic is `LayoutMath` (pure, unit tested). Slots stay where menus put them (both sides must agree).
 
 **Addendum (maintainer, 2026-10-02): multiblocks in the side configuration view.** A member of a formed multiblock
 showed only its own block, so configuring a structure meant opening each member's screen. Now the menu's side

@@ -186,9 +186,15 @@ class ProgressBar @JvmOverloads constructor(
 }
 
 /**
- * A line of text, re-read every frame, in the theme's text colour unless [color] is given.
+ * A line of text, re-read every frame, in the theme's text colour unless [color] is given. Its width is measured from
+ * the text when the screen inits (for layouts), unless a fixed [fixedWidth] is given for text that changes.
  */
-class Label @JvmOverloads constructor(private val text: () -> Component, private val color: Int? = null) : ScreenComponent(0, 9) {
+class Label @JvmOverloads constructor(private val text: () -> Component, private val color: Int? = null, private val fixedWidth: Int? = null) : ScreenComponent(fixedWidth ?: 0, 9) {
+    override fun measure(host: ComponentHost) {
+        width = fixedWidth ?: host.hostFont.width(text())
+        height = host.hostFont.lineHeight
+    }
+
     override fun extract(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, host: ComponentHost) {
         graphics.text(host.hostFont, text(), x, y, color ?: ScreenStyle.TEXT, false)
     }

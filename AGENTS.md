@@ -76,7 +76,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
 ├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath; ItszuLibClient (client
 │   │                      registrations); screen/ (ComponentScreen, ScreenComponent, SidePanel, ScreenStyle, gauges,
-│   │                      SideConfigPanel, TechTreeView, ThemedButton, ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
+│   │                      SideConfigPanel, TechTreeView, ThemedButton, Layout (Row/Column/Grid, Anchor), ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
 │   │                      DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
@@ -148,7 +148,9 @@ Controller-less, with shared state (DECISIONS D11). `MultiblockShape.register(id
 
 ### Screens
 Build machine screens on `ComponentScreen` (DECISIONS D12): place components in `addComponents()` (`EnergyGauge`,
-`FluidGauge`, `ProgressBar`, `Label` or your own `ScreenComponent`), add `SidePanel`s for content behind a tab. A menu
+`FluidGauge`, `ProgressBar`, `Label` or your own `ScreenComponent`) at fixed positions, anchored
+(`addComponent(c, Anchor.RIGHT, dx, dy, inContent = true)`) or in `Row`/`Column`/`Grid` layouts (a component's
+`measure(host)` sizes it before placement), and add `SidePanel`s for content behind a tab. A menu
 that calls `enableSideConfig(blockEntity[, modes])` gets the 3D side configuration panel automatically (for a formed
 multiblock member it shows and configures the whole structure); modes default
 to item, fluid and energy (`SideConfigModes`), and a mode's `SideConfigCycler` decides what a click changes. Sync
