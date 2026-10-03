@@ -107,7 +107,7 @@ class StorageTerminalView @JvmOverloads constructor(
         host.addHostWidget(next)
     }
 
-    private fun modeLabel(): Component = Component.literal(mode.prefix?.toString() ?: "Aa")
+    private fun modeLabel(): Component = Component.literal(mode.prefix?.toString() ?: "A")
 
     private fun modeTooltip(): Component = Component.translatable("gui.itszulib.terminal.mode", Component.translatable("gui.itszulib.terminal.mode.${mode.name.lowercase()}"))
         .append("\n").append(Component.translatable("gui.itszulib.terminal.syntax").withStyle(ChatFormatting.GRAY))
