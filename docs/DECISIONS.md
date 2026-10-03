@@ -379,6 +379,8 @@ scanning every slot, and multiblock storage screens that page and search, by sev
 - **Indexes across storages**: `ItemStorageIndex`/`FluidStorageIndex` listen for ids appearing in and leaving each
   storage, so `storagesWith(id)` is a map lookup and a search asks only the storages that hold the id. Insertion
   prefers storages already holding the item.
+- **Fill order hook**: `IndexedFluidStorage.fillOrder(resource)` (tanks holding the fluid, then empty ones) is open,
+  so a storage can prefer some empty tanks, e.g. ones reserved for the fluid.
 - **Search** (`StorageSearch`): space-separated terms, all of which must match, `-` negating; prefixes as JEI and AE2
   use them (`@` mod, `#` tooltip, `$` tag, `*` id), unprefixed terms in the chosen mode (default: name). Mod, tag
   and id terms depend on the item only and are checked against the index's item list before any slot is read.

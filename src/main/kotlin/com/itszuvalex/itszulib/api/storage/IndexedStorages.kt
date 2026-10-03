@@ -295,12 +295,18 @@ open class IndexedFluidStorage(val inner: IFluidStorage) : IFluidStorage {
 
     override fun canDrainFluidType(index: Int, resource: IFluidStack): Boolean = inner.canDrainFluidType(index, resource)
 
-    /** Tanks holding the fluid first, then empty tanks, as [IFluidStorage.fill], through the index. */
+    /**
+     * The tanks [fill] tries, in order: those holding the fluid, then empty ones. Override to prefer some empty tanks,
+     * e.g. ones reserved for the fluid.
+     */
+    protected open fun fillOrder(resource: IFluidStack): List<Int> = tanksOf(resource.fluid()).toList() + emptyTanks().toList()
+
+    /** Tanks holding the fluid first, then empty tanks ([fillOrder]), as [IFluidStorage.fill], through the index. */
     override fun fill(resource: IFluidStack, doFill: Boolean): Int {
         if (resource.isEmpty()) return 0
         val toFill = resource.amount()
         var filled = 0
-        for (tank in tanksOf(resource.fluid()).toList() + emptyTanks().toList()) {
+        for (tank in fillOrder(resource)) {
             if (filled >= toFill) break
             val stack = get(tank)
             if (!stack.isEmpty() && !resource.isFluidEqual(stack)) continue
