@@ -445,3 +445,31 @@ class ItemStorageSliceTest : ItemStorageTestBase() {
         Assertions.assertEquals(1, slice.insert(1, TestableIItemStack(1, 3)).stackSize())
     }
 }
+
+class ItemStorageWindowTest : ItemStorageTestBase() {
+    override fun storageWithSize(size: Int): IItemStorage = ItemStorageWindow(ItemStorageArray(size * 3), size, offset = size)
+
+    @Test
+    fun Window_ShowsTheSlotsAtItsOffset_AndMoves() {
+        val base = ItemStorageArray(10)
+        for (i in 0 until 10) base.setSlot(i, TestableIItemStack(i + 1, 1))
+        val window = ItemStorageWindow(base, 4)
+        Assertions.assertEquals(3, window.pages())
+        window.showPage(1)
+        Assertions.assertEquals(4, window.offset)
+        Assertions.assertTrue(window.get(0).isItemEqual(TestableIItemStack(5, 1)))
+        window.setSlot(1, TestableIItemStack(42, 2))
+        Assertions.assertTrue(base.get(5).isItemEqual(TestableIItemStack(42, 2)), "writes reach the slot under the window")
+    }
+
+    @Test
+    fun Window_PastTheEnd_IsEmptyAndTakesNothing() {
+        val window = ItemStorageWindow(ItemStorageArray(10), 4)
+        window.showPage(9)
+        Assertions.assertEquals(2, window.page(), "clamped to the last page")
+        Assertions.assertTrue(window.get(3).isEmpty(), "slot 11 does not exist")
+        Assertions.assertFalse(window.canInsert(3, TestableIItemStack(1, 1)))
+        Assertions.assertEquals(1, window.insert(3, TestableIItemStack(1, 1)).stackSize())
+        Assertions.assertEquals(0, window.maxStackSize(3))
+    }
+}
