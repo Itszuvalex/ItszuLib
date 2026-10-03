@@ -186,8 +186,30 @@ clicked. `ComponentScreen.extraAreas()` reports the tab column and the open pane
 (`compat/jei/ItszuLibJeiPlugin`, compiled against JEI's API only and loaded only when JEI is installed) hands them to
 JEI for every `ComponentScreen`, so JEI keeps clear of them.
 
-The dev machine uses all of it (`DevScreen`: tank and energy gauges, the "IO" tab). Not done: textured styles, layout
-helpers beyond fixed positions, and a 3D view of multiblocks (each member shows its own block).
+The dev machine uses all of it (`DevScreen`: tank and energy gauges, the "IO" tab). Not done: textured styles.
+
+**Addendum (maintainer, 2026-10-03): layout helpers.** Screens no longer have to hand-place every coordinate
+(`client/screen/Layout.kt`):
+
+- `Row`, `Column` and `Grid` are components holding components: they lay their children out (gap, alignment; a grid in
+  equal cells, children centred), pass drawing and input on, and take their size from their children. Hidden children
+  take no space. `Spacer` is empty space.
+- `addComponent(component, Anchor.X, dx, dy, inContent)` anchors a component in the image or in `contentArea()` (inside
+  the border, between the title and the inventory label); margins move inwards from the anchored edges.
+- Sizes are worked out each time the screen inits: `ScreenComponent.measure(host)` runs before placement (`Label`
+  measures its text unless given a `fixedWidth`; containers measure their children), then `init` once, so children add
+  their widgets once.
+- The arithmetic is `LayoutMath` (pure, unit tested). Slots stay where menus put them (both sides must agree).
+
+**Addendum (maintainer, 2026-10-02): multiblocks in the side configuration view.** A member of a formed multiblock
+showed only its own block, so configuring a structure meant opening each member's screen. Now the menu's side
+configuration covers the structure: `MenuSideConfig.members()` is the block entity plus the other loaded members with
+the same structure id, `ACTION_SIDE_CONFIG` data carries the member's offset from the menu's block (6 bits per axis,
+signed; data without one means the menu's own block, as before), and the server refuses offsets that are not a
+member. `SideConfigPanel` draws the whole structure, centred and scaled to fit however it is turned, with every
+member's outer faces shaded by its own configuration; faces between members are not drawn (multiblock configurations
+lock them). Neighbours outside the structure are not shown in this view. The dev multiblock's menu has it (game test
+`multiblock_side_config_reaches_every_member`).
 
 ## D13. Tech trees: datapack technologies, team research with progress — DECIDED (maintainer, 2026-10-02)
 
@@ -222,8 +244,25 @@ keeps only the mechanism.
   `itszulib:dev_environment` (`util/DevEnvironmentCondition.kt`, registered in production so the files are skipped
   there rather than failing).
 
-Not done: costs other than one number (items, several resources), per-technology rewards, and research screens beyond
-the component.
+Not done: research screens beyond the component.
+
+**Addendum (maintainer, 2026-10-02): costs beyond one number, and rewards.**
+
+- A technology may also need `resources` (named amounts the mod produces, such as computation; `TechTree.addResource`)
+  and `items` to hand in (NeoForge `SizedIngredient`s; `TechTree.deliver` takes them from any `IItemStack`s and
+  `deliverFrom` from vanilla stacks, a player's inventory or a machine's slots). The rule is pure
+  (`Technologies.deliver`): a plain ingredient matches by item id through the `IItemStack` seam, so it is unit tested
+  without a game; custom ingredients go through the vanilla stack. It unlocks when its progress, every resource and every item are complete,
+  whichever contribution completes it. `Technologies.remaining` says what is left. Progress on these is kept per
+  requirement in `Research.requirements` (merged by the larger amount, like progress); the codec reads saves without it.
+- `rewards` (`ItemStackTemplate`s: item stacks cannot be decoded while datapack registries load) go to every member of
+  the team once: at unlock to those online, otherwise when they log in, and to players joining the team later
+  (`TechTree.claimRewards`). Claims are recorded per player in `Research.claimed`; they travel with the player
+  (joining unions them, leaving copies them), so moving between teams does not pay out twice. Rewards are items only;
+  mods do anything else from `TechnologyResearchedEvent`.
+- `TechTreeView` lists resources and items with what is in, and the rewards. Commands:
+  `/itszulib research resource <player> <id> <resource> <amount>` and `deliver <player> <id>` (from the player's
+  inventory). Resource names translate as `research_resource.<namespace>.<path>`.
 
 **Addendum (maintainer, 2026-10-02): a team research queue.** A mod asked for one shared research focus per team that
 every research machine works on, chosen from anywhere, instead of each machine keeping its own choice. That is generic,
@@ -274,6 +313,10 @@ mods build. ItszuLib now has one resource-agnostic algorithm for it (`core/Distr
 
 Not done: per-connection throughput caps (every participant has its own transfer limit; the network has none).
 
+**Addendum (2026-10-02): priority.** `Distributable.priority` (default 0) orders participants within a role before
+the usual order: higher gives (or takes) first. Computation uses it to spend the most efficient computers first; it
+also suits renewable generators before fuel burners.
+
 ---
 
 ## D16. Screen themes, grain and slot looks — DECIDED (maintainer, 2026-10-02)
@@ -289,7 +332,7 @@ where items go, since generated screens draw no art.
 - **Defining themes.** Mods and resource packs add JSON files at `assets/<namespace>/itszulib/themes/<path>.json`
   (id `<namespace>:<path>`, reloaded with resources): `parent` (default `itszulib:light`; may be another file),
   `colors` (any of `panel`, `panel_light`, `panel_dark`, `outline`, `slot`, `slot_shadow`, `slot_light`,
-  `slot_output`, `frame`, `well`, `text`, `text_muted`, `progress`, `energy`, as `#RRGGBB` or `#AARRGGBB`; unknown
+  `slot_output`, `frame`, `well`, `text`, `text_muted`, `progress`, `energy`, `button`, `button_hover`, as `#RRGGBB` or `#AARRGGBB`; unknown
   names are an error) and `grain`. A file may replace a theme of the same id, built-ins included. Code can
   `ScreenThemes.register`. Parent cycles and unknown parents are logged and the theme skipped.
 - **Choosing.** Each `ComponentScreen` kind has a default (`defaultTheme()`, `itszulib:light` unless overridden). The
@@ -309,7 +352,68 @@ where items go, since generated screens draw no art.
   "Bg" button beside the mode button), dark (the theme's well) or light, whichever shows the blocks better; it is
   remembered in the client config (`sideConfigLight`).
 
-Not done: themed tab buttons (still vanilla buttons), and themes for screens other than `ComponentScreen`s.
+- **Buttons** (maintainer, 2026-10-02): side panel tabs and the side configuration buttons are `ThemedButton`s, drawn
+  by `ScreenStyle.button` in the theme: raised in the theme's `button` colour, `button_hover` while hovered, pressed in
+  (a slot's inset) while selected (the open panel's tab, the light background toggle), flat with muted text while
+  inactive. Both colours are optional in code and JSON (they default to the panel and its light bevel). Mods use
+  `ThemedButton` for their own buttons; a `SidePanel` may give an item `icon` for its tab instead of a label.
+- **Accents** (maintainer, 2026-10-02): a `ThemedButton` (and a `SidePanel` tab) may name an accent that tints its
+  face, so the same kind of button looks the same on every screen: `ButtonAccents.IO` (blue; the side configuration
+  tab has it), `UPGRADE` (green), `DANGER` (red), `INFO` (amber). Themes recolour or add accents (`accents` in a theme
+  file, a map of name to colour, merged over the parent's); mods add their own names with defaults through
+  `ButtonAccents.register`. The tint is stronger while hovered, faint while inactive, and laid over the inset while
+  selected.
+
+Not done: themes for screens other than `ComponentScreen`s.
+
+## D17. Indexed storage, cross-storage indexes and storage terminals — DECIDED (maintainer, 2026-10-03)
+
+The maintainer asked for storage that is "efficient and searchable": finding items across many storages without
+scanning every slot, and multiblock storage screens that page and search, by several things.
+
+- **Indexed storages** (`api/storage/IndexedStorages.kt`): `IndexedItemStorage`/`IndexedFluidStorage` wrap a storage
+  and keep a `SlotIndex` (ids to sorted slot sets, the empty slots) current one slot at a time through every write
+  (`setSlot` and `setSlotQuietly`, so the NeoForge adapters' transactional writes keep it right too). The index is by
+  item id only; slots of one item with different components are told apart by a matcher when counting or
+  extracting. A storage changed behind the wrapper's back needs `slotChanged`/`rebuild`; a size change rebuilds.
+- **Indexes across storages**: `ItemStorageIndex`/`FluidStorageIndex` listen for ids appearing in and leaving each
+  storage, so `storagesWith(id)` is a map lookup and a search asks only the storages that hold the id. Insertion
+  prefers storages already holding the item.
+- **Fill order hook**: `IndexedFluidStorage.fillOrder(resource)` (tanks holding the fluid, then empty ones) is open,
+  so a storage can prefer some empty tanks, e.g. ones reserved for the fluid.
+- **Search** (`StorageSearch`): space-separated terms, all of which must match, `-` negating; prefixes as JEI and AE2
+  use them (`@` mod, `#` tooltip, `$` tag, `*` id), unprefixed terms in the chosen mode (default: name). Mod, tag
+  and id terms depend on the item only and are checked against the index's item list before any slot is read.
+- **Terminals** (`menu/StorageTerminal.kt`, `client/screen/StorageTerminalView.kt`): the server lists every kind of
+  stack in the index with its total (only slots that hold something are read) and syncs the list while it changes
+  (checked every 10 ticks and after each take or put); the **client** searches, sorts and pages it. Searching on the
+  server was the first plan, but the server has no mod translations (names would be translation keys) and every
+  keystroke would be a round trip; a list of kinds is small next to the slots behind it. Takes name an entry by its
+  place in the synced list; ItszuLib's terminal action ids are -10 and -11.
+- **Paging a slot storage**: `ItemStorageWindow` shows a page of a big storage as real slots, for screens that want
+  vanilla slots rather than a terminal.
+
+## D18. Resource filters: allow and deny lists — DECIDED (maintainer, 2026-10-03)
+
+The maintainer asked for the allowlist/denylist logic a mod's logistics had grown to live in ItszuLib, for reuse.
+
+- **`ResourceFilter<T>`** (`api/filter/ResourceFilter.kt`): an immutable list of `size` entries of a `FilterKind<T>`,
+  a mode (`ALLOW`: only listed things pass; `DENY`: listed things are kept out) and whether entries must match data
+  components (`matchComponents`, default true; off matches the thing alone). Nothing listed lets everything pass in
+  either mode. `only()` names the things an allowlist lets through, so a lookup (e.g. `ItemStorageIndex.extract(filter,
+  amount)`) asks for exactly those instead of scanning. `map` converts a filter to another kind. Saved with
+  `ResourceFilter.codec(kind, size)` (`entries` only when one is set, `mode`, `match_components`).
+- **`FilterKind<T>`**: how to tell things apart (`same`), make an entry (`entryOf`, one of it), read one from a held
+  item (`fromHeld`: an empty hand clears, null means the held item names nothing), save and compare them. Built in
+  (`FilterKinds`): `ITEM` (`ItemStack`; a click lists the held item), `FLUID` (`FluidStack`; a click lists the fluid
+  in the held container) and `I_ITEM` (`IItemStack`, for storages and tests without a game). Mods add kinds for
+  anything else they move.
+- **Click to set** (as in AE2): `FilterActions` packs an action (set a cell, toggle the mode, toggle component
+  matching) in `FilterActions.BITS` bits of a menu action's data; the menu applies it with the carried stack through
+  `ResourceFilter.apply(action, held)`. The client part is `FilterRow` (`client/screen/FilterRow.kt`): an Allow/Deny
+  button (IO and danger accents), an Exact/Any data button and a row of cells, with tooltips; it reads the filter every
+  frame (null dims it) and calls back with the action to send. Item and fluid entries draw themselves; other kinds
+  pass a drawer and a namer.
 
 ## B1. Shape of the ported ItszuLib API — DECIDED: a fragment/module framework (option 2)
 

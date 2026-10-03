@@ -50,7 +50,18 @@ them to NeoForge's transfer API in both directions, joining open transactions.
 - **Sided configuration** chooses which storage each face exposes, and **automatic IO** pushes and pulls through
   configured faces every tick, for items, fluids and energy.
 
-*For:* machine inventories that behave correctly with hoppers, pipes and other mods' transfer code.
+- **Indexed storage** knows where everything is: each write updates an index of item (or fluid) ids to slots and of
+  empty slots, so finding, counting, inserting and extracting touch only the slots that matter. An **index across
+  storages** keeps which storages hold each item, so a network of vaults answers "where is iron?" without scanning
+  any of them.
+- **Filters**: allow- and denylists of items, fluids or anything a mod defines, matching data components or not,
+  edited AE2-style by clicking a filter cell with the thing held; an allowlist lets an index fetch exactly what it
+  names.
+- **Search**: queries of space-separated terms by name, mod (`@`), tooltip (`#`), tag (`$`) or id (`*`), negated with
+  `-`; terms that depend only on the item are checked before a single slot is read.
+
+*For:* machine inventories that behave correctly with hoppers, pipes and other mods' transfer code, and large
+storage that stays fast to search.
 
 ### Networks of blocks and distribution
 
@@ -82,6 +93,9 @@ JSON palettes, each screen picks a default and players can force one or turn off
 screens still show where items go: slots are drawn inset, outputs ringed, and empty slots can show a faded hint of
 what belongs in them.
 
+A **storage terminal** gives a menu a view of everything in a storage index: a search box with search modes, sorting
+by count, name or id, a paged grid of item kinds with their totals, and click to take or put, shift-click to store.
+
 Recipe viewers are kept clear: with JEI installed, its overlays avoid the side panels and their tabs.
 
 *For:* functional machine screens with little code, and in-world-feeling configuration.
@@ -105,7 +119,8 @@ writes. Teams are stored this way.
 
 ### Tech trees
 
-Technologies are datapack entries (tree, prerequisites, cost, icon, optional position) synced to clients. Research
+Technologies are datapack entries (tree, prerequisites, cost, icon, optional position) synced to clients; besides
+their cost they may need other resources and items to hand in, and give item rewards to each team member. Research
 belongs to teams, with partial progress and a research queue whose first available entry is the team's focus; mods
 decide what produces progress and gate content with one call on either side. A layered layout places each tree automatically, and `TechTreeView` draws it in any screen with tooltips,
 panning and selection.

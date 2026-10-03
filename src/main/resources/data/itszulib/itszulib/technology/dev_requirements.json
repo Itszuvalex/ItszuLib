@@ -1,0 +1,28 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "itszulib:dev_environment"
+    }
+  ],
+  "tree": "itszulib:dev",
+  "prerequisites": [
+    "itszulib:dev_root"
+  ],
+  "cost": 10,
+  "icon": "minecraft:diamond",
+  "resources": {
+    "itszulib:dev_power": 100
+  },
+  "items": [
+    {
+      "ingredient": "minecraft:iron_ingot",
+      "count": 4
+    }
+  ],
+  "rewards": [
+    {
+      "id": "minecraft:diamond",
+      "count": 1
+    }
+  ]
+}

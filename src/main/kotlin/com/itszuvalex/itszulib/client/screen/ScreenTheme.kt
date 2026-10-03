@@ -22,6 +22,10 @@ import java.util.concurrent.ConcurrentHashMap
  * @param frame Gauge and widget frames; [well] the empty part of gauges and bars.
  * @param text Titles and labels; [textMuted] secondary text.
  * @param grain How strongly per-pixel value noise shows on panels (0 for none, about 0.05 for a faint grain).
+ * @param button A button's face ([ThemedButton], side panel tabs); [buttonHover] while hovered. Both default to
+ * colours derived from the panel.
+ * @param accents Colours that tint buttons by what they do ([ButtonAccents]: `io`, `upgrade`, `danger`, `info`, or any
+ * name a mod uses), so common kinds of button look alike across screens; names missing here use [ButtonAccents.DEFAULTS].
  */
 data class ScreenTheme(
     val panel: Int,
@@ -39,7 +43,15 @@ data class ScreenTheme(
     val progress: Int,
     val energy: Int,
     val grain: Float,
+    val button: Int = panel,
+    val buttonHover: Int = panelLight,
+    val accents: Map<String, Int> = emptyMap(),
 ) {
+    /**
+     * The colour of accent [name], or null if neither the theme nor [ButtonAccents.DEFAULTS] has it.
+     */
+    fun accent(name: String): Int? = accents[name] ?: ButtonAccents.DEFAULTS[name]
+
     companion object {
         /** Vanilla's grey, with its bevelled panel and inset slots. */
         @JvmField
@@ -48,6 +60,7 @@ data class ScreenTheme(
             slot = 0xFF8B8B8B.toInt(), slotShadow = 0xFF373737.toInt(), slotLight = 0xFFFFFFFF.toInt(), slotOutput = 0xFFB07A2A.toInt(),
             frame = 0xFF8B8B8B.toInt(), well = 0xFF2B2B2B.toInt(), text = 0xFF404040.toInt(), textMuted = 0xFF6A6A6A.toInt(),
             progress = 0xFF55DD55.toInt(), energy = 0xFFCC3333.toInt(), grain = 0.04f,
+            button = 0xFFB4B4B4.toInt(), buttonHover = 0xFFC8D0E0.toInt(),
         )
 
         /** Near-black panels with a cool grey bevel and dark inset slots. */
@@ -57,6 +70,7 @@ data class ScreenTheme(
             slot = 0xFF292929.toInt(), slotShadow = 0xFF0F0F0F.toInt(), slotLight = 0xFF3E4040.toInt(), slotOutput = 0xFF3A8FA8.toInt(),
             frame = 0xFF3E4040.toInt(), well = 0xFF0F0F0F.toInt(), text = 0xFFD8D8D8.toInt(), textMuted = 0xFF8A8A8A.toInt(),
             progress = 0xFF55DD55.toInt(), energy = 0xFFCC3333.toInt(), grain = 0.05f,
+            button = 0xFF2C2E2E.toInt(), buttonHover = 0xFF3A484C.toInt(),
         )
 
         /**
@@ -83,10 +97,52 @@ data class ScreenTheme(
 }
 
 /**
+ * Named button accents ([ThemedButton]'s `accent`): what a button does, shown as a tint over its face, so the same kind
+ * of button looks the same on every screen. Themes may recolour these and add their own (`accents` in a theme file).
+ */
+object ButtonAccents {
+    /** Input/output and side configuration. */
+    const val IO = "io"
+
+    /** Upgrades and improvements. */
+    const val UPGRADE = "upgrade"
+
+    /** Destructive or irreversible actions (dump, clear, disband). */
+    const val DANGER = "danger"
+
+    /** Information and help. */
+    const val INFO = "info"
+
+    private val defaults = ConcurrentHashMap(mapOf(
+        IO to 0xFF3A7FD0.toInt(),
+        UPGRADE to 0xFF3FA34D.toInt(),
+        DANGER to 0xFFC0392B.toInt(),
+        INFO to 0xFFC9A227.toInt(),
+    ))
+
+    /** Every accent's default colour (themes override them). */
+    @JvmStatic
+    val DEFAULTS: Map<String, Int> get() = defaults
+
+    /**
+     * Adds a mod's own accent [name] with its default [color] (themes may still recolour it).
+     */
+    @JvmStatic
+    fun register(name: String, color: Int) {
+        defaults[name] = color
+    }
+}
+
+/**
  * A theme as written in a JSON file: an optional [parent] it starts from (default `itszulib:light`) and the colours it
  * changes. Field names are the [ScreenTheme] properties in snake case (`panel_light`, `slot_output`, ...).
  */
-data class ThemeDefinition(val parent: Optional<Identifier>, val values: Map<String, Int>, val grain: Optional<Float>) {
+data class ThemeDefinition @JvmOverloads constructor(
+    val parent: Optional<Identifier>,
+    val values: Map<String, Int>,
+    val grain: Optional<Float>,
+    val accents: Map<String, Int> = emptyMap(),
+) {
     /**
      * The theme this defines, on top of [parent].
      */
@@ -98,6 +154,8 @@ data class ThemeDefinition(val parent: Optional<Identifier>, val values: Map<Str
             slotLight = c("slot_light", parent.slotLight), slotOutput = c("slot_output", parent.slotOutput), frame = c("frame", parent.frame),
             well = c("well", parent.well), text = c("text", parent.text), textMuted = c("text_muted", parent.textMuted),
             progress = c("progress", parent.progress), energy = c("energy", parent.energy), grain = grain.orElse(parent.grain),
+            button = c("button", parent.button), buttonHover = c("button_hover", parent.buttonHover),
+            accents = parent.accents + accents,
         )
     }
 
@@ -105,7 +163,7 @@ data class ThemeDefinition(val parent: Optional<Identifier>, val values: Map<Str
         @JvmField
         val KEYS = listOf(
             "panel", "panel_light", "panel_dark", "outline", "slot", "slot_shadow", "slot_light", "slot_output",
-            "frame", "well", "text", "text_muted", "progress", "energy",
+            "frame", "well", "text", "text_muted", "progress", "energy", "button", "button_hover",
         )
 
         @JvmField
@@ -117,6 +175,7 @@ data class ThemeDefinition(val parent: Optional<Identifier>, val values: Map<Str
                     if (unknown.isEmpty()) DataResult.success(map) else DataResult.error { "Unknown theme colours $unknown; known: $KEYS" }
                 }.optionalFieldOf("colors", emptyMap()).forGetter(ThemeDefinition::values),
                 Codec.floatRange(0f, 1f).optionalFieldOf("grain").forGetter(ThemeDefinition::grain),
+                Codec.unboundedMap(Codec.STRING, ScreenTheme.COLOR).optionalFieldOf("accents", emptyMap()).forGetter(ThemeDefinition::accents),
             ).apply(i, ::ThemeDefinition)
         }
     }

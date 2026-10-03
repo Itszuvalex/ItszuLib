@@ -38,6 +38,7 @@ object DevStorageGameTests {
 
     fun register(test: (String, Identifier, (GameTestHelper) -> Unit) -> Unit) {
         test("sided_item_capability", DevGameTests.EMPTY_1, ::sidedItemCapability)
+        test("resource_filters_on_items_and_fluids", DevGameTests.EMPTY_1, ::resourceFilters)
         test("sided_config_syncs_to_client", DevGameTests.EMPTY_1, ::sidedConfigSyncsToClient)
         test("storage_fragments_save_load", DevGameTests.EMPTY_1, ::storageFragmentsSaveLoad)
         test("fluid_resource_handler_transactions", DevGameTests.EMPTY_1, ::fluidResourceHandlerTransactions)
@@ -284,5 +285,39 @@ object DevStorageGameTests {
             helper.assertTrue(loadedWing.part.state == null && loadedWing.part.membership == wing.part.membership, "wing saves only its membership")
             helper.succeed()
         }
+    }
+
+    /**
+     * Item and fluid filters on real stacks: clicks set entries from the held item or the held bucket's fluid (an empty
+     * hand clears), entries match components unless told otherwise, and filters save and load.
+     */
+    private fun resourceFilters(helper: GameTestHelper) {
+        val kinds = com.itszuvalex.itszulib.api.filter.FilterKinds
+        val actions = com.itszuvalex.itszulib.api.filter.FilterActions
+        val named = ItemStack(Items.DIAMOND).apply { set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, net.minecraft.network.chat.Component.literal("Shiny")) }
+        var items = com.itszuvalex.itszulib.api.filter.ResourceFilter(kinds.ITEM, 9)
+        items = items.apply(actions.set(0), ItemStack(Items.DIAMOND, 12))!!
+        helper.assertValueEqual(items.entries[0].count, 1, "an entry holds one")
+        helper.assertTrue(items.test(ItemStack(Items.DIAMOND, 64)), "diamonds pass")
+        helper.assertFalse(items.test(named), "a named diamond is not the same when matching components")
+        helper.assertTrue(items.apply(actions.components(), ItemStack.EMPTY)!!.test(named), "but is when matching the item alone")
+        helper.assertFalse(items.test(ItemStack(Items.DIRT)), "dirt does not pass")
+        helper.assertTrue(items.apply(actions.set(0), ItemStack.EMPTY)!!.isEmpty, "an empty hand clears")
+
+        var fluids = com.itszuvalex.itszulib.api.filter.ResourceFilter(kinds.FLUID, 4)
+        fluids = fluids.apply(actions.set(2), ItemStack(Items.WATER_BUCKET))!!
+        helper.assertTrue(fluids.test(FluidStack(Fluids.WATER, 1000)), "water passes")
+        helper.assertFalse(fluids.test(FluidStack(Fluids.LAVA, 1000)), "lava does not")
+        helper.assertTrue(fluids.apply(actions.set(1), ItemStack(Items.DIRT)) == null, "dirt holds no fluid")
+        val deny = fluids.apply(actions.mode(), ItemStack.EMPTY)!!
+        helper.assertTrue(deny.test(FluidStack(Fluids.LAVA, 1)) && !deny.test(FluidStack(Fluids.WATER, 1)), "a denylist keeps water out")
+
+        val registries = helper.level.registryAccess()
+        val ops = registries.createSerializationContext(com.mojang.serialization.JsonOps.INSTANCE)
+        val codec = com.itszuvalex.itszulib.api.filter.ResourceFilter.codec(kinds.ITEM, 9)
+        val withNamed = items.withEntry(3, named).withMode(com.itszuvalex.itszulib.api.filter.FilterMode.DENY)
+        val loaded = codec.parse(ops, codec.encodeStart(ops, withNamed).getOrThrow()).getOrThrow()
+        helper.assertTrue(loaded == withNamed, "saved and loaded: $loaded")
+        helper.succeed()
     }
 }
