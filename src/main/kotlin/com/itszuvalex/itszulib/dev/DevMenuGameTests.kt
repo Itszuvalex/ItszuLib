@@ -46,6 +46,7 @@ object DevMenuGameTests {
         test("multiblock_side_config_reaches_every_member", DevGameTests.EMPTY_5X3X5, ::multiblockSideConfig)
         test("horizontal_facing_placement_and_rotation", DevGameTests.EMPTY_1, ::horizontalFacing)
         test("sided_config_follows_facing", DevGameTests.EMPTY_1, ::sidedConfigFollowsFacing)
+        test("storage_terminal_lists_takes_and_puts", DevGameTests.EMPTY_1, ::storageTerminal)
         test("wire_network_forms_and_splits", DevGameTests.EMPTY_5X3X5, ::wireNetwork)
     }
 
@@ -374,5 +375,77 @@ object DevMenuGameTests {
             helper.assertValueEqual(west.getNetwork()?.size() ?: -1, 1, "west network size")
             helper.succeed()
         }
+    }
+
+    /** A menu with only a storage terminal and the player's inventory. */
+    private class TerminalMenu(id: Int, player: Player, index: com.itszuvalex.itszulib.api.storage.ItemStorageIndex?) : MenuCore(null, id, player) {
+        val view = enableStorageTerminal { index }
+
+        init {
+            addPlayerInventorySlots(player.inventory)
+        }
+
+        override fun stillValid(player: Player): Boolean = true
+    }
+
+    /**
+     * The terminal lists each kind of stack across its storages with its count and syncs that list; extract takes a
+     * stack to the carried slot (or half, or into the inventory), insert puts the carried stack (or one) back, and
+     * shift-clicking a player slot puts its stack in. Stacks with other components are separate entries.
+     */
+    private fun storageTerminal(helper: GameTestHelper) {
+        val a = com.itszuvalex.itszulib.api.storage.IndexedItemStorage(ItemStorageArray(9))
+        val b = com.itszuvalex.itszulib.api.storage.IndexedItemStorage(ItemStorageArray(9))
+        val index = com.itszuvalex.itszulib.api.storage.ItemStorageIndex().apply { add(a); add(b) }
+        a.insert(IItemStack.of(ItemStack(Items.IRON_INGOT, 64)))
+        b.insert(IItemStack.of(ItemStack(Items.IRON_INGOT, 36)))
+        b.insert(IItemStack.of(ItemStack(Items.DIAMOND, 3)))
+        val named = ItemStack(Items.DIAMOND).apply { set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, net.minecraft.network.chat.Component.literal("Shiny")) }
+        a.insert(IItemStack.of(named))
+
+        val player = helper.makeMockPlayer(GameType.SURVIVAL)
+        val registries = helper.level.registryAccess()
+        val server = TerminalMenu(4, player, index)
+        val client = TerminalMenu(4, player, null)
+        client.applySyncPayload(server.collectSyncPayload(registries, all = false)!!, registries)
+        fun count(menu: TerminalMenu, item: net.minecraft.world.item.Item, custom: Boolean = false) =
+            menu.view.stacks.filter { it.stack.`is`(item) && it.stack.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME) == custom }.sumOf { it.count }
+        helper.assertValueEqual(client.view.stacks.size, 3, "entries")
+        helper.assertValueEqual(count(client, Items.IRON_INGOT), 100L, "iron across storages")
+        helper.assertValueEqual(count(client, Items.DIAMOND), 3L, "plain diamonds")
+        helper.assertValueEqual(count(client, Items.DIAMOND, custom = true), 1L, "named diamond kept apart")
+
+        fun entry(item: net.minecraft.world.item.Item, custom: Boolean = false) =
+            server.view.stacks.indexOfFirst { it.stack.`is`(item) && it.stack.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME) == custom }
+        fun act(action: Int, data: Int) = MenuActionPayload.dispatch(server, MenuActionPayload(4, action, data), player)
+        val T = com.itszuvalex.itszulib.menu.StorageTerminal
+
+        helper.assertTrue(act(T.ACTION_EXTRACT, T.extractData(entry(Items.IRON_INGOT), false, false)), "extract")
+        helper.assertValueEqual(server.carried.count, 64, "a whole stack carried")
+        helper.assertValueEqual(index.count(IItemStack.of(ItemStack(Items.IRON_INGOT)).item()), 36L, "left in storage")
+        helper.assertFalse(act(T.ACTION_EXTRACT, T.extractData(entry(Items.DIAMOND), false, false)), "no extract onto a carried stack")
+        helper.assertTrue(act(T.ACTION_INSERT, T.INSERT_ONE), "insert one")
+        helper.assertValueEqual(server.carried.count, 63, "one put back")
+        helper.assertTrue(act(T.ACTION_INSERT, 0), "insert all")
+        helper.assertTrue(server.carried.isEmpty, "all put back")
+
+        helper.assertTrue(server.collectSyncPayload(registries, all = false) == null, "a round trip that changed nothing was resent")
+
+        helper.assertTrue(act(T.ACTION_EXTRACT, T.extractData(entry(Items.DIAMOND), false, true)), "extract half")
+        helper.assertValueEqual(server.carried.count, 2, "half of three, rounded up")
+        helper.assertFalse(server.carried.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME), "the plain diamonds, not the named one")
+        client.applySyncPayload(server.collectSyncPayload(registries, all = false) ?: error("no resync after a change"), registries)
+        helper.assertValueEqual(count(client, Items.DIAMOND), 1L, "resynced count")
+        server.setCarried(ItemStack.EMPTY)
+        helper.assertTrue(act(T.ACTION_EXTRACT, T.extractData(entry(Items.DIAMOND, custom = true), true, false)), "extract to inventory")
+        helper.assertTrue(player.inventory.contains { it.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME) }, "named diamond in the inventory")
+        helper.assertFalse(act(T.ACTION_EXTRACT, T.extractData(99, false, false)), "unknown entry")
+
+        val slot = server.slots.indexOfFirst { it.item.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME) }
+        server.quickMoveStack(player, slot)
+        helper.assertTrue(server.slots[slot].item.isEmpty, "shift-click emptied the slot")
+        server.collectSyncPayload(registries, all = false)
+        helper.assertValueEqual(count(server, Items.DIAMOND, custom = true), 1L, "shift-click put it in")
+        helper.succeed()
     }
 }

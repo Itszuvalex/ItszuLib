@@ -68,7 +68,8 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │   ├── multiblock/        MultiblockShape, IMultiblockMember, IMultiblockState, MultiblockManager (+ instance,
 │   │                      chunk tickets: MultiblockTickets.kt), Multiblock{Item,Fluid}StorageConfiguration
 │   ├── storage/           IItemStorage and IFluidStorage + implementations (Array, Slice, Aggregate, NBT, Dynamic,
-│   │                      ResourceHandler-backed); IBattery implementations
+│   │                      Window, ResourceHandler-backed); indexed storages and cross-storage indexes (IndexedStorages.kt),
+│   │                      search (StorageSearch.kt); IBattery implementations
 │   ├── utility/           Loc4 (+Level/ILevel/Indirect), ChunkCoord, LocationTracker, DirectionUtil, module
 │   │                      capability maps, IScopedSerialization + NBTSerializationScope, Overideable, sided holders
 │   └── wrappers/          Vanilla/NeoForge <-> ItszuLib adapters (WrapperLevel, WrapperBlockEntity,
@@ -76,7 +77,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
 ├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath; ItszuLibClient (client
 │   │                      registrations); screen/ (ComponentScreen, ScreenComponent, SidePanel, ScreenStyle, gauges,
-│   │                      SideConfigPanel, TechTreeView, ThemedButton, Layout (Row/Column/Grid, Anchor), ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
+│   │                      SideConfigPanel, TechTreeView, StorageTerminalView, ThemedButton, Layout (Row/Column/Grid, Anchor), ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
 │   │                      DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
@@ -88,7 +89,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          FragConnectable, FragNetworkedWire
 ├── menu/                  MenuCore (slots, shift-click, syncs, syncEnergy/EnergyView, enableSideConfig), MenuSync/MenuSyncs,
 │                          MenuSyncPayload, MenuActionPayload, MenuSideConfig (SideConfigMode/Modes/Cyclers),
-│                          IMenuHost, BlockMenus
+│                          IMenuHost, BlockMenus, StorageTerminal (enableStorageTerminal: searchable view of an ItemStorageIndex)
 ├── network/               PacketHandler, ItszuLibNetwork (registers ItszuLib's payloads)
 ├── store/                 Crash-safe server data: SafeStore + StoreFormat (file), StoreManager (state, change, save),
 │                          ServerStores (server lifecycle)
@@ -142,6 +143,8 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 - `IItemStorage`: slot-based, default transfer logic, saved as one entry per non-empty slot keyed by index. `IBattery`: double-based energy.
 - ItszuLib -> NeoForge: `WrapperResourceHandlerIItemStorage.of(storage)` (per-slot limits, commit-only notifications), `WrapperEnergyHandlerIBattery(battery)` (whole units). Create once per block entity.
 - NeoForge -> ItszuLib: `ItemStorageResourceHandler`, `BatteryEnergyHandler`; their writes join an open transaction (`Transactions.openJoined`), so inside one they commit or roll back with it.
+- Indexed storage (DECISIONS D17): `IndexedItemStorage(inner)`/`IndexedFluidStorage(inner)` keep item/fluid ids -> slots and the empty slots current through every write, so `slotsOf`, `count`, `insert` and `extract` touch only the slots that matter (call `slotChanged`/`rebuild` if `inner` changes behind their back). `ItemStorageIndex`/`FluidStorageIndex` find things across many indexed storages: they track which storages hold each id. `ItemStorageWindow(storage, size)` shows one page of a large storage.
+- Searching: `StorageSearch.parse(query, mode)` (terms ANDed, `-` negates; `@` mod, `#` tooltip, `$` tag, `*` id; per-item terms are checked before any slot is read), `StorageEntries` (collect entries through an index, sort, page, `formatCount`). A menu's `enableStorageTerminal { index }` syncs everything in the index (one `TerminalStack` per kind of stack) and handles take/put clicks and shift-clicks; `StorageTerminalView` is the screen part (search box, mode and sort buttons, paged grid). Search runs on the client, in its language.
 
 ### Multiblocks
 Controller-less, with shared state (DECISIONS D11). `MultiblockShape.register(id, slots, breakPolicy, state)` maps offsets to role names; the (0,0,0) slot is required and is the structure's home. A member exposes `IMultiblockMember` (usually `FragMultiblockPart(candidateRoles, autoForm)` through `Modules.MULTIBLOCK_MEMBER`) and saves its own membership. `MultiblockManager.SERVER` forms structures when auto-forming members load (all slots loaded, roles matching) or on `form(level, shape, anchor)`, and `disband`s them without break effects. Breaking a member breaks the structure: `DISSOLVE` frees the others, `DESTROY_ALL` destroys them (loading their chunks). A stateful shape's `IMultiblockState` lives on the home member, saved with its chunk; other members reach it with `FragMultiblockPart.sharedState()`, and it gets `onBreak` to drop its contents. While a member outside the home chunk is in a ticking chunk, the manager keeps the home chunk loaded without ticking it (an `itszulib:multiblock` ticket that lapses 60 ticks after the last refresh). Reloaded members are checked against the home member and leave if their structure is gone. `FragMultiblockTickable` runs once per game tick per structure. Faces between members: `Multiblock{Item,Fluid}StorageConfiguration`. `ItszuLib` ticks the manager (`ServerTickEvent.Post`) and clears it on server stop.

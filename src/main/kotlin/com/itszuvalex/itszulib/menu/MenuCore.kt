@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.menu
 
 import com.itszuvalex.itszulib.api.adapters.IItemStack
 import com.itszuvalex.itszulib.api.storage.IItemStorage
+import com.itszuvalex.itszulib.api.storage.ItemStorageIndex
 import com.itszuvalex.itszulib.api.wrappers.WrapperContainerIItemStorage
 import net.minecraft.core.RegistryAccess
 import net.minecraft.server.level.ServerPlayer
@@ -143,9 +144,29 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
      * Server side: routes an action from [MenuActionPayload]. ItszuLib's own actions (negative ids, e.g.
      * [ACTION_SIDE_CONFIG]) are handled here; every other action goes to [handleAction].
      */
-    fun dispatchAction(player: Player, action: Int, data: Int): Boolean = when (action) {
-        ACTION_SIDE_CONFIG -> sideConfig?.handle(data) ?: false
-        else -> if (action < 0) false else handleAction(player, action, data)
+    fun dispatchAction(player: Player, action: Int, data: Int): Boolean = when {
+        action == ACTION_SIDE_CONFIG -> sideConfig?.handle(data) ?: false
+        action in StorageTerminal.ACTIONS -> terminal?.handleAction(player, action, data) ?: false
+        action < 0 -> false
+        else -> handleAction(player, action, data)
+    }
+
+    /**
+     * The storage terminal, if [enableStorageTerminal] was called.
+     */
+    var terminal: StorageTerminal? = null
+        private set
+
+    /**
+     * Gives this menu a view of everything in [index] ([StorageTerminal]) for a searchable, paged screen
+     * ([com.itszuvalex.itszulib.client.screen.StorageTerminalView]): items taken out and put in by click, and
+     * shift-clicks from the player's inventory put in. Call on both sides (the client's [index] may return null).
+     */
+    fun enableStorageTerminal(index: () -> ItemStorageIndex?): StorageTerminal {
+        val created = StorageTerminal(this, index)
+        terminal = created
+        addSync(created.viewSync())
+        return created
     }
 
     /**
@@ -232,6 +253,8 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
     override fun quickMoveStack(player: Player, index: Int): ItemStack {
         val slot = slots.getOrNull(index) ?: return ItemStack.EMPTY
         if (!slot.hasItem()) return ItemStack.EMPTY
+        // With a storage terminal, the player's stacks go into the terminal's storage.
+        terminal?.let { t -> if (index >= blockSlotCount) return t.quickMove(player, slot) }
         val stack = slot.item
         val original = stack.copy()
         val playerStart = blockSlotCount

@@ -50,7 +50,15 @@ them to NeoForge's transfer API in both directions, joining open transactions.
 - **Sided configuration** chooses which storage each face exposes, and **automatic IO** pushes and pulls through
   configured faces every tick, for items, fluids and energy.
 
-*For:* machine inventories that behave correctly with hoppers, pipes and other mods' transfer code.
+- **Indexed storage** knows where everything is: each write updates an index of item (or fluid) ids to slots and of
+  empty slots, so finding, counting, inserting and extracting touch only the slots that matter. An **index across
+  storages** keeps which storages hold each item, so a network of vaults answers "where is iron?" without scanning
+  any of them.
+- **Search**: queries of space-separated terms by name, mod (`@`), tooltip (`#`), tag (`$`) or id (`*`), negated with
+  `-`; terms that depend only on the item are checked before a single slot is read.
+
+*For:* machine inventories that behave correctly with hoppers, pipes and other mods' transfer code, and large
+storage that stays fast to search.
 
 ### Networks of blocks and distribution
 
@@ -81,6 +89,9 @@ Screens are **themed**: a light (vanilla) and a dark theme are built in, mods an
 JSON palettes, each screen picks a default and players can force one or turn off the panels' faint grain. Generated
 screens still show where items go: slots are drawn inset, outputs ringed, and empty slots can show a faded hint of
 what belongs in them.
+
+A **storage terminal** gives a menu a view of everything in a storage index: a search box with search modes, sorting
+by count, name or id, a paged grid of item kinds with their totals, and click to take or put, shift-click to store.
 
 Recipe viewers are kept clear: with JEI installed, its overlays avoid the side panels and their tabs.
 

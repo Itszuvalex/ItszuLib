@@ -36,5 +36,21 @@
   "itszulib.configuration.grain.tooltip": "A faint per-pixel grain on screen panels.",
   "gui.itszulib.side_config.background": "Background: dark / light",
   "itszulib.configuration.side_config_light": "Light side configuration background",
-  "itszulib.configuration.side_config_light.tooltip": "A light background behind the 3D side configuration view, for dark blocks."
+  "itszulib.configuration.side_config_light.tooltip": "A light background behind the 3D side configuration view, for dark blocks.",
+  "gui.itszulib.terminal.search": "Search...",
+  "gui.itszulib.terminal.mode": "Search by: %s",
+  "gui.itszulib.terminal.mode.name": "Name",
+  "gui.itszulib.terminal.mode.mod": "Mod",
+  "gui.itszulib.terminal.mode.tooltip": "Tooltip",
+  "gui.itszulib.terminal.mode.tag": "Tag",
+  "gui.itszulib.terminal.mode.id": "Item id",
+  "gui.itszulib.terminal.syntax": "Prefixes: @mod #tooltip $tag *id, -term excludes",
+  "gui.itszulib.terminal.sort": "Sort by: %s",
+  "gui.itszulib.terminal.sort.count": "Count",
+  "gui.itszulib.terminal.sort.name": "Name",
+  "gui.itszulib.terminal.sort.id": "Item id",
+  "gui.itszulib.terminal.previous": "Previous page",
+  "gui.itszulib.terminal.next": "Next page",
+  "gui.itszulib.terminal.page": "%s / %s",
+  "gui.itszulib.terminal.count": "Stored: %s"
 }

@@ -8,6 +8,8 @@ import net.minecraft.client.gui.components.Renderable
 import net.minecraft.client.gui.components.events.GuiEventListener
 import net.minecraft.client.gui.narration.NarratableEntry
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.client.gui.components.EditBox
+import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.renderer.Rect2i
 import net.minecraft.network.chat.Component
@@ -275,6 +277,19 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
         ScreenStyle.theme = theme
         graphics.text(font, title, titleLabelX, titleLabelY, ScreenStyle.TEXT, false)
         graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ScreenStyle.TEXT, false)
+    }
+
+    /**
+     * While a text box has focus it takes every key but escape, so typing the inventory key or a hotbar number does
+     * not close the screen or move items.
+     */
+    override fun keyPressed(event: KeyEvent): Boolean {
+        val box = focused as? EditBox
+        if (box != null && box.canConsumeInput() && !event.isEscape) {
+            box.keyPressed(event)
+            return true
+        }
+        return super.keyPressed(event)
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean =

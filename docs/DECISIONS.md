@@ -366,6 +366,31 @@ where items go, since generated screens draw no art.
 
 Not done: themes for screens other than `ComponentScreen`s.
 
+## D17. Indexed storage, cross-storage indexes and storage terminals — DECIDED (maintainer, 2026-10-03)
+
+The maintainer asked for storage that is "efficient and searchable": finding items across many storages without
+scanning every slot, and multiblock storage screens that page and search, by several things.
+
+- **Indexed storages** (`api/storage/IndexedStorages.kt`): `IndexedItemStorage`/`IndexedFluidStorage` wrap a storage
+  and keep a `SlotIndex` (ids to sorted slot sets, the empty slots) current one slot at a time through every write
+  (`setSlot` and `setSlotQuietly`, so the NeoForge adapters' transactional writes keep it right too). The index is by
+  item id only; slots of one item with different components are told apart by a matcher when counting or
+  extracting. A storage changed behind the wrapper's back needs `slotChanged`/`rebuild`; a size change rebuilds.
+- **Indexes across storages**: `ItemStorageIndex`/`FluidStorageIndex` listen for ids appearing in and leaving each
+  storage, so `storagesWith(id)` is a map lookup and a search asks only the storages that hold the id. Insertion
+  prefers storages already holding the item.
+- **Search** (`StorageSearch`): space-separated terms, all of which must match, `-` negating; prefixes as JEI and AE2
+  use them (`@` mod, `#` tooltip, `$` tag, `*` id), unprefixed terms in the chosen mode (default: name). Mod, tag
+  and id terms depend on the item only and are checked against the index's item list before any slot is read.
+- **Terminals** (`menu/StorageTerminal.kt`, `client/screen/StorageTerminalView.kt`): the server lists every kind of
+  stack in the index with its total (only slots that hold something are read) and syncs the list while it changes
+  (checked every 10 ticks and after each take or put); the **client** searches, sorts and pages it. Searching on the
+  server was the first plan, but the server has no mod translations (names would be translation keys) and every
+  keystroke would be a round trip; a list of kinds is small next to the slots behind it. Takes name an entry by its
+  place in the synced list; ItszuLib's terminal action ids are -10 and -11.
+- **Paging a slot storage**: `ItemStorageWindow` shows a page of a big storage as real slots, for screens that want
+  vanilla slots rather than a terminal.
+
 ## B1. Shape of the ported ItszuLib API — DECIDED: a fragment/module framework (option 2)
 
 **Context.** ItszuLib's 2015–16 API is built around mechanisms that no longer exist (`IInventory`/`ISidedInventory`, `IFluidHandler`, `IExtendedEntityProperties`, block metadata, `SimpleNetworkWrapper`, immediate-mode GL). Mods written against the old API have to be rewritten against whatever shape ItszuLib takes.
