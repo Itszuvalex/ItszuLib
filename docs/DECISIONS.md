@@ -237,8 +237,10 @@ Not done: research screens beyond the component.
 **Addendum (maintainer, 2026-10-02): costs beyond one number, and rewards.**
 
 - A technology may also need `resources` (named amounts the mod produces, such as computation; `TechTree.addResource`)
-  and `items` to hand in (NeoForge `SizedIngredient`s; `TechTree.deliver` takes them from any stacks, a player's
-  inventory or a machine's slots). It unlocks when its progress, every resource and every item are complete,
+  and `items` to hand in (NeoForge `SizedIngredient`s; `TechTree.deliver` takes them from any `IItemStack`s and
+  `deliverFrom` from vanilla stacks, a player's inventory or a machine's slots). The rule is pure
+  (`Technologies.deliver`): a plain ingredient matches by item id through the `IItemStack` seam, so it is unit tested
+  without a game; custom ingredients go through the vanilla stack. It unlocks when its progress, every resource and every item are complete,
   whichever contribution completes it. `Technologies.remaining` says what is left. Progress on these is kept per
   requirement in `Research.requirements` (merged by the larger amount, like progress); the codec reads saves without it.
 - `rewards` (`ItemStackTemplate`s: item stacks cannot be decoded while datapack registries load) go to every member of

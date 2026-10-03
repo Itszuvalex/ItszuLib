@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
+import com.itszuvalex.itszulib.api.adapters.IItemStack
 import com.itszuvalex.itszulib.team.TeamMembershipChangedEvent
 import net.neoforged.neoforge.common.crafting.SizedIngredient
 import net.neoforged.neoforge.event.entity.player.PlayerEvent
@@ -70,6 +71,39 @@ class Technologies(val all: Map<Identifier, Technology>) {
             tech.resources.mapValues { (r, amount) -> (amount - research.requirementOf(id, resourceKey(r))).coerceAtLeast(0L) },
             tech.items.mapIndexed { i, item -> item to (item.count() - research.requirementOf(id, itemKey(i)).toInt()).coerceAtLeast(0) },
         )
+    }
+
+    /**
+     * Hands in what [id] still needs of its items from [stacks], shrinking them, and returns the updated research and
+     * how many items were taken. [matches] decides whether a stack counts for a requirement ([matchesItem] by
+     * default). Pure: callers store the result ([TechTree.deliver]).
+     */
+    @JvmOverloads
+    fun deliver(
+        id: Identifier,
+        research: Research,
+        stacks: Iterable<IItemStack>,
+        matches: (SizedIngredient, IItemStack) -> Boolean = ::matchesItem,
+    ): Pair<Research, Int> {
+        val tech = all[id] ?: return research to 0
+        if (isResearched(id, research)) return research to 0
+        var updated = research
+        var taken = 0
+        tech.items.forEachIndexed { index, item ->
+            val key = itemKey(index)
+            var have = updated.requirementOf(id, key)
+            for (stack in stacks) {
+                val left = item.count() - have
+                if (left <= 0L) break
+                if (stack.isEmpty() || !matches(item, stack)) continue
+                val take = minOf(left, stack.stackSize().toLong()).toInt()
+                stack.modifyStackSize(-take)
+                have += take
+                taken += take
+            }
+            updated = updated.withRequirement(id, key, have)
+        }
+        return updated to taken
     }
 
     /** Whether every requirement of [id] is met (its cost, resources and items). */
@@ -163,6 +197,17 @@ class Technologies(val all: Map<Identifier, Technology>) {
     companion object {
         @JvmField
         val EMPTY = Technologies(emptyMap())
+
+        /**
+         * Whether [stack] counts for [item]: by item id for a plain ingredient (items or a tag; no registry lookup or
+         * vanilla stack needed), through the vanilla stack for a custom ingredient (components and the like).
+         */
+        @JvmStatic
+        fun matchesItem(item: SizedIngredient, stack: IItemStack): Boolean {
+            val ingredient = item.ingredient()
+            if (ingredient.isCustom) return ingredient.test(stack.toMinecraft())
+            return ingredient.items().anyMatch { holder -> holder.unwrapKey().map { it.identifier() == stack.item() }.orElse(false) }
+        }
 
         /** The [Research.requirements] key of resource [resource]. */
         @JvmStatic
@@ -278,31 +323,23 @@ object TechTree {
 
     /**
      * Hands in what [technology] still needs of its items ([Technology.items]) from [stacks], shrinking them (a
-     * player's inventory, a machine's slots: mark them changed afterwards). As [addProgress] otherwise.
+     * player's inventory, a machine's storage: mark them changed afterwards). As [addProgress] otherwise.
      *
      * @return How many items were taken.
      */
     @JvmStatic
-    fun deliver(server: MinecraftServer, team: UUID, technology: Identifier, stacks: Iterable<ItemStack>): Int =
-        contribute(server, team, technology) { tech, research ->
-            var updated = research
-            var taken = 0L
-            tech.items.forEachIndexed { index, item ->
-                val key = Technologies.itemKey(index)
-                var have = updated.requirementOf(technology, key)
-                for (stack in stacks) {
-                    val left = item.count() - have
-                    if (left <= 0L) break
-                    if (stack.isEmpty || !item.ingredient().test(stack)) continue
-                    val take = minOf(left, stack.count.toLong()).toInt()
-                    stack.shrink(take)
-                    have += take
-                    taken += take
-                }
-                updated = updated.withRequirement(technology, key, have)
-            }
-            updated to taken
+    fun deliver(server: MinecraftServer, team: UUID, technology: Identifier, stacks: Iterable<IItemStack>): Int =
+        contribute(server, team, technology) { _, research ->
+            val (updated, taken) = of(server.registryAccess()).deliver(technology, research, stacks)
+            updated to taken.toLong()
         }.toInt()
+
+    /**
+     * [deliver] from vanilla stacks (shrunk in place), such as `player.inventory.nonEquipmentItems`.
+     */
+    @JvmStatic
+    fun deliverFrom(server: MinecraftServer, team: UUID, technology: Identifier, stacks: Iterable<ItemStack>): Int =
+        deliver(server, team, technology, stacks.map(IItemStack::of))
 
     /**
      * Applies [change] (the updated research and how much it used, or null for nothing to do) to [team]'s research

@@ -199,7 +199,7 @@ object TeamCommands {
         val target = EntityArgument.getPlayer(ctx, "player")
         val id = IdentifierArgument.getId(ctx, "research")
         val team = ItszuLib.TEAMS.state.teamOf(target.uuid) ?: return fail(ctx, "That player is not in a team yet.")
-        val taken = TechTree.deliver(ctx.source.server, team.id, id, target.inventory.nonEquipmentItems)
+        val taken = TechTree.deliverFrom(ctx.source.server, team.id, id, target.inventory.nonEquipmentItems)
         target.inventory.setChanged()
         ctx.source.sendSuccess({ Component.literal("Took $taken items from ${target.name.string} towards $id.") }, true)
         return 1

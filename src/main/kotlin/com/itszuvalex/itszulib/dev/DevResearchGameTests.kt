@@ -107,7 +107,7 @@ object DevResearchGameTests {
         helper.assertValueEqual(TechTree.addResource(server, team, REQUIREMENTS, dev("other"), 10), 0L, "a resource it does not need")
         helper.assertValueEqual(TechTree.addResource(server, team, REQUIREMENTS, DEV_POWER, 150), 100L, "resource up to its amount")
         val stacks = listOf(net.minecraft.world.item.ItemStack(Items.IRON_INGOT, 3), net.minecraft.world.item.ItemStack(Items.GOLD_INGOT, 5), net.minecraft.world.item.ItemStack(Items.IRON_INGOT, 5))
-        helper.assertValueEqual(TechTree.deliver(server, team, REQUIREMENTS, stacks), 4, "items taken")
+        helper.assertValueEqual(TechTree.deliverFrom(server, team, REQUIREMENTS, stacks), 4, "items taken")
         helper.assertValueEqual(stacks.map { it.count }, listOf(0, 5, 4), "matching stacks shrunk")
         helper.assertTrue(research().has(REQUIREMENTS), "unlocked once everything is in")
         helper.assertTrue(research().requirements.isEmpty(), "requirement progress cleared")
