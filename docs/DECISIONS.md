@@ -232,8 +232,23 @@ keeps only the mechanism.
   `itszulib:dev_environment` (`util/DevEnvironmentCondition.kt`, registered in production so the files are skipped
   there rather than failing).
 
-Not done: costs other than one number (items, several resources), per-technology rewards, and research screens beyond
-the component.
+Not done: research screens beyond the component.
+
+**Addendum (maintainer, 2026-10-02): costs beyond one number, and rewards.**
+
+- A technology may also need `resources` (named amounts the mod produces, such as computation; `TechTree.addResource`)
+  and `items` to hand in (NeoForge `SizedIngredient`s; `TechTree.deliver` takes them from any stacks, a player's
+  inventory or a machine's slots). It unlocks when its progress, every resource and every item are complete,
+  whichever contribution completes it. `Technologies.remaining` says what is left. Progress on these is kept per
+  requirement in `Research.requirements` (merged by the larger amount, like progress); the codec reads saves without it.
+- `rewards` (`ItemStackTemplate`s: item stacks cannot be decoded while datapack registries load) go to every member of
+  the team once: at unlock to those online, otherwise when they log in, and to players joining the team later
+  (`TechTree.claimRewards`). Claims are recorded per player in `Research.claimed`; they travel with the player
+  (joining unions them, leaving copies them), so moving between teams does not pay out twice. Rewards are items only;
+  mods do anything else from `TechnologyResearchedEvent`.
+- `TechTreeView` lists resources and items with what is in, and the rewards. Commands:
+  `/itszulib research resource <player> <id> <resource> <amount>` and `deliver <player> <id>` (from the player's
+  inventory). Resource names translate as `research_resource.<namespace>.<path>`.
 
 **Addendum (maintainer, 2026-10-02): a team research queue.** A mod asked for one shared research focus per team that
 every research machine works on, chosen from anywhere, instead of each machine keeping its own choice. That is generic,

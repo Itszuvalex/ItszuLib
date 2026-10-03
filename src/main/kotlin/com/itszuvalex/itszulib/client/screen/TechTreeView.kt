@@ -58,7 +58,8 @@ object TechTreeGeometry {
  * Shows one tech tree ([TechTree]) laid out by [TechTreeLayout]: each technology as its icon in a frame coloured by
  * its state for the team (green researched, yellow available, grey locked; hidden ones are not drawn), progress under
  * it, its place in the team's research queue ([Research.queue]) as a badge, links to its prerequisites, and a tooltip
- * with its name, description, progress, queue place and missing prerequisites. Drag to pan, scroll to pan up and down
+ * with its name, description, progress, other requirements (resources, items to hand in), rewards, queue place and
+ * missing prerequisites. Drag to pan, scroll to pan up and down
  * (with shift, sideways); clicking a technology calls [onSelect], right-clicking it [onAlternate]. It opens centred on
  * [selected], if any.
  *
@@ -197,6 +198,22 @@ class TechTreeView @JvmOverloads constructor(
                 ScreenMath.formatAmount(tech.cost),
             ).withStyle(ChatFormatting.YELLOW)
             else -> {}
+        }
+        if (state != TechnologyState.RESEARCHED) {
+            for ((resource, amount) in tech.resources) {
+                val have = amount - (techs.remaining(id, research)?.resources?.get(resource) ?: amount)
+                lines += Component.translatable("gui.itszulib.research.resource", Technologies.resourceName(resource), ScreenMath.formatAmount(have), ScreenMath.formatAmount(amount))
+                    .withStyle(if (have >= amount) ChatFormatting.GREEN else ChatFormatting.YELLOW)
+            }
+            techs.remaining(id, research)?.items?.forEach { (item, left) ->
+                val name = item.ingredient().items().findFirst().map { net.minecraft.world.item.ItemStack(it).hoverName }.orElse(Component.literal("?"))
+                lines += Component.translatable("gui.itszulib.research.item", name, item.count() - left, item.count())
+                    .withStyle(if (left <= 0) ChatFormatting.GREEN else ChatFormatting.YELLOW)
+            }
+        }
+        if (tech.rewards.isNotEmpty()) {
+            lines += Component.translatable("gui.itszulib.research.rewards").withStyle(ChatFormatting.LIGHT_PURPLE)
+            for (reward in tech.rewards) lines += Component.literal("  ${reward.count()} × ").append(reward.create().hoverName).withStyle(ChatFormatting.LIGHT_PURPLE)
         }
         research.queuePosition(id).takeIf { it >= 0 }?.let {
             lines += Component.translatable("gui.itszulib.research.queued", it + 1).withStyle(ChatFormatting.AQUA)

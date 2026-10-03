@@ -20,7 +20,7 @@ import net.minecraft.server.players.NameAndId
 import java.util.UUID
 
 /**
- * `/itszulib team ...` for players, and `/itszulib research unlock|progress|queue|unqueue ...` for operators. A basic interface over
+ * `/itszulib team ...` for players, and `/itszulib research unlock|progress|resource|deliver|queue|unqueue ...` for operators. A basic interface over
  * [TeamState]'s operations; refused requests report the rule's message and change nothing.
  */
 object TeamCommands {
@@ -73,6 +73,24 @@ object TeamCommands {
                                     Commands.argument("research", IdentifierArgument.id()).suggests(::technologies).then(
                                         Commands.argument("amount", LongArgumentType.longArg(1)).executes(::progress),
                                     ),
+                                ),
+                            ),
+                        )
+                        .then(
+                            Commands.literal("resource").then(
+                                Commands.argument("player", EntityArgument.player()).then(
+                                    Commands.argument("research", IdentifierArgument.id()).suggests(::technologies).then(
+                                        Commands.argument("resource", IdentifierArgument.id()).then(
+                                            Commands.argument("amount", LongArgumentType.longArg(1)).executes(::resource),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        )
+                        .then(
+                            Commands.literal("deliver").then(
+                                Commands.argument("player", EntityArgument.player()).then(
+                                    Commands.argument("research", IdentifierArgument.id()).suggests(::technologies).executes(::deliver),
                                 ),
                             ),
                         )
@@ -163,6 +181,27 @@ object TeamCommands {
         val now = ItszuLib.TEAMS.state.team(team.id)?.get(Research.TYPE)
         val done = now?.has(id) == true
         ctx.source.sendSuccess({ Component.literal(if (done) "Added $used: $id is researched by team ${team.name}." else "Added $used: $id is at ${now?.progressOf(id)} / ${techs[id]?.cost}.") }, true)
+        return 1
+    }
+
+    private fun resource(ctx: CommandContext<CommandSourceStack>): Int {
+        val target = EntityArgument.getPlayer(ctx, "player")
+        val id = IdentifierArgument.getId(ctx, "research")
+        val resource = IdentifierArgument.getId(ctx, "resource")
+        val team = ItszuLib.TEAMS.state.teamOf(target.uuid) ?: return fail(ctx, "That player is not in a team yet.")
+        val used = TechTree.addResource(ctx.source.server, team.id, id, resource, LongArgumentType.getLong(ctx, "amount"))
+        if (used <= 0L && ItszuLib.TEAMS.state.team(team.id)?.get(Research.TYPE)?.has(id) != true) return fail(ctx, "$id takes no more $resource from team ${team.name}.")
+        ctx.source.sendSuccess({ Component.literal("Added $used $resource towards $id for team ${team.name}.") }, true)
+        return 1
+    }
+
+    private fun deliver(ctx: CommandContext<CommandSourceStack>): Int {
+        val target = EntityArgument.getPlayer(ctx, "player")
+        val id = IdentifierArgument.getId(ctx, "research")
+        val team = ItszuLib.TEAMS.state.teamOf(target.uuid) ?: return fail(ctx, "That player is not in a team yet.")
+        val taken = TechTree.deliver(ctx.source.server, team.id, id, target.inventory.nonEquipmentItems)
+        target.inventory.setChanged()
+        ctx.source.sendSuccess({ Component.literal("Took $taken items from ${target.name.string} towards $id.") }, true)
         return 1
     }
 

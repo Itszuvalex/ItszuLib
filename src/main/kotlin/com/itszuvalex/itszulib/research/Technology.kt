@@ -8,7 +8,9 @@ import net.minecraft.network.chat.ComponentSerialization
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.ItemStackTemplate
 import net.minecraft.world.item.Items
+import net.neoforged.neoforge.common.crafting.SizedIngredient
 import java.util.Optional
 
 /**
@@ -21,7 +23,10 @@ import java.util.Optional
  *   "tree": "examplemod:main",
  *   "prerequisites": ["examplemod:basics"],
  *   "cost": 1000,
- *   "icon": "minecraft:redstone"
+ *   "icon": "minecraft:redstone",
+ *   "resources": {"examplemod:computation": 5000},
+ *   "items": [{"ingredient": "minecraft:iron_ingot", "count": 8}],
+ *   "rewards": [{"id": "minecraft:diamond", "count": 2}]
  * }
  * ```
  *
@@ -34,6 +39,13 @@ import java.util.Optional
  * @param position Where to draw it in its tree, in layout cells; unset to place it automatically ([TechTreeLayout]).
  * @param hidden Not shown until it can be researched.
  * @param unlockedByDefault Counts as researched for every team without being stored.
+ * @param resources Amounts of other resources the mod produces (computation, mana, ...), each counted separately
+ * ([TechTree.addResource]).
+ * @param items Items to hand in ([TechTree.deliver]), consumed as they are delivered.
+ * @param rewards Items (templates, decoded before items are ready) every member of the team gets once when it is researched (members offline then get them when
+ * they next log in; players joining the team later get them on joining).
+ *
+ * It is researched once its progress reaches [cost], every resource its amount and every item its count.
  */
 data class Technology @JvmOverloads constructor(
     val tree: Identifier,
@@ -45,10 +57,18 @@ data class Technology @JvmOverloads constructor(
     val position: Optional<TechTreeLayout.Point> = Optional.empty(),
     val hidden: Boolean = false,
     val unlockedByDefault: Boolean = false,
+    val resources: Map<Identifier, Long> = emptyMap(),
+    val items: List<SizedIngredient> = emptyList(),
+    val rewards: List<ItemStackTemplate> = emptyList(),
 ) {
     init {
         require(cost >= 0L) { "Technology cost must not be negative: $cost" }
+        require(resources.values.all { it > 0L }) { "Technology resource amounts must be positive: $resources" }
+        require(items.all { it.count() > 0 }) { "Technology item counts must be positive" }
     }
+
+    /** Whether anything besides [cost] is needed. */
+    val hasExtraRequirements: Boolean get() = resources.isNotEmpty() || items.isNotEmpty()
 
     fun iconStack(): ItemStack = ItemStack(icon)
 
@@ -59,6 +79,10 @@ data class Technology @JvmOverloads constructor(
     companion object {
         @JvmStatic
         fun translationKey(id: Identifier): String = "technology.${id.namespace}.${id.path.replace('/', '.')}"
+
+        private val POSITIVE_LONG: Codec<Long> = Codec.LONG.validate {
+            if (it > 0L) com.mojang.serialization.DataResult.success(it) else com.mojang.serialization.DataResult.error { "amount must be positive: $it" }
+        }
 
         private val POINT_CODEC: Codec<TechTreeLayout.Point> = RecordCodecBuilder.create { i ->
             i.group(
@@ -80,6 +104,9 @@ data class Technology @JvmOverloads constructor(
                 POINT_CODEC.optionalFieldOf("position").forGetter(Technology::position),
                 Codec.BOOL.optionalFieldOf("hidden", false).forGetter(Technology::hidden),
                 Codec.BOOL.optionalFieldOf("unlocked_by_default", false).forGetter(Technology::unlockedByDefault),
+                Codec.unboundedMap(Identifier.CODEC, POSITIVE_LONG).optionalFieldOf("resources", emptyMap()).forGetter(Technology::resources),
+                SizedIngredient.NESTED_CODEC.listOf().optionalFieldOf("items", emptyList()).forGetter(Technology::items),
+                ItemStackTemplate.CODEC.listOf().optionalFieldOf("rewards", emptyList()).forGetter(Technology::rewards),
             ).apply(i, ::Technology)
         }
     }

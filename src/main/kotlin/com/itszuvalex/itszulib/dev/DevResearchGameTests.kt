@@ -25,6 +25,8 @@ object DevResearchGameTests {
     private val SECRET = dev("dev_secret")
     private val FAR = dev("dev_far")
     private val FREE = dev("dev_free")
+    private val REQUIREMENTS = dev("dev_requirements")
+    private val DEV_POWER = dev("dev_power")
 
     private val researched = ArrayList<Pair<UUID, Identifier>>()
     private val moves = ArrayList<com.itszuvalex.itszulib.team.MembershipChange>()
@@ -39,6 +41,7 @@ object DevResearchGameTests {
         test("tech_tree_states_follow_team_research", ::states)
         test("tech_tree_queue_focus_follows_research", ::queue)
         test("team_moves_post_membership_events", ::membership)
+        test("tech_tree_resources_items_and_rewards", ::requirements)
     }
 
     private fun teamOf(helper: GameTestHelper): Pair<Player, UUID> {
@@ -49,7 +52,7 @@ object DevResearchGameTests {
 
     private fun loads(helper: GameTestHelper) {
         val techs = TechTree.of(helper.level.registryAccess())
-        helper.assertValueEqual(techs.inTree(TREE).keys, setOf(ROOT, BRANCH, SECRET, FAR, FREE), "dev tree")
+        helper.assertValueEqual(techs.inTree(TREE).keys, setOf(ROOT, BRANCH, SECRET, FAR, FREE, REQUIREMENTS), "dev tree")
         helper.assertTrue(TREE in techs.trees, "trees")
         helper.assertValueEqual(techs.problems(), emptyList<String>(), "problems")
         val branch = techs[BRANCH]!!
@@ -59,7 +62,11 @@ object DevResearchGameTests {
         helper.assertValueEqual(techs[FREE]!!.displayName(FREE).string, "Dev free technology", "name override")
         helper.assertValueEqual(techs[ROOT]!!.displayName(ROOT).contents.toString().contains("technology.itszulib.dev_root"), true, "default name key")
         val layout = techs.layout(TREE)
-        helper.assertValueEqual(layout.positions.size, 5, "laid out")
+        helper.assertValueEqual(layout.positions.size, 6, "laid out")
+        val requirements = techs[REQUIREMENTS]!!
+        helper.assertValueEqual(requirements.resources, mapOf(DEV_POWER to 100L), "resources")
+        helper.assertTrue(requirements.items.single().count() == 4 && requirements.items.single().ingredient().test(net.minecraft.world.item.ItemStack(Items.IRON_INGOT)), "items")
+        helper.assertTrue(requirements.rewards.single().item().value() === Items.DIAMOND, "rewards")
         helper.assertTrue(layout.edges.any { it.from == ROOT && it.to == FAR && it.waypoints.isNotEmpty() }, "skip link has waypoints")
         helper.succeed()
     }
@@ -81,6 +88,37 @@ object DevResearchGameTests {
         // dev_far costs 0: offering nothing researches it once it is available.
         helper.assertValueEqual(TechTree.addProgress(server, team, FAR, 0), 0L, "free technology")
         helper.assertTrue(ItszuLib.TEAMS.state.team(team)!![Research.TYPE].has(FAR), "free technology unlocked")
+        helper.succeed()
+    }
+
+    /**
+     * A technology that also needs a resource and items unlocks only once all are in; its rewards go to the member
+     * online once, and to a player joining the team later.
+     */
+    private fun requirements(helper: GameTestHelper) {
+        val player = helper.makeMockServerPlayerInLevel()
+        ItszuLib.TEAMS.change { it.ensurePlayer(player.uuid, "research_test") }
+        val team = ItszuLib.TEAMS.state.teamOf(player.uuid)!!.id
+        val server = helper.level.server
+        fun research() = ItszuLib.TEAMS.state.team(team)!![Research.TYPE]
+        TechTree.unlock(server, team, ROOT)
+        helper.assertValueEqual(TechTree.addProgress(server, team, REQUIREMENTS, 50), 10L, "points up to the cost")
+        helper.assertFalse(research().has(REQUIREMENTS), "points alone do not unlock")
+        helper.assertValueEqual(TechTree.addResource(server, team, REQUIREMENTS, dev("other"), 10), 0L, "a resource it does not need")
+        helper.assertValueEqual(TechTree.addResource(server, team, REQUIREMENTS, DEV_POWER, 150), 100L, "resource up to its amount")
+        val stacks = listOf(net.minecraft.world.item.ItemStack(Items.IRON_INGOT, 3), net.minecraft.world.item.ItemStack(Items.GOLD_INGOT, 5), net.minecraft.world.item.ItemStack(Items.IRON_INGOT, 5))
+        helper.assertValueEqual(TechTree.deliver(server, team, REQUIREMENTS, stacks), 4, "items taken")
+        helper.assertValueEqual(stacks.map { it.count }, listOf(0, 5, 4), "matching stacks shrunk")
+        helper.assertTrue(research().has(REQUIREMENTS), "unlocked once everything is in")
+        helper.assertTrue(research().requirements.isEmpty(), "requirement progress cleared")
+        helper.assertValueEqual(player.inventory.countItem(Items.DIAMOND), 1, "reward given")
+        helper.assertTrue(research().hasClaimed(REQUIREMENTS, player.uuid), "claim recorded")
+        helper.assertValueEqual(TechTree.claimRewards(player), 0, "only once")
+
+        val joiner = helper.makeMockServerPlayerInLevel()
+        ItszuLib.TEAMS.change { it.ensurePlayer(joiner.uuid, "research_joiner") }
+        ItszuLib.TEAMS.change { it.invite(player.uuid, joiner.uuid).accept(joiner.uuid, team) }
+        helper.assertValueEqual(joiner.inventory.countItem(Items.DIAMOND), 1, "a joiner gets the team's rewards")
         helper.succeed()
     }
 
