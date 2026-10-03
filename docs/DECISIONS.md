@@ -393,6 +393,28 @@ scanning every slot, and multiblock storage screens that page and search, by sev
 - **Paging a slot storage**: `ItemStorageWindow` shows a page of a big storage as real slots, for screens that want
   vanilla slots rather than a terminal.
 
+## D18. Resource filters: allow and deny lists — DECIDED (maintainer, 2026-10-03)
+
+The maintainer asked for the allowlist/denylist logic a mod's logistics had grown to live in ItszuLib, for reuse.
+
+- **`ResourceFilter<T>`** (`api/filter/ResourceFilter.kt`): an immutable list of `size` entries of a `FilterKind<T>`,
+  a mode (`ALLOW`: only listed things pass; `DENY`: listed things are kept out) and whether entries must match data
+  components (`matchComponents`, default true; off matches the thing alone). Nothing listed lets everything pass in
+  either mode. `only()` names the things an allowlist lets through, so a lookup (e.g. `ItemStorageIndex.extract(filter,
+  amount)`) asks for exactly those instead of scanning. `map` converts a filter to another kind. Saved with
+  `ResourceFilter.codec(kind, size)` (`entries` only when one is set, `mode`, `match_components`).
+- **`FilterKind<T>`**: how to tell things apart (`same`), make an entry (`entryOf`, one of it), read one from a held
+  item (`fromHeld`: an empty hand clears, null means the held item names nothing), save and compare them. Built in
+  (`FilterKinds`): `ITEM` (`ItemStack`; a click lists the held item), `FLUID` (`FluidStack`; a click lists the fluid
+  in the held container) and `I_ITEM` (`IItemStack`, for storages and tests without a game). Mods add kinds for
+  anything else they move.
+- **Click to set** (as in AE2): `FilterActions` packs an action (set a cell, toggle the mode, toggle component
+  matching) in `FilterActions.BITS` bits of a menu action's data; the menu applies it with the carried stack through
+  `ResourceFilter.apply(action, held)`. The client part is `FilterRow` (`client/screen/FilterRow.kt`): an Allow/Deny
+  button (IO and danger accents), an Exact/Any data button and a row of cells, with tooltips; it reads the filter every
+  frame (null dims it) and calls back with the action to send. Item and fluid entries draw themselves; other kinds
+  pass a drawer and a namer.
+
 ## B1. Shape of the ported ItszuLib API — DECIDED: a fragment/module framework (option 2)
 
 **Context.** ItszuLib's 2015–16 API is built around mechanisms that no longer exist (`IInventory`/`ISidedInventory`, `IFluidHandler`, `IExtendedEntityProperties`, block metadata, `SimpleNetworkWrapper`, immediate-mode GL). Mods written against the old API have to be rewritten against whatever shape ItszuLib takes.

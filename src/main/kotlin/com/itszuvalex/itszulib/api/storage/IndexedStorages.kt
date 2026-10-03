@@ -398,6 +398,21 @@ class ItemStorageIndex {
         return taken
     }
 
+    /**
+     * Takes up to [amount] of the first kind of stack [filter] lets through (one kind per call). An allowlist asks only
+     * the storages holding its items; otherwise the items held are tried in turn.
+     *
+     * @return What was taken.
+     */
+    fun extract(filter: com.itszuvalex.itszulib.api.filter.ResourceFilter<IItemStack>, amount: Int): IItemStack {
+        val ids = filter.only()?.map { it.item() }?.distinct() ?: items().toList()
+        for (id in ids) {
+            val taken = extract(id, amount) { filter.test(it) }
+            if (!taken.isEmpty()) return taken
+        }
+        return IItemStack.Empty
+    }
+
     /** Inserts [stack] into storages already holding its item first, then into any. @return What did not fit. */
     fun insert(stack: IItemStack): IItemStack {
         var left = stack

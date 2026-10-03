@@ -52,5 +52,18 @@
   "gui.itszulib.terminal.previous": "Previous page",
   "gui.itszulib.terminal.next": "Next page",
   "gui.itszulib.terminal.page": "%s / %s",
-  "gui.itszulib.terminal.count": "Stored: %s"
+  "gui.itszulib.terminal.count": "Stored: %s",
+  "gui.itszulib.filter.allow": "Allow",
+  "gui.itszulib.filter.deny": "Deny",
+  "gui.itszulib.filter.allow.tip": "Allowlist: only listed things pass. Click for a denylist",
+  "gui.itszulib.filter.deny.tip": "Denylist: listed things are kept out. Click for an allowlist",
+  "gui.itszulib.filter.exact": "Exact",
+  "gui.itszulib.filter.any_data": "Any data",
+  "gui.itszulib.filter.exact.tip": "Entries match their data too (enchantments, names, contents). Click to match the thing alone",
+  "gui.itszulib.filter.any_data.tip": "Entries match the thing alone, whatever its data. Click to match data too",
+  "gui.itszulib.filter.listed": "Listed: %s",
+  "gui.itszulib.filter.empty": "Empty",
+  "gui.itszulib.filter.set": "Click holding something to list it, empty-handed to clear",
+  "gui.itszulib.filter.nothing": "Nothing listed: everything passes",
+  "gui.itszulib.filter.none_here": "Nothing to filter here"
 }

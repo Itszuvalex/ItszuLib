@@ -63,6 +63,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │   ├── Api.kt             Capabilities (COLORABLE), Modules (COLORABLE, ITEM/FLUID_STORAGE, *_STORAGE_CONFIGURABLE,
 │   │                      MULTIBLOCK_MEMBER, MENU; Modules.init()), Components (FRAGMENT_DATA = itszulib:fragment_data),
 │   │                      ModuleCapabilities (registers a BlockEntityCore type's modules + STANDARD NeoForge caps)
+│   ├── filter/            ResourceFilter (allow/deny lists), FilterKind(s), FilterActions (click-to-set)
 │   ├── adapters/          Engine-facing interfaces: IModule/Module, IModuleProvider, IBlockEntity, ILevel,
 │   │                      IItemStack, IFluidStack, IBattery, IColorable
 │   ├── multiblock/        MultiblockShape, IMultiblockMember, IMultiblockState, MultiblockManager (+ instance,
@@ -77,7 +78,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
 ├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath; ItszuLibClient (client
 │   │                      registrations); screen/ (ComponentScreen, ScreenComponent, SidePanel, ScreenStyle, gauges,
-│   │                      SideConfigPanel, TechTreeView, StorageTerminalView, ThemedButton, Layout (Row/Column/Grid, Anchor), ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
+│   │                      SideConfigPanel, TechTreeView, StorageTerminalView, FilterRow, ThemedButton, Layout (Row/Column/Grid, Anchor), ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
 │   │                      DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
@@ -144,6 +145,11 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 - ItszuLib -> NeoForge: `WrapperResourceHandlerIItemStorage.of(storage)` (per-slot limits, commit-only notifications), `WrapperEnergyHandlerIBattery(battery)` (whole units). Create once per block entity.
 - NeoForge -> ItszuLib: `ItemStorageResourceHandler`, `BatteryEnergyHandler`; their writes join an open transaction (`Transactions.openJoined`), so inside one they commit or roll back with it.
 - Indexed storage (DECISIONS D17): `IndexedItemStorage(inner)`/`IndexedFluidStorage(inner)` keep item/fluid ids -> slots and the empty slots current through every write, so `slotsOf`, `count`, `insert` and `extract` touch only the slots that matter (call `slotChanged`/`rebuild` if `inner` changes behind their back). `ItemStorageIndex`/`FluidStorageIndex` find things across many indexed storages: they track which storages hold each id. `ItemStorageWindow(storage, size)` shows one page of a large storage.
+- Filters (DECISIONS D18): `ResourceFilter<T>` (`api/filter/`) is an allow- or denylist of a `FilterKind<T>`
+  (`FilterKinds.ITEM`, `FLUID`, `I_ITEM`, or a mod's own) with optional data-component matching; nothing listed passes
+  everything. Screens edit one with `FilterRow` (click a cell holding something to list it, empty-handed to clear);
+  the menu applies the `FilterActions` action with `ResourceFilter.apply(action, carried)`.
+  `ItemStorageIndex.extract(filter, amount)` takes what a filter lets through, asking only for an allowlist's items.
 - Searching: `StorageSearch.parse(query, mode)` (terms ANDed, `-` negates; `@` mod, `#` tooltip, `$` tag, `*` id; per-item terms are checked before any slot is read), `StorageEntries` (collect entries through an index, sort, page, `formatCount`). A menu's `enableStorageTerminal { index }` syncs everything in the index (one `TerminalStack` per kind of stack) and handles take/put clicks and shift-clicks; `StorageTerminalView` is the screen part (search box, mode and sort buttons, paged grid). Search runs on the client, in its language.
 
 ### Multiblocks

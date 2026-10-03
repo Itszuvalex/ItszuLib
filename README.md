@@ -54,6 +54,9 @@ them to NeoForge's transfer API in both directions, joining open transactions.
   empty slots, so finding, counting, inserting and extracting touch only the slots that matter. An **index across
   storages** keeps which storages hold each item, so a network of vaults answers "where is iron?" without scanning
   any of them.
+- **Filters**: allow- and denylists of items, fluids or anything a mod defines, matching data components or not,
+  edited AE2-style by clicking a filter cell with the thing held; an allowlist lets an index fetch exactly what it
+  names.
 - **Search**: queries of space-separated terms by name, mod (`@`), tooltip (`#`), tag (`$`) or id (`*`), negated with
   `-`; terms that depend only on the item are checked before a single slot is read.
 
