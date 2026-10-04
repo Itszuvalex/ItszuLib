@@ -69,4 +69,24 @@ class BlockSceneGeometryTest {
             assertTrue(normal.dot(BlockSceneGeometry.unit(face)) > 0, "face $face")
         }
     }
+
+    @Test
+    fun MemberCentres_CentredOnTheBoundingBox() {
+        val a = net.minecraft.core.BlockPos(10, 64, 10)
+        val b = a.east()
+        val centres = com.itszuvalex.itszulib.client.screen.SideConfigPanel.memberCentres(listOf(a, b))
+        assertEquals(Vector3f(-0.5f, 0f, 0f), centres[a])
+        assertEquals(Vector3f(0.5f, 0f, 0f), centres[b])
+    }
+
+    @Test
+    fun FitScale_StructureFitsTheViewTurnedAnyWay() {
+        val panel = com.itszuvalex.itszulib.client.screen.SideConfigPanel
+        assertEquals(panel.SCALE, panel.fitScale(listOf(net.minecraft.core.BlockPos.ZERO)))
+        val cube = (0..2).flatMap { x -> (0..2).flatMap { y -> (0..2).map { z -> net.minecraft.core.BlockPos(x, y, z) } } }
+        val scale = panel.fitScale(cube)
+        // The bounding box's diagonal is the widest it can appear.
+        assertTrue(scale * kotlin.math.sqrt(27f) <= panel.VIEW, "scale $scale")
+        assertTrue(scale < panel.SCALE)
+    }
 }

@@ -146,3 +146,30 @@ class MenuCoreSyncTest {
         assertEquals(listOf(0, 1, 2), ValueMenu(1).syncs().map { it.index })
     }
 }
+
+class MenuSideConfigDataTest {
+    @Test
+    fun Data_MemberOffset_RoundTripsWithinRange() {
+        val max = MenuSideConfig.MAX_OFFSET
+        for (offset in listOf(net.minecraft.core.BlockPos.ZERO, net.minecraft.core.BlockPos(1, -1, 0), net.minecraft.core.BlockPos(max, -max - 1, 7))) {
+            val data = MenuSideConfig.data(net.minecraft.core.Direction.SOUTH, 5, true, offset)
+            assertEquals(offset, MenuSideConfig.offset(data))
+            assertEquals(net.minecraft.core.Direction.SOUTH.get3DDataValue(), data and 7)
+        }
+    }
+
+    @Test
+    fun Data_WithoutOffset_SameAsBefore() {
+        // Data written before members existed (face, mode, backward) still means the menu's own block.
+        val data = MenuSideConfig.data(net.minecraft.core.Direction.UP, 2, false)
+        assertEquals(net.minecraft.core.Direction.UP.get3DDataValue() or (2 shl 3), data)
+        assertEquals(net.minecraft.core.BlockPos.ZERO, MenuSideConfig.offset(data))
+    }
+
+    @Test
+    fun Data_OffsetOutOfRange_Throws() {
+        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
+            MenuSideConfig.data(net.minecraft.core.Direction.UP, 0, false, net.minecraft.core.BlockPos(MenuSideConfig.MAX_OFFSET + 1, 0, 0))
+        }
+    }
+}

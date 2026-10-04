@@ -62,6 +62,49 @@ open class ItemStorageSlice(private val storage: IItemStorage, private val slots
 }
 
 /**
+ * A view of [size] consecutive slots of [storage] starting at [offset], which may move (a menu paging through a large
+ * storage: its slots stay the window's, and show other slots as [offset] changes). Window slots past the end of
+ * [storage] are empty and take nothing.
+ */
+open class ItemStorageWindow(private val storage: IItemStorage, private val size: Int, offset: Int = 0) : IItemStorage {
+    var offset: Int = offset
+        set(value) {
+            field = value.coerceAtLeast(0)
+        }
+
+    /** How many windows (pages) it takes to see all of [storage]. */
+    fun pages(): Int = if (size <= 0) 0 else maxOf(1, (storage.size() + size - 1) / size)
+
+    /** Moves the window to page [page] (clamped to the pages there are). */
+    fun showPage(page: Int) {
+        offset = page.coerceIn(0, pages() - 1) * size
+    }
+
+    /** The page the window starts on. */
+    fun page(): Int = if (size <= 0) 0 else offset / size
+
+    private fun inner(index: Int): Int? = (offset + index).takeIf { index in 0 until size && it < storage.size() }
+
+    override fun get(index: Int): IItemStack = inner(index)?.let(storage::get) ?: IItemStack.Empty
+
+    override fun size(): Int = size
+
+    override fun setSlot(index: Int, stack: IItemStack) {
+        inner(index)?.let { storage.setSlot(it, stack) }
+    }
+
+    override fun setSlotQuietly(index: Int, stack: IItemStack) {
+        inner(index)?.let { storage.setSlotQuietly(it, stack) }
+    }
+
+    override fun canInsert(index: Int, stack: IItemStack): Boolean = inner(index)?.let { storage.canInsert(it, stack) } ?: false
+
+    override fun maxStackSize(index: Int): Int = inner(index)?.let(storage::maxStackSize) ?: 0
+
+    override fun setChanged() = storage.setChanged()
+}
+
+/**
  * Concatenation of several storages; index 0 is the first storage's slot 0.
  */
 open class ItemStorageAggregate(private val storages: Array<IItemStorage>) : IItemStorage {

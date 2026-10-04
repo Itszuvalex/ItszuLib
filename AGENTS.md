@@ -63,12 +63,14 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │   ├── Api.kt             Capabilities (COLORABLE), Modules (COLORABLE, ITEM/FLUID_STORAGE, *_STORAGE_CONFIGURABLE,
 │   │                      MULTIBLOCK_MEMBER, MENU; Modules.init()), Components (FRAGMENT_DATA = itszulib:fragment_data),
 │   │                      ModuleCapabilities (registers a BlockEntityCore type's modules + STANDARD NeoForge caps)
+│   ├── filter/            ResourceFilter (allow/deny lists), FilterKind(s), FilterActions (click-to-set)
 │   ├── adapters/          Engine-facing interfaces: IModule/Module, IModuleProvider, IBlockEntity, ILevel,
 │   │                      IItemStack, IFluidStack, IBattery, IColorable
 │   ├── multiblock/        MultiblockShape, IMultiblockMember, IMultiblockState, MultiblockManager (+ instance,
 │   │                      chunk tickets: MultiblockTickets.kt), Multiblock{Item,Fluid}StorageConfiguration
 │   ├── storage/           IItemStorage and IFluidStorage + implementations (Array, Slice, Aggregate, NBT, Dynamic,
-│   │                      ResourceHandler-backed); IBattery implementations
+│   │                      Window, ResourceHandler-backed); indexed storages and cross-storage indexes (IndexedStorages.kt),
+│   │                      search (StorageSearch.kt); IBattery implementations
 │   ├── utility/           Loc4 (+Level/ILevel/Indirect), ChunkCoord, LocationTracker, DirectionUtil, module
 │   │                      capability maps, IScopedSerialization + NBTSerializationScope, Overideable, sided holders
 │   └── wrappers/          Vanilla/NeoForge <-> ItszuLib adapters (WrapperLevel, WrapperBlockEntity,
@@ -76,7 +78,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
 ├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath; ItszuLibClient (client
 │   │                      registrations); screen/ (ComponentScreen, ScreenComponent, SidePanel, ScreenStyle, gauges,
-│   │                      SideConfigPanel, TechTreeView, ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
+│   │                      SideConfigPanel, TechTreeView, StorageTerminalView, FilterRow, ThemedButton/ButtonComponent, StatRow, Layout (Row/Column/Grid, TitledPanel, Anchor), ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
 │   │                      DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
@@ -88,7 +90,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          FragConnectable, FragNetworkedWire
 ├── menu/                  MenuCore (slots, shift-click, syncs, syncEnergy/EnergyView, enableSideConfig), MenuSync/MenuSyncs,
 │                          MenuSyncPayload, MenuActionPayload, MenuSideConfig (SideConfigMode/Modes/Cyclers),
-│                          IMenuHost, BlockMenus
+│                          IMenuHost, BlockMenus, StorageTerminal (enableStorageTerminal: searchable view of an ItemStorageIndex)
 ├── network/               PacketHandler, ItszuLibNetwork (registers ItszuLib's payloads)
 ├── store/                 Crash-safe server data: SafeStore + StoreFormat (file), StoreManager (state, change, save),
 │                          ServerStores (server lifecycle)
@@ -96,7 +98,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          TechTree (registry, team progress and queue, gating, TechnologyResearchedEvent), TechTreeLayout
 ├── team/                  Teams and per-team data: Team/TeamState (rules + invariants), TeamDataType + Research,
 │                          TeamCodec, TeamStore (file persistence), TeamManager, TeamNetwork (sync + lifecycle),
-│                          TeamCommands (/itszulib team, /itszulib research unlock|progress|queue|unqueue)
+│                          TeamCommands (/itszulib team, /itszulib research unlock|progress|resource|deliver|queue|unqueue)
 ├── compat/jei/            Optional JEI plugin: keeps JEI's overlays clear of ComponentScreen side panels (loads only
 │                          with JEI)
 ├── dev/                   Dev-only blocks, menu, screen and game tests (never registered in production)
@@ -142,29 +144,40 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 - `IItemStorage`: slot-based, default transfer logic, saved as one entry per non-empty slot keyed by index. `IBattery`: double-based energy.
 - ItszuLib -> NeoForge: `WrapperResourceHandlerIItemStorage.of(storage)` (per-slot limits, commit-only notifications), `WrapperEnergyHandlerIBattery(battery)` (whole units). Create once per block entity.
 - NeoForge -> ItszuLib: `ItemStorageResourceHandler`, `BatteryEnergyHandler`; their writes join an open transaction (`Transactions.openJoined`), so inside one they commit or roll back with it.
+- Indexed storage (DECISIONS D17): `IndexedItemStorage(inner)`/`IndexedFluidStorage(inner)` keep item/fluid ids -> slots and the empty slots current through every write, so `slotsOf`, `count`, `insert` and `extract` touch only the slots that matter (call `slotChanged`/`rebuild` if `inner` changes behind their back). `ItemStorageIndex`/`FluidStorageIndex` find things across many indexed storages: they track which storages hold each id. `ItemStorageWindow(storage, size)` shows one page of a large storage.
+- Filters (DECISIONS D18): `ResourceFilter<T>` (`api/filter/`) is an allow- or denylist of a `FilterKind<T>`
+  (`FilterKinds.ITEM`, `FLUID`, `I_ITEM`, or a mod's own) with optional data-component matching; nothing listed passes
+  everything. Screens edit one with `FilterRow` (click a cell holding something to list it, empty-handed to clear);
+  the menu applies the `FilterActions` action with `ResourceFilter.apply(action, carried)`.
+  `ItemStorageIndex.extract(filter, amount)` takes what a filter lets through, asking only for an allowlist's items.
+- Searching: `StorageSearch.parse(query, mode)` (terms ANDed, `-` negates; `@` mod, `#` tooltip, `$` tag, `*` id; per-item terms are checked before any slot is read), `StorageEntries` (collect entries through an index, sort, page, `formatCount`). A menu's `enableStorageTerminal { index }` syncs everything in the index (one `TerminalStack` per kind of stack) and handles take/put clicks and shift-clicks; `StorageTerminalView` is the screen part (search box, mode and sort buttons, paged grid). Search runs on the client, in its language.
 
 ### Multiblocks
 Controller-less, with shared state (DECISIONS D11). `MultiblockShape.register(id, slots, breakPolicy, state)` maps offsets to role names; the (0,0,0) slot is required and is the structure's home. A member exposes `IMultiblockMember` (usually `FragMultiblockPart(candidateRoles, autoForm)` through `Modules.MULTIBLOCK_MEMBER`) and saves its own membership. `MultiblockManager.SERVER` forms structures when auto-forming members load (all slots loaded, roles matching) or on `form(level, shape, anchor)`, and `disband`s them without break effects. Breaking a member breaks the structure: `DISSOLVE` frees the others, `DESTROY_ALL` destroys them (loading their chunks). A stateful shape's `IMultiblockState` lives on the home member, saved with its chunk; other members reach it with `FragMultiblockPart.sharedState()`, and it gets `onBreak` to drop its contents. While a member outside the home chunk is in a ticking chunk, the manager keeps the home chunk loaded without ticking it (an `itszulib:multiblock` ticket that lapses 60 ticks after the last refresh). Reloaded members are checked against the home member and leave if their structure is gone. `FragMultiblockTickable` runs once per game tick per structure. Faces between members: `Multiblock{Item,Fluid}StorageConfiguration`. `ItszuLib` ticks the manager (`ServerTickEvent.Post`) and clears it on server stop.
 
 ### Screens
 Build machine screens on `ComponentScreen` (DECISIONS D12): place components in `addComponents()` (`EnergyGauge`,
-`FluidGauge`, `ProgressBar`, `Label` or your own `ScreenComponent`), add `SidePanel`s for content behind a tab. A menu
-that calls `enableSideConfig(blockEntity[, modes])` gets the 3D side configuration panel automatically; modes default
+`FluidGauge`, `ProgressBar`, `Label` or your own `ScreenComponent`) at fixed positions, anchored
+(`addComponent(c, Anchor.RIGHT, dx, dy, inContent = true)`) or in `Row`/`Column`/`Grid` layouts (a component's
+`measure(host)` sizes it before placement), and add `SidePanel`s for content behind a tab. A menu
+that calls `enableSideConfig(blockEntity[, modes])` gets the 3D side configuration panel automatically (for a formed
+multiblock member it shows and configures the whole structure); modes default
 to item, fluid and energy (`SideConfigModes`), and a mode's `SideConfigCycler` decides what a click changes. Sync
 energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLib's own menu actions use negative ids
 (`MenuCore.ACTION_SIDE_CONFIG`); give yours non-negative ids and handle them in `handleAction`. Screens draw in a theme
 (DECISIONS D16): `ScreenThemes` holds `itszulib:light`, `itszulib:dark` and JSON themes from
 `assets/<ns>/itszulib/themes/*.json` (`parent` plus any `colors`); a screen picks its default with `defaultTheme()`,
 the client config (`ScreenThemeConfig`) can force one and turn grain off, and components read colours from
-`ScreenStyle` (pointed at the screen's theme while it draws). Slots are drawn as insets, take-only slots ringed and
-hints (`addStorageSlots(..., hint = stack)`, `SlotLook`) faded into empty slots. Anything a screen
+`ScreenStyle` (pointed at the screen's theme while it draws); use `ThemedButton` rather than vanilla buttons so
+buttons follow the theme too, with a `ButtonAccents` accent (IO, upgrade, danger, info, or a mod's own) for what they do. Slots are drawn as insets, take-only slots ringed and
+hints (`addStorageSlots(..., hint = stack)`, `SlotLook`) faded into empty slots; `addRequirementSlots` adds slots that collect a wanted stack (`have/need`, nothing taken back out). Anything a screen
 draws outside its image belongs in `ComponentScreen.extraAreas()`, which the JEI plugin reports so JEI's overlays stay
 clear. JEI is a `compileOnly` dependency plus a dev-run `localRuntime` (`-Pjei=false` leaves it out).
 
 ### Networks
 `INetwork`/`TileNetwork` group `INetworkNode`s (by `Loc4`) into server-side networks in `ItszuLib.NETWORK_MANAGER`, ticked from `ServerTickEvent.Pre/Post`. Nodes are found through the network module on the block entity (`TileNetwork#networkModule`). Chunk unloads drop that chunk's nodes as a batch; block entities must re-add their node when they load. Splits explore iteratively.
 
-A `DistributingTileNetwork` also moves an amount between producers, storage and consumers every tick (DECISIONS D15): its `IDistributionNode` nodes return `DistributionParticipant(key, role, Distributable)`s (each key once), and `DistributionAlgorithm` moves within each participant's transfer limit. `DistributableBattery` adapts an `IBattery`; the algorithm can also be run directly on lists of `Distributable`s.
+A `DistributingTileNetwork` also moves an amount between producers, storage and consumers every tick (DECISIONS D15): its `IDistributionNode` nodes return `DistributionParticipant(key, role, Distributable)`s (each key once), and `DistributionAlgorithm` moves within each participant's transfer limit. `DistributableBattery` adapts an `IBattery`; the algorithm can also be run directly on lists of `Distributable`s. Each tick the network also records `DistributionStatistics` (participants by role, flow, fill, storage trend; DECISIONS D19), which a menu syncs with `syncDistribution { stats }` for a statistics tab.
 
 ### Teams and per-team data
 Every player is always in exactly one team (a new player gets a solo team they own). Mods register per-team data with `TeamDataTypes.register(TeamDataType(id, codec, empty, merge, copy))` during mod construction; ItszuLib registers `Research.TYPE` (`itszulib:research`: unlocked ids, merged by union, plus partial progress per technology, merged by maximum). Joining (invite and accept) merges the joiner's data into the team; leaving or being removed gives the player a solo team with a copy; disbanding gives every member a copy. Roles: owner (promote/demote officers, hand over ownership, rename, disband; cannot leave a shared team without handing it over), officers (invite, revoke, remove anyone but the owner), members. Read `ItszuLib.TEAMS.state`; change only through `ItszuLib.TEAMS.change { state -> newState }` on the server thread. After a change moves players between teams, a `TeamMembershipChangedEvent` (player, `from` team or null for a new player, `to` team, data already merged or copied) is posted per moved player on the game bus; `TeamState.membershipChanges(old, new)` is the same diff, pure.
@@ -175,7 +188,7 @@ Data integrity (do not weaken): `TeamState` is immutable and checks its invarian
 For server data that must not be lost, use `store/` rather than `SavedData` (DECISIONS D14): an immutable value, a `StoreFormat<T>` (empty, encode, strict decode that throws on anything unreadable), a `StoreManager<T>` changed only through `change { old -> new }` on the server thread, and `ServerStores.register(Identifier(ns, "file.dat"), manager, format)` to load it at server start (`<world>/data/<ns>/file.dat`), save it with the overworld and unload it at stop. `SafeStore` keeps a backup, moves an unreadable file aside, refuses to save over data it could not read, and writes through a verified temp file and an atomic move.
 
 ### Tech trees
-Technologies are a synced datapack registry, `itszulib:technology` (`data/<ns>/itszulib/technology/<path>.json`: `tree`, `prerequisites`, `cost`, `icon`, optional `name`, `description`, `position`, `hidden`, `unlocked_by_default`). Research is per team (`Research` team data). `TechTree.of(registryAccess)` gives the `Technologies` (rules: `state` is RESEARCHED, AVAILABLE when every prerequisite is researched, LOCKED, or HIDDEN; `problems()`; `layout(tree)`). Mods produce progress and call `TechTree.addProgress(server, team, id, amount)` (returns what it used; unlocks at the cost and posts `TechnologyResearchedEvent`) in batches, since each change syncs the team; gate with `TechTree.isResearched(player, id)` on either side. Teams keep a research queue (`Research.queue`): `TechTree.queue(server, team, id)` appends the technology after its missing prerequisites, `unqueue` removes it with what needs it, and `TechTree.focus(server, team, tree)` is the first queued technology of a tree that is available, for machines that research whatever the team chose. Draw a tree with `TechTreeView` in a `ComponentScreen` (queue badges; `onSelect` on click, `onAlternate` on right-click). Data meant only for dev runs takes `"neoforge:conditions": [{"type": "itszulib:dev_environment"}]`. See DECISIONS D13.
+Technologies are a synced datapack registry, `itszulib:technology` (`data/<ns>/itszulib/technology/<path>.json`: `tree`, `prerequisites`, `cost`, `icon`, optional `name`, `description`, `position`, `hidden`, `unlocked_by_default`, `resources`, `items`, `rewards`). Research is per team (`Research` team data). `TechTree.of(registryAccess)` gives the `Technologies` (rules: `state` is RESEARCHED, AVAILABLE when every prerequisite is researched, LOCKED, or HIDDEN; `problems()`; `layout(tree)`). Mods produce progress and call `TechTree.addProgress(server, team, id, amount)` (returns what it used; unlocks once every requirement is met and posts `TechnologyResearchedEvent`) in batches, since each change syncs the team; a technology may also need `resources` (`TechTree.addResource`) and `items` (`TechTree.deliver(server, team, id, stacks)` takes `IItemStack`s and shrinks them, `deliverFrom` vanilla stacks; the rule itself is the pure `Technologies.deliver`, unit tested on `TestableIItemStack`), and its item `rewards` go to each member once (`TechTree.claimRewards`, run at unlock, login and team change); gate with `TechTree.isResearched(player, id)` on either side. Teams keep a research queue (`Research.queue`): `TechTree.queue(server, team, id)` appends the technology after its missing prerequisites, `unqueue` removes it with what needs it, and `TechTree.focus(server, team, tree)` is the first queued technology of a tree that is available, for machines that research whatever the team chose. Draw a tree with `TechTreeView` in a `ComponentScreen` (queue badges; `onSelect` on click, `onAlternate` on right-click). Data meant only for dev runs takes `"neoforge:conditions": [{"type": "itszulib:dev_environment"}]`. See DECISIONS D13.
 
 ### Engine seams for testing
 `ILevel`, `IBlockEntity`, `IItemStack` and `Overideable` let logic be unit tested without a game. Tests use `TestableLevel`, `TestableIItemStack`, `TestableLoc4`, `TestableNetwork*`, `TestableFragmentHost`; `MCAssert.failVanillaClass` marks methods tests must not reach.

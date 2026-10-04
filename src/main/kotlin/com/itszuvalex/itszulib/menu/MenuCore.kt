@@ -2,13 +2,16 @@ package com.itszuvalex.itszulib.menu
 
 import com.itszuvalex.itszulib.api.adapters.IItemStack
 import com.itszuvalex.itszulib.api.storage.IItemStorage
+import com.itszuvalex.itszulib.api.storage.ItemStorageIndex
 import com.itszuvalex.itszulib.api.wrappers.WrapperContainerIItemStorage
+import com.itszuvalex.itszulib.core.DistributionStatistics
 import net.minecraft.core.RegistryAccess
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.Container
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
@@ -124,8 +127,9 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
 
     /**
      * Lets this menu's screen edit [blockEntity]'s sided configurations of [modes] (those it has) through
-     * [ACTION_SIDE_CONFIG]. Call on both sides with the same modes. [onChanged] runs on the server after a change;
-     * by default it saves and syncs the block entity.
+     * [ACTION_SIDE_CONFIG], and those of the other members of its formed multiblock. Call on both sides with the same
+     * modes. [onChanged] runs on the server after a change, with the block entity whose configuration changed; by
+     * default it saves and syncs it.
      */
     @JvmOverloads
     fun enableSideConfig(
@@ -134,7 +138,7 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
         onChanged: (BlockEntity) -> Unit = MenuSideConfig::markDirtyAndSync,
     ): MenuSideConfig? {
         if (blockEntity == null) return null
-        sideConfig = MenuSideConfig(blockEntity, modes) { onChanged(blockEntity) }.takeIf { it.modes.isNotEmpty() }
+        sideConfig = MenuSideConfig(blockEntity, modes, onChanged).takeIf { it.modes.isNotEmpty() }
         return sideConfig
     }
 
@@ -142,9 +146,29 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
      * Server side: routes an action from [MenuActionPayload]. ItszuLib's own actions (negative ids, e.g.
      * [ACTION_SIDE_CONFIG]) are handled here; every other action goes to [handleAction].
      */
-    fun dispatchAction(player: Player, action: Int, data: Int): Boolean = when (action) {
-        ACTION_SIDE_CONFIG -> sideConfig?.handle(data) ?: false
-        else -> if (action < 0) false else handleAction(player, action, data)
+    fun dispatchAction(player: Player, action: Int, data: Int): Boolean = when {
+        action == ACTION_SIDE_CONFIG -> sideConfig?.handle(data) ?: false
+        action in StorageTerminal.ACTIONS -> terminal?.handleAction(player, action, data) ?: false
+        action < 0 -> false
+        else -> handleAction(player, action, data)
+    }
+
+    /**
+     * The storage terminal, if [enableStorageTerminal] was called.
+     */
+    var terminal: StorageTerminal? = null
+        private set
+
+    /**
+     * Gives this menu a view of everything in [index] ([StorageTerminal]) for a searchable, paged screen
+     * ([com.itszuvalex.itszulib.client.screen.StorageTerminalView]): items taken out and put in by click, and
+     * shift-clicks from the player's inventory put in. Call on both sides (the client's [index] may return null).
+     */
+    fun enableStorageTerminal(index: () -> ItemStorageIndex?): StorageTerminal {
+        val created = StorageTerminal(this, index)
+        terminal = created
+        addSync(created.viewSync())
+        return created
     }
 
     /**
@@ -155,6 +179,28 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
         val view = EnergyView()
         addSync(MenuSyncs.double({ battery()?.storage() ?: 0.0 }, { view.stored = it }))
         addSync(MenuSyncs.double({ battery()?.maxStorage() ?: 0.0 }, { view.capacity = it }))
+        return view
+    }
+
+    /**
+     * Syncs a network's [DistributionStatistics] and its block count ([nodes]): what a network statistics tab shows.
+     * [statistics] null means not connected.
+     */
+    fun syncDistribution(statistics: () -> DistributionStatistics?, nodes: () -> Int = { 0 }): DistributionView {
+        val view = DistributionView()
+        addSync(MenuSyncs.boolean({ statistics() != null }, { view.connected = it }))
+        addSync(MenuSyncs.int({ if (statistics() == null) 0 else nodes() }, { view.nodes = it }))
+        addSync(MenuSyncs.int({ statistics()?.producerCount ?: 0 }, { view.producers = it }))
+        addSync(MenuSyncs.int({ statistics()?.storageCount ?: 0 }, { view.storage = it }))
+        addSync(MenuSyncs.int({ statistics()?.consumerCount ?: 0 }, { view.consumers = it }))
+        addSync(MenuSyncs.double({ statistics()?.produced ?: 0.0 }, { view.produced = it }))
+        addSync(MenuSyncs.double({ statistics()?.consumed ?: 0.0 }, { view.consumed = it }))
+        addSync(MenuSyncs.double({ statistics()?.storageDelta ?: 0.0 }, { view.storageDelta = it }))
+        addSync(MenuSyncs.double({ statistics()?.averageTrend ?: 0.0 }, { view.averageTrend = it }))
+        addSync(MenuSyncs.double({ statistics()?.dedicatedStored ?: 0.0 }, { view.dedicatedStored = it }))
+        addSync(MenuSyncs.double({ statistics()?.dedicatedStorage ?: 0.0 }, { view.dedicatedStorage = it }))
+        addSync(MenuSyncs.double({ statistics()?.totalStored ?: 0.0 }, { view.totalStored = it }))
+        addSync(MenuSyncs.double({ statistics()?.totalStorage ?: 0.0 }, { view.totalStorage = it }))
         return view
     }
 
@@ -200,6 +246,30 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
     }
 
     /**
+     * Adds a [RequirementSlot] for each of [count] indices of [storage] from [first], in rows of [columns] [columnWidth]
+     * apart (wider than a slot leaves room for a label beside each): index i collects [required] (i) and gives nothing
+     * back.
+     */
+    @JvmOverloads
+    fun addRequirementSlots(
+        storage: IItemStorage,
+        x: Int,
+        y: Int,
+        count: Int,
+        required: (Int) -> ItemStack,
+        columns: Int = 9,
+        first: Int = 0,
+        columnWidth: Int = SLOT_SIZE,
+    ): IntRange {
+        val container = WrapperContainerIItemStorage(storage)
+        val start = slots.size
+        for (i in 0 until count) {
+            addBlockSlot(RequirementSlot(storage, container, first + i, x + (i % columns) * columnWidth, y + (i / columns) * SLOT_SIZE) { required(first + i) })
+        }
+        return start until slots.size
+    }
+
+    /**
      * Adds a slot belonging to the block. Must be called before [addPlayerInventorySlots].
      */
     fun addBlockSlot(slot: Slot): Slot {
@@ -231,6 +301,8 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
     override fun quickMoveStack(player: Player, index: Int): ItemStack {
         val slot = slots.getOrNull(index) ?: return ItemStack.EMPTY
         if (!slot.hasItem()) return ItemStack.EMPTY
+        // With a storage terminal, the player's stacks go into the terminal's storage.
+        terminal?.let { t -> if (index >= blockSlotCount) return t.quickMove(player, slot) }
         val stack = slot.item
         val original = stack.copy()
         val playerStart = blockSlotCount
@@ -253,6 +325,24 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
      * Vanilla's merge, except that a slot whose stack grew is written back with [Slot.set] instead of only
      * [Slot.setChanged], so slots over storages that return copies from `get` keep the merged items (REVIEW O1).
      */
+    /**
+     * Clicking a [RequirementSlot] that already holds some of its item, while carrying more, tops it up (a left click
+     * all it takes, a right click one). Vanilla only adds to a slot it may also take from, and requirement slots give
+     * nothing back.
+     */
+    override fun clicked(slotIndex: Int, buttonNum: Int, containerInput: ContainerInput, player: Player) {
+        val slot = slots.getOrNull(slotIndex)
+        val carried = carried
+        if (containerInput == ContainerInput.PICKUP && (buttonNum == 0 || buttonNum == 1) && slot is RequirementSlot &&
+            slot.hasItem() && !carried.isEmpty && slot.mayPlace(carried) && ItemStack.isSameItemSameComponents(slot.item, carried)
+        ) {
+            setCarried(slot.safeInsert(carried, if (buttonNum == 0) carried.count else 1))
+            slot.setChanged()
+            return
+        }
+        super.clicked(slotIndex, buttonNum, containerInput, player)
+    }
+
     override fun moveItemStackTo(itemStack: ItemStack, startSlot: Int, endSlot: Int, backwards: Boolean): Boolean {
         var changed = false
         val order = if (backwards) (endSlot - 1 downTo startSlot) else (startSlot until endSlot)
@@ -299,6 +389,25 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
 /**
  * Client copy of synced energy (see [MenuCore.syncEnergy] and [MenuCore.syncEnergyHandler]).
  */
+/**
+ * Client copy of a network's [DistributionStatistics], kept by [MenuCore.syncDistribution].
+ */
+class DistributionView {
+    var connected = false
+    var nodes = 0
+    var producers = 0
+    var storage = 0
+    var consumers = 0
+    var produced = 0.0
+    var consumed = 0.0
+    var storageDelta = 0.0
+    var averageTrend = 0.0
+    var dedicatedStored = 0.0
+    var dedicatedStorage = 0.0
+    var totalStored = 0.0
+    var totalStorage = 0.0
+}
+
 class EnergyView {
     var stored = 0.0
     var capacity = 0.0
@@ -308,12 +417,15 @@ class EnergyView {
 
 /**
  * How a screen should draw a slot. [isOutput] slots (take-only) get an output ring; while empty, a slot with a
- * [hint] shows it faded, to say what goes there.
+ * [hint] shows it faded, to say what goes there. A slot with a [required] stack counts towards it: the screen shows
+ * `have/need` in place of the count (red until met, then green) and drops the slot's inset once it is met.
  */
 interface SlotLook {
     val isOutput: Boolean get() = false
 
     fun hint(): ItemStack = ItemStack.EMPTY
+
+    fun required(): ItemStack = ItemStack.EMPTY
 }
 
 /**
@@ -332,6 +444,32 @@ open class StorageSlot(@JvmField val storage: IItemStorage, container: Container
     override fun getMaxStackSize(): Int = storage.maxStackSize(containerSlot)
 
     override fun getMaxStackSize(stack: ItemStack): Int = minOf(storage.maxStackSize(containerSlot), stack.maxStackSize)
+}
+
+/**
+ * A slot that collects [required] (that item with those data components, up to its count) and gives nothing back:
+ * what goes in stays until the block uses it or is broken. Shows the wanted item faded while empty, and `have/need`
+ * ([SlotLook.required]). [required] is read each time (it may come from synced state); while it is empty the slot is
+ * inactive (hidden, taking nothing).
+ */
+open class RequirementSlot(storage: IItemStorage, container: Container, index: Int, x: Int, y: Int, private val required: () -> ItemStack) :
+    StorageSlot(storage, container, index, x, y) {
+    override fun required(): ItemStack = required.invoke()
+
+    override fun hint(): ItemStack = required()
+
+    override fun mayPlace(stack: ItemStack): Boolean {
+        val need = required()
+        return !need.isEmpty && ItemStack.isSameItemSameComponents(stack, need) && super.mayPlace(stack)
+    }
+
+    override fun mayPickup(player: Player): Boolean = false
+
+    override fun isActive(): Boolean = !required().isEmpty
+
+    override fun getMaxStackSize(): Int = minOf(super.getMaxStackSize(), required().count)
+
+    override fun getMaxStackSize(stack: ItemStack): Int = minOf(super.getMaxStackSize(stack), required().count)
 }
 
 /**

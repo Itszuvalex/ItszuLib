@@ -2,20 +2,23 @@ package com.itszuvalex.itszulib.client.screen
 
 import com.itszuvalex.itszulib.menu.MenuCore
 import com.itszuvalex.itszulib.menu.SlotLook
+import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.Renderable
-import net.minecraft.client.gui.components.Tooltip
 import net.minecraft.client.gui.components.events.GuiEventListener
 import net.minecraft.client.gui.narration.NarratableEntry
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.client.gui.components.EditBox
+import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.renderer.Rect2i
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.inventory.Slot
+import net.minecraft.world.item.ItemStack
 
 /**
  * What a [ScreenComponent] can reach in its screen.
@@ -46,6 +49,12 @@ abstract class ScreenComponent(var width: Int, var height: Int) {
     open val visible: Boolean get() = true
 
     /**
+     * Called each time the screen inits, before it is placed: set [width]/[height] if they depend on the screen (a
+     * label measuring its text). Containers measure their children here.
+     */
+    open fun measure(host: ComponentHost) {}
+
+    /**
      * Called each time the screen inits, after [x]/[y] are set; add widgets here.
      */
     open fun init(host: ComponentHost) {}
@@ -68,13 +77,19 @@ abstract class ScreenComponent(var width: Int, var height: Int) {
 
 /**
  * A component shown beside the screen while its tab is selected. [tab] is the tab button's short label and [title]
- * its tooltip.
+ * its tooltip; a non-empty [icon] is drawn on the tab instead of the label, and [accent] tints it ([ButtonAccents]).
  */
-class SidePanel(@JvmField val tab: Component, @JvmField val title: Component, @JvmField val component: ScreenComponent)
+class SidePanel @JvmOverloads constructor(
+    @JvmField val tab: Component,
+    @JvmField val title: Component,
+    @JvmField val component: ScreenComponent,
+    @JvmField val icon: ItemStack = ItemStack.EMPTY,
+    @JvmField val accent: String? = null,
+)
 
 /**
  * A container screen built from [ScreenComponent]s: components placed in the screen's image ([addComponent]) and side
- * panels ([addPanel]) toggled by tab buttons along the image's right edge, one open at a time. Menus with side
+ * panels ([addPanel]) toggled by tab buttons ([ThemedButton]s) along the image's right edge, one open at a time. Menus with side
  * configuration ([MenuCore.enableSideConfig]) get a side configuration panel by default ([defaultPanels]).
  *
  * It draws in a [ScreenTheme]: the player's chosen one ([ScreenThemeConfig]) or the screen's [defaultTheme]. The
@@ -88,7 +103,11 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
     width: Int = 176,
     height: Int = 166,
 ) : AbstractContainerScreen<M>(menu, inventory, title, width, height), ComponentHost {
-    private class Placed(val component: ScreenComponent, val x: Int, val y: Int)
+    /**
+     * A placed component: at ([x], [y]) in the image, or, with an [anchor], anchored in the image or its content area
+     * ([inContent]) and moved inwards by ([x], [y]).
+     */
+    private class Placed(val component: ScreenComponent, val x: Int, val y: Int, val anchor: Anchor? = null, val inContent: Boolean = false)
 
     private val placed = ArrayList<Placed>()
     private val panels = ArrayList<SidePanel>()
@@ -118,7 +137,7 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
      */
     protected open fun defaultPanels(): List<SidePanel> {
         val side = (menu as? MenuCore)?.sideConfig ?: return emptyList()
-        return listOf(SidePanel(Component.translatable("gui.itszulib.side_config.tab"), Component.translatable("gui.itszulib.side_config.title"), SideConfigPanel(side, menu.containerId)))
+        return listOf(SidePanel(Component.translatable("gui.itszulib.side_config.tab"), Component.translatable("gui.itszulib.side_config.title"), SideConfigPanel(side, menu.containerId), accent = ButtonAccents.IO))
     }
 
     /**
@@ -127,6 +146,27 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
     fun <C : ScreenComponent> addComponent(component: C, x: Int, y: Int): C {
         placed += Placed(component, x, y)
         return component
+    }
+
+    /**
+     * Places [component] at [anchor] in the image (or, with [inContent], in [contentArea]), moved inwards from the
+     * anchored edges by ([dx], [dy]). Its size is measured each time the screen inits, so anchoring follows it.
+     */
+    @JvmOverloads
+    fun <C : ScreenComponent> addComponent(component: C, anchor: Anchor, dx: Int = 0, dy: Int = 0, inContent: Boolean = false): C {
+        placed += Placed(component, dx, dy, anchor, inContent)
+        return component
+    }
+
+    /**
+     * The part of the image for the machine's own content, in image coordinates: inside the 8 pixel border, below the
+     * title and above the player inventory's label (the whole inner image when the inventory label is hidden below
+     * it).
+     */
+    fun contentArea(): net.minecraft.client.renderer.Rect2i {
+        val top = titleLabelY + font.lineHeight + 2
+        val bottom = if (inventoryLabelY in (top + 1) until imageHeight) inventoryLabelY - 2 else imageHeight - 8
+        return net.minecraft.client.renderer.Rect2i(8, top, imageWidth - 16, bottom - top)
     }
 
     fun addPanel(panel: SidePanel): SidePanel {
@@ -156,19 +196,31 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
             val extra = TAB_SIZE + TAB_GAP + (openPanel?.component?.width ?: 0)
             leftPos = maxOf(0, (width - imageWidth - extra) / 2)
         }
+        val content = contentArea()
         for (p in placed) {
-            p.component.x = leftPos + p.x
-            p.component.y = topPos + p.y
+            p.component.measure(this)
+            val anchor = p.anchor
+            if (anchor == null) {
+                p.component.x = leftPos + p.x
+                p.component.y = topPos + p.y
+            } else {
+                val (ax, ay, aw, ah) = if (p.inContent) listOf(content.x, content.y, content.width, content.height) else listOf(0, 0, imageWidth, imageHeight)
+                val (x, y) = LayoutMath.anchored(anchor, ax, ay, aw, ah, p.component.width, p.component.height, p.x, p.y)
+                p.component.x = leftPos + x
+                p.component.y = topPos + y
+            }
             p.component.init(this)
         }
         panels.forEachIndexed { i, panel ->
             addRenderableWidget(
-                Button.builder(panel.tab) { togglePanel(panel) }
-                    .bounds(leftPos + imageWidth, topPos + TAB_GAP + i * (TAB_SIZE + TAB_GAP), TAB_SIZE, TAB_SIZE)
-                    .tooltip(Tooltip.create(panel.title)).build(),
+                ThemedButton(
+                    leftPos + imageWidth, topPos + TAB_GAP + i * (TAB_SIZE + TAB_GAP), TAB_SIZE, TAB_SIZE, panel.tab,
+                    { togglePanel(panel) }, panel.title, panel.icon, selected = { openPanel === panel }, accent = panel.accent,
+                ),
             )
         }
         openPanel?.component?.let {
+            it.measure(this)
             it.x = leftPos + imageWidth + TAB_SIZE + TAB_GAP
             it.y = topPos
             it.init(this)
@@ -209,16 +261,53 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
      * hints of empty slots.
      */
     protected fun extractSlots(graphics: GuiGraphicsExtractor) {
-        for (slot in menu.slots) if ((slot as? SlotLook)?.isOutput == true) ScreenStyle.outputRing(graphics, leftPos + slot.x, topPos + slot.y)
-        for (slot in menu.slots) ScreenStyle.slot(graphics, leftPos + slot.x, topPos + slot.y)
-        val hinted = menu.slots.filter { !it.hasItem() && (it as? SlotLook)?.hint()?.isEmpty == false }
+        for (slot in menu.slots) if (slot.isActive && (slot as? SlotLook)?.isOutput == true) ScreenStyle.outputRing(graphics, leftPos + slot.x, topPos + slot.y)
+        // A met requirement shows just its item, without the slot's inset.
+        for (slot in menu.slots) if (slot.isActive && !requirementMet(slot)) ScreenStyle.slot(graphics, leftPos + slot.x, topPos + slot.y)
+        val hinted = menu.slots.filter { it.isActive && !it.hasItem() && (it as? SlotLook)?.hint()?.isEmpty == false }
         if (hinted.isEmpty()) return
         for (slot in hinted) graphics.fakeItem((slot as SlotLook).hint(), leftPos + slot.x, topPos + slot.y)
         // Over the hints (items draw above fills within a stratum): the slot's face, mostly opaque, fades them.
         graphics.nextStratum()
         val fade = (theme.slot and 0xFFFFFF) or (HINT_FADE shl 24)
         for (slot in hinted) graphics.fill(leftPos + slot.x, topPos + slot.y, leftPos + slot.x + 16, topPos + slot.y + 16, fade)
+        // An empty requirement's count, in red (filled ones show theirs in place of the stack size, renderSlotContents).
+        for (slot in hinted) {
+            val need = (slot as SlotLook).required()
+            if (need.isEmpty) continue
+            val text = requirementText(0, need.count)
+            graphics.text(font, text, leftPos + slot.x + 17 - font.width(text), topPos + slot.y + 9, -1, true)
+        }
     }
+
+    /** Hovering an empty requirement slot shows what it wants: the item's tooltip and how many. */
+    override fun extractTooltip(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+        val slot = hoveredSlot
+        val need = (slot as? SlotLook)?.required()
+        if (slot != null && !slot.hasItem() && need != null && !need.isEmpty && menu.carried.isEmpty) {
+            val lines = ArrayList(getTooltipFromItem(minecraft, need))
+            lines += Component.translatable("gui.itszulib.requirement.needs", need.count).withStyle(ChatFormatting.RED)
+            graphics.setTooltipForNextFrame(font, lines, need.tooltipImage, need, mouseX, mouseY)
+            return
+        }
+        super.extractTooltip(graphics, mouseX, mouseY)
+    }
+
+    private fun requirementMet(slot: Slot): Boolean {
+        val need = (slot as? SlotLook)?.required() ?: return false
+        return !need.isEmpty && slot.item.count >= need.count
+    }
+
+    /** A requirement slot's item with how many are still needed (red) for its count, or the full amount (green) once met. */
+    override fun renderSlotContents(graphics: GuiGraphicsExtractor, itemStack: ItemStack, slot: Slot, itemCount: String?) {
+        val need = (slot as? SlotLook)?.required()
+        if (need == null || need.isEmpty || itemStack.isEmpty || itemCount != null) return super.renderSlotContents(graphics, itemStack, slot, itemCount)
+        super.renderSlotContents(graphics, itemStack, slot, requirementText(itemStack.count, need.count))
+    }
+
+    private fun requirementText(have: Int, need: Int): String =
+        if (have >= need) "${ChatFormatting.GREEN}$need" else "${ChatFormatting.RED}${need - have}"
+
 
     /**
      * The title and the inventory label in the theme's text colour.
@@ -227,6 +316,19 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
         ScreenStyle.theme = theme
         graphics.text(font, title, titleLabelX, titleLabelY, ScreenStyle.TEXT, false)
         graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ScreenStyle.TEXT, false)
+    }
+
+    /**
+     * While a text box has focus it takes every key but escape, so typing the inventory key or a hotbar number does
+     * not close the screen or move items.
+     */
+    override fun keyPressed(event: KeyEvent): Boolean {
+        val box = focused as? EditBox
+        if (box != null && box.canConsumeInput() && !event.isEscape) {
+            box.keyPressed(event)
+            return true
+        }
+        return super.keyPressed(event)
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean =

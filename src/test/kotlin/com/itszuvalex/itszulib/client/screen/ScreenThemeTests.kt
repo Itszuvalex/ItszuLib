@@ -30,6 +30,39 @@ class ScreenThemeTests {
     }
 
     @Test
+    fun Definition_ButtonColours_OverriddenOrInherited() {
+        val theme = definition("""{"colors": {"button_hover": "#123456"}}""").resolve(ScreenTheme.DARK)
+        Assertions.assertEquals(0xFF123456.toInt(), theme.buttonHover)
+        Assertions.assertEquals(ScreenTheme.DARK.button, theme.button)
+    }
+
+    @Test
+    fun Theme_WithoutButtonColours_DerivesThemFromThePanel() {
+        val theme = ScreenTheme(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 0f)
+        Assertions.assertEquals(theme.panel, theme.button)
+        Assertions.assertEquals(theme.panelLight, theme.buttonHover)
+    }
+
+    @Test
+    fun Accents_ThemeOverridesDefaults_ParentsMerged_UnknownIsNull() {
+        val parent = definition("""{"accents": {"io": "#010203", "heat": "#FF8800"}}""").resolve(ScreenTheme.LIGHT)
+        val child = definition("""{"accents": {"danger": "#000001"}}""").resolve(parent)
+        Assertions.assertEquals(0xFF010203.toInt(), child.accent(ButtonAccents.IO))
+        Assertions.assertEquals(0xFF000001.toInt(), child.accent(ButtonAccents.DANGER))
+        Assertions.assertEquals(0xFFFF8800.toInt(), child.accent("heat"))
+        Assertions.assertEquals(ButtonAccents.DEFAULTS[ButtonAccents.UPGRADE], child.accent(ButtonAccents.UPGRADE))
+        Assertions.assertNull(child.accent("itszulib_test_unknown"))
+        ButtonAccents.register("itszulib_test_registered", 0xFF112233.toInt())
+        Assertions.assertEquals(0xFF112233.toInt(), ScreenTheme.DARK.accent("itszulib_test_registered"))
+    }
+
+    @Test
+    fun Mix_MovesEachChannelTowardsTheOther() {
+        Assertions.assertEquals(0xFF7F4000.toInt(), ScreenStyle.mix(0xFF000000.toInt(), 0xFFFF8000.toInt(), 0.5f))
+        Assertions.assertEquals(0xFF123456.toInt(), ScreenStyle.mix(0xFF123456.toInt(), 0xFFFFFFFF.toInt(), 0f))
+    }
+
+    @Test
     fun Definition_UnknownColourName_IsRejected() {
         val result = ThemeDefinition.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString("""{"colors": {"panle": "#000000"}}"""))
         Assertions.assertTrue(result.isError)

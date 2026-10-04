@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.dev
 
 import com.itszuvalex.itszulib.client.screen.ComponentScreen
+import com.itszuvalex.itszulib.client.screen.Anchor
 import com.itszuvalex.itszulib.client.screen.EnergyGauge
 import com.itszuvalex.itszulib.client.screen.FluidGauge
 import net.minecraft.network.chat.Component
@@ -28,7 +29,8 @@ object DevClient {
 class DevScreen(menu: DevMenu, inventory: Inventory, title: Component) : ComponentScreen<DevMenu>(menu, inventory, title) {
     override fun addComponents() {
         val machine = menu.blockEntity as? DevMachineBlockEntity ?: return
-        addComponent(FluidGauge({ machine.tanks.get(0).toMinecraft() }, { DevMachineBlockEntity.TANK_CAPACITY }, 16, 60), 152, 8)
-        addComponent(EnergyGauge({ menu.energy }), 10, 16)
+        // Gauges at the content area's sides, centred on its height.
+        addComponent(EnergyGauge({ menu.energy }), Anchor.LEFT, 2, 0, inContent = true)
+        addComponent(FluidGauge({ machine.tanks.get(0).toMinecraft() }, { DevMachineBlockEntity.TANK_CAPACITY }, 16, 60), Anchor.RIGHT, 0, 0, inContent = true)
     }
 }
