@@ -199,3 +199,20 @@ class Label @JvmOverloads constructor(private val text: () -> Component, private
         graphics.text(host.hostFont, text(), x, y, color ?: ScreenStyle.TEXT, false)
     }
 }
+
+/**
+ * A statistic: [label] on the left in the theme's muted text, [value] (re-read every frame) right-aligned, in a row
+ * [width] wide. Stack them in a [Column] for a statistics tab.
+ */
+class StatRow @JvmOverloads constructor(private val label: Component, private val value: () -> Component, width: Int = 120) : ScreenComponent(width, 9) {
+    override fun measure(host: ComponentHost) {
+        height = host.hostFont.lineHeight
+    }
+
+    override fun extract(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, host: ComponentHost) {
+        val font = host.hostFont
+        graphics.text(font, label, x, y, ScreenStyle.TEXT_MUTED, false)
+        val v = value()
+        graphics.text(font, v, x + width - font.width(v), y, ScreenStyle.TEXT, false)
+    }
+}

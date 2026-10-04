@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.client.screen
 
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.network.chat.Component
 
 /**
  * Where a component sits along an axis inside the space it is given.
@@ -186,4 +187,35 @@ class Grid @JvmOverloads constructor(
  */
 class Spacer(width: Int, height: Int) : ScreenComponent(width, height) {
     override fun extract(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, host: ComponentHost) {}
+}
+
+/**
+ * A side panel's frame: the theme's panel with [title] at the top and [content] below it, [pad] in from the edges. For
+ * [SidePanel]s whose content is a layout (a statistics tab, a configuration tab), so each does not draw its own.
+ */
+class TitledPanel @JvmOverloads constructor(
+    private val title: Component,
+    content: ScreenComponent,
+    private val pad: Int = 6,
+) : ContainerComponent(listOf(content)) {
+    private var titleHeight = 0
+
+    override fun measure(host: ComponentHost) {
+        titleHeight = host.hostFont.lineHeight + 4
+        super.measure(host)
+    }
+
+    override fun layout() {
+        val content = children[0]
+        content.x = x + pad
+        content.y = y + pad + titleHeight
+        width = maxOf(content.width + 2 * pad, 0)
+        height = content.height + 2 * pad + titleHeight
+    }
+
+    override fun extract(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, host: ComponentHost) {
+        ScreenStyle.panel(graphics, x, y, width, height)
+        graphics.text(host.hostFont, title, x + pad, y + pad, ScreenStyle.TEXT, false)
+        super.extract(graphics, mouseX, mouseY, host)
+    }
 }

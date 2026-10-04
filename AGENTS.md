@@ -78,7 +78,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          WrapperResourceHandlerIItemStorage/IFluidStorage, WrapperEnergyHandlerIBattery, WrapperCache)
 ├── client/                ScreenHelpers (fluid tanks, progress bars, tooltips) + ScreenMath; ItszuLibClient (client
 │   │                      registrations); screen/ (ComponentScreen, ScreenComponent, SidePanel, ScreenStyle, gauges,
-│   │                      SideConfigPanel, TechTreeView, StorageTerminalView, FilterRow, ThemedButton, Layout (Row/Column/Grid, Anchor), ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
+│   │                      SideConfigPanel, TechTreeView, StorageTerminalView, FilterRow, ThemedButton/ButtonComponent, StatRow, Layout (Row/Column/Grid, TitledPanel, Anchor), ScreenTheme/ScreenThemes, ScreenGrain, ScreenThemeConfig); scene/ (BlockScene*: 3D blocks in a screen). Client only.
 │   │                      DECISIONS D12
 ├── core/                  BlockEntityCore, TickableBlockEntityCore, EntityBlockCore, TickableEntityBlockCore,
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
@@ -170,14 +170,14 @@ energy with `syncEnergy { battery }` or `syncEnergyHandler { handler }`. ItszuLi
 the client config (`ScreenThemeConfig`) can force one and turn grain off, and components read colours from
 `ScreenStyle` (pointed at the screen's theme while it draws); use `ThemedButton` rather than vanilla buttons so
 buttons follow the theme too, with a `ButtonAccents` accent (IO, upgrade, danger, info, or a mod's own) for what they do. Slots are drawn as insets, take-only slots ringed and
-hints (`addStorageSlots(..., hint = stack)`, `SlotLook`) faded into empty slots. Anything a screen
+hints (`addStorageSlots(..., hint = stack)`, `SlotLook`) faded into empty slots; `addRequirementSlots` adds slots that collect a wanted stack (`have/need`, nothing taken back out). Anything a screen
 draws outside its image belongs in `ComponentScreen.extraAreas()`, which the JEI plugin reports so JEI's overlays stay
 clear. JEI is a `compileOnly` dependency plus a dev-run `localRuntime` (`-Pjei=false` leaves it out).
 
 ### Networks
 `INetwork`/`TileNetwork` group `INetworkNode`s (by `Loc4`) into server-side networks in `ItszuLib.NETWORK_MANAGER`, ticked from `ServerTickEvent.Pre/Post`. Nodes are found through the network module on the block entity (`TileNetwork#networkModule`). Chunk unloads drop that chunk's nodes as a batch; block entities must re-add their node when they load. Splits explore iteratively.
 
-A `DistributingTileNetwork` also moves an amount between producers, storage and consumers every tick (DECISIONS D15): its `IDistributionNode` nodes return `DistributionParticipant(key, role, Distributable)`s (each key once), and `DistributionAlgorithm` moves within each participant's transfer limit. `DistributableBattery` adapts an `IBattery`; the algorithm can also be run directly on lists of `Distributable`s.
+A `DistributingTileNetwork` also moves an amount between producers, storage and consumers every tick (DECISIONS D15): its `IDistributionNode` nodes return `DistributionParticipant(key, role, Distributable)`s (each key once), and `DistributionAlgorithm` moves within each participant's transfer limit. `DistributableBattery` adapts an `IBattery`; the algorithm can also be run directly on lists of `Distributable`s. Each tick the network also records `DistributionStatistics` (participants by role, flow, fill, storage trend; DECISIONS D19), which a menu syncs with `syncDistribution { stats }` for a statistics tab.
 
 ### Teams and per-team data
 Every player is always in exactly one team (a new player gets a solo team they own). Mods register per-team data with `TeamDataTypes.register(TeamDataType(id, codec, empty, merge, copy))` during mod construction; ItszuLib registers `Research.TYPE` (`itszulib:research`: unlocked ids, merged by union, plus partial progress per technology, merged by maximum). Joining (invite and accept) merges the joiner's data into the team; leaving or being removed gives the player a solo team with a copy; disbanding gives every member a copy. Roles: owner (promote/demote officers, hand over ownership, rename, disband; cannot leave a shared team without handing it over), officers (invite, revoke, remove anyone but the owner), members. Read `ItszuLib.TEAMS.state`; change only through `ItszuLib.TEAMS.change { state -> newState }` on the server thread. After a change moves players between teams, a `TeamMembershipChangedEvent` (player, `from` team or null for a new player, `to` team, data already merged or copied) is posted per moved player on the game bus; `TeamState.membershipChanges(old, new)` is the same diff, pure.

@@ -50,3 +50,29 @@ class ThemedButton @JvmOverloads constructor(
 
     override fun updateWidgetNarration(output: NarrationElementOutput) = defaultButtonNarrationText(output)
 }
+
+/**
+ * A [ThemedButton] as a [ScreenComponent], so buttons go in layouts ([Row], [Column], a [TitledPanel]). [message] and
+ * [active] are re-read every frame (a label showing the current mode, a button greyed out with nothing to act on).
+ */
+class ButtonComponent @JvmOverloads constructor(
+    width: Int,
+    height: Int,
+    private val message: () -> Component,
+    private val onPress: (ThemedButton) -> Unit,
+    private val tooltip: Component? = null,
+    private val accent: String? = null,
+    private val active: () -> Boolean = { true },
+) : ScreenComponent(width, height) {
+    private var button: ThemedButton? = null
+
+    override fun init(host: ComponentHost) {
+        button = host.addHostWidget(ThemedButton(x, y, width, height, message(), onPress, tooltip, accent = accent))
+    }
+
+    override fun extract(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, host: ComponentHost) {
+        val b = button ?: return
+        b.message = message()
+        b.active = active()
+    }
+}

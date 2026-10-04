@@ -3,6 +3,7 @@
   "gui.itszulib.tank.amount": "%s / %s mB",
   "gui.itszulib.energy": "%s / %s %s",
   "gui.itszulib.energy.unit": "FE",
+  "gui.itszulib.requirement.needs": "Needs %s",
   "gui.itszulib.side_config.tab": "IO",
   "gui.itszulib.side_config.title": "Side configuration",
   "gui.itszulib.side_config.mode": "Configure: %s",

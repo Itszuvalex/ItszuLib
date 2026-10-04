@@ -2,6 +2,7 @@ package com.itszuvalex.itszulib.client.screen
 
 import com.itszuvalex.itszulib.menu.MenuCore
 import com.itszuvalex.itszulib.menu.SlotLook
+import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Renderable
@@ -16,6 +17,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 
 /**
@@ -259,16 +261,53 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
      * hints of empty slots.
      */
     protected fun extractSlots(graphics: GuiGraphicsExtractor) {
-        for (slot in menu.slots) if ((slot as? SlotLook)?.isOutput == true) ScreenStyle.outputRing(graphics, leftPos + slot.x, topPos + slot.y)
-        for (slot in menu.slots) ScreenStyle.slot(graphics, leftPos + slot.x, topPos + slot.y)
-        val hinted = menu.slots.filter { !it.hasItem() && (it as? SlotLook)?.hint()?.isEmpty == false }
+        for (slot in menu.slots) if (slot.isActive && (slot as? SlotLook)?.isOutput == true) ScreenStyle.outputRing(graphics, leftPos + slot.x, topPos + slot.y)
+        // A met requirement shows just its item, without the slot's inset.
+        for (slot in menu.slots) if (slot.isActive && !requirementMet(slot)) ScreenStyle.slot(graphics, leftPos + slot.x, topPos + slot.y)
+        val hinted = menu.slots.filter { it.isActive && !it.hasItem() && (it as? SlotLook)?.hint()?.isEmpty == false }
         if (hinted.isEmpty()) return
         for (slot in hinted) graphics.fakeItem((slot as SlotLook).hint(), leftPos + slot.x, topPos + slot.y)
         // Over the hints (items draw above fills within a stratum): the slot's face, mostly opaque, fades them.
         graphics.nextStratum()
         val fade = (theme.slot and 0xFFFFFF) or (HINT_FADE shl 24)
         for (slot in hinted) graphics.fill(leftPos + slot.x, topPos + slot.y, leftPos + slot.x + 16, topPos + slot.y + 16, fade)
+        // An empty requirement's count, in red (filled ones show theirs in place of the stack size, renderSlotContents).
+        for (slot in hinted) {
+            val need = (slot as SlotLook).required()
+            if (need.isEmpty) continue
+            val text = requirementText(0, need.count)
+            graphics.text(font, text, leftPos + slot.x + 17 - font.width(text), topPos + slot.y + 9, -1, true)
+        }
     }
+
+    /** Hovering an empty requirement slot shows what it wants: the item's tooltip and how many. */
+    override fun extractTooltip(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+        val slot = hoveredSlot
+        val need = (slot as? SlotLook)?.required()
+        if (slot != null && !slot.hasItem() && need != null && !need.isEmpty && menu.carried.isEmpty) {
+            val lines = ArrayList(getTooltipFromItem(minecraft, need))
+            lines += Component.translatable("gui.itszulib.requirement.needs", need.count).withStyle(ChatFormatting.RED)
+            graphics.setTooltipForNextFrame(font, lines, need.tooltipImage, need, mouseX, mouseY)
+            return
+        }
+        super.extractTooltip(graphics, mouseX, mouseY)
+    }
+
+    private fun requirementMet(slot: Slot): Boolean {
+        val need = (slot as? SlotLook)?.required() ?: return false
+        return !need.isEmpty && slot.item.count >= need.count
+    }
+
+    /** A requirement slot's item with how many are still needed (red) for its count, or the full amount (green) once met. */
+    override fun renderSlotContents(graphics: GuiGraphicsExtractor, itemStack: ItemStack, slot: Slot, itemCount: String?) {
+        val need = (slot as? SlotLook)?.required()
+        if (need == null || need.isEmpty || itemStack.isEmpty || itemCount != null) return super.renderSlotContents(graphics, itemStack, slot, itemCount)
+        super.renderSlotContents(graphics, itemStack, slot, requirementText(itemStack.count, need.count))
+    }
+
+    private fun requirementText(have: Int, need: Int): String =
+        if (have >= need) "${ChatFormatting.GREEN}$need" else "${ChatFormatting.RED}${need - have}"
+
 
     /**
      * The title and the inventory label in the theme's text colour.

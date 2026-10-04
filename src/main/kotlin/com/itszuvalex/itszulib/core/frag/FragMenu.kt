@@ -20,13 +20,22 @@ import net.minecraft.world.inventory.AbstractContainerMenu
  * Client side, the menu type's factory reads the position written by [menuPos] (see
  * [com.itszuvalex.itszulib.menu.BlockMenus.blockEntity]).
  *
+ * @param title The menu's title, read when it opens (so it may follow the block, e.g. naming what a frame builds).
  * @param factory Creates the server-side menu.
  */
 class FragMenu @JvmOverloads constructor(
-    private val title: Component,
+    private val title: () -> Component,
     private val factory: (containerId: Int, inventory: Inventory, player: Player) -> AbstractContainerMenu,
     private val multiblock: FragMultiblockPart? = null,
 ) : BlockEntityFragment<IMenuHost>(), IMenuHost {
+    /** A menu with a fixed [title]. */
+    @JvmOverloads
+    constructor(
+        title: Component,
+        factory: (containerId: Int, inventory: Inventory, player: Player) -> AbstractContainerMenu,
+        multiblock: FragMultiblockPart? = null,
+    ) : this({ title }, factory, multiblock)
+
     override fun name(): String = NAME
 
     override fun module(): IModule<IMenuHost> = Modules.MENU
@@ -43,7 +52,7 @@ class FragMenu @JvmOverloads constructor(
 
     override fun menuPos(): BlockPos = host?.blockEntity()?.getBlockPos() ?: BlockPos.ZERO
 
-    override fun getDisplayName(): Component = title
+    override fun getDisplayName(): Component = title()
 
     override fun createMenu(containerId: Int, inventory: Inventory, player: Player): AbstractContainerMenu =
         factory(containerId, inventory, player)

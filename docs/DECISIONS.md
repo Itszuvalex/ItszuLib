@@ -431,3 +431,27 @@ The maintainer asked for the allowlist/denylist logic a mod's logistics had grow
 
 - **Kotlin idioms:** lookups return nullable `T?`, collections of locations/nodes are `Sequence`s, simple accessors on `Loc4`, `IModule`, `Color` are properties; storage and battery classes are `open`. Registries use ItszuLib's namespace (`Components.FRAGMENT_DATA` = `itszulib:fragment_data`, `Modules.COLORABLE` = `itszulib:colorable`).
 - **Details worth knowing:** `Loc4.distSqr` computes in doubles (int arithmetic overflows for coordinates about 46k apart; regression test `DistSqr_FarApartCoordinates_DoesNotOverflow`); `TileNetwork.clear()` also clears its location tracker; `TileNetworkNode` keeps its network in `currentNetwork` (a Kotlin property named `network` clashes with `getNetwork()`).
+
+## D19. Network statistics and side panel building blocks — DECIDED (maintainer, 2026-10-03)
+
+Machines show their network's statistics, and configuration that is not part of the main page, in side panel tabs
+(`SidePanel`, next to the side configuration tab) rather than as text on the main page. ItszuLib provides the parts so
+each mod's tabs look and work alike:
+
+- `DistributionStatistics`: last tick's participants by role, produced and consumed, storage change and its average
+  over 10 seconds, stored and capacity. Every `DistributingTileNetwork` records it (`statistics`); networks running
+  `DistributionAlgorithm` themselves call `record`.
+- `MenuCore.syncDistribution(statistics, nodes)` syncs it, with the network's block count, into a `DistributionView`.
+- `TitledPanel`: the theme's panel with a title over one component, for a tab's content.
+- `StatRow`: a muted label with a right-aligned value, for statistics.
+- `ButtonComponent`: a `ThemedButton` that goes in layouts, its label and enabled state re-read every frame.
+- `ButtonAccents.ENERGY` for energy and power network tabs and buttons.
+- `RequirementSlot` (`MenuCore.addRequirementSlots`): a slot that collects one wanted stack and gives nothing back.
+  The screen shows the wanted item faded while it is empty, with how many are still needed (red) as its stack size,
+  then once met drops the slot's inset and shows the full amount (green); hovering an empty one shows the wanted
+  item's tooltip. Clicking one that holds some, while carrying more, tops it up (vanilla only adds to slots it may
+  take from). With nothing wanted the slot is inactive (hidden).
+- `FragMenu` can take its title as a supplier, read when the menu opens.
+
+Tabs stay added the existing way (`addPanel`, or `defaultPanels()` for every screen of a kind); no registry is needed
+yet.

@@ -113,11 +113,15 @@ object ButtonAccents {
     /** Information and help. */
     const val INFO = "info"
 
+    /** Energy and power networks. */
+    const val ENERGY = "energy"
+
     private val defaults = ConcurrentHashMap(mapOf(
         IO to 0xFF3A7FD0.toInt(),
         UPGRADE to 0xFF3FA34D.toInt(),
         DANGER to 0xFFC0392B.toInt(),
         INFO to 0xFFC9A227.toInt(),
+        ENERGY to 0xFF2BB5C9.toInt(),
     ))
 
     /** Every accent's default colour (themes override them). */
