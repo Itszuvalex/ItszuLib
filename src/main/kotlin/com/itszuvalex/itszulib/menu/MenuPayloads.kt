@@ -109,3 +109,47 @@ data class MenuActionPayload(val containerId: Int, val action: Int, val data: In
         }
     }
 }
+
+/**
+ * Client to server: a control in a [MenuCore]'s screen that carries text was used (a new channel's name, a channel's
+ * id). Like [MenuActionPayload], it only reaches the sender's open menu, and only while [AbstractContainerMenu.stillValid].
+ */
+data class MenuTextActionPayload(val containerId: Int, val action: Int, val text: String) : CustomPacketPayload {
+    override fun type(): CustomPacketPayload.Type<MenuTextActionPayload> = TYPE
+
+    companion object {
+        /** Longest text a request may carry. */
+        const val MAX_TEXT = 64
+
+        @JvmField
+        val TYPE: CustomPacketPayload.Type<MenuTextActionPayload> =
+            CustomPacketPayload.Type(Identifier.fromNamespaceAndPath(ItszuLib.ID, "menu_text_action"))
+
+        @JvmField
+        val STREAM_CODEC: StreamCodec<RegistryFriendlyByteBuf, MenuTextActionPayload> = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, MenuTextActionPayload::containerId,
+            ByteBufCodecs.VAR_INT, MenuTextActionPayload::action,
+            ByteBufCodecs.stringUtf8(MAX_TEXT), MenuTextActionPayload::text,
+            ::MenuTextActionPayload,
+        )
+
+        /**
+         * Server side, on the main thread.
+         */
+        @JvmStatic
+        fun handle(payload: MenuTextActionPayload, context: IPayloadContext) {
+            dispatch(context.player().containerMenu, payload, context.player())
+        }
+
+        /**
+         * Runs [payload] on [menu] if it is the menu the payload names and [player] may still use it.
+         *
+         * @return True if the menu handled it.
+         */
+        @JvmStatic
+        fun dispatch(menu: AbstractContainerMenu?, payload: MenuTextActionPayload, player: Player): Boolean {
+            if (menu !is MenuCore || menu.containerId != payload.containerId || !menu.stillValid(player)) return false
+            return menu.dispatchText(player, payload.action, payload.text)
+        }
+    }
+}

@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.network
 
 import com.itszuvalex.itszulib.menu.MenuActionPayload
+import com.itszuvalex.itszulib.menu.MenuTextActionPayload
 import com.itszuvalex.itszulib.menu.MenuSyncPayload
 import com.itszuvalex.itszulib.team.TeamSyncPayload
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent
@@ -23,13 +24,14 @@ object ItszuLibNetwork {
     /**
      * Bump when a payload's wire format changes.
      */
-    const val VERSION = "1"
+    const val VERSION = "2"
 
     @JvmStatic
     fun register(event: RegisterPayloadHandlersEvent) {
         val handler = PacketHandler(event, VERSION)
         handler.registrar.playToClient(MenuSyncPayload.TYPE, MenuSyncPayload.STREAM_CODEC, MenuSyncPayload::handle)
         handler.registrar.playToServer(MenuActionPayload.TYPE, MenuActionPayload.STREAM_CODEC, MenuActionPayload::handle)
+        handler.registrar.playToServer(MenuTextActionPayload.TYPE, MenuTextActionPayload.STREAM_CODEC, MenuTextActionPayload::handle)
         handler.registrar.playToClient(TeamSyncPayload.TYPE, TeamSyncPayload.STREAM_CODEC, TeamSyncPayload::handle)
     }
 }

@@ -15,6 +15,7 @@ import com.itszuvalex.itszulib.api.adapters.IModule
 import com.itszuvalex.itszulib.api.adapters.Module
 import com.itszuvalex.itszulib.menu.BlockMenus
 import net.minecraft.core.BlockPos
+import net.minecraft.network.chat.Component
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.fml.loading.FMLEnvironment
 import net.minecraft.resources.Identifier
@@ -90,6 +91,13 @@ object DevContent {
         BLOCK_ENTITY_TYPES.register("dev_keeper") { -> BlockEntityType(::DevKeeperBlockEntity, DEV_KEEPER_BLOCK.get()) }
 
     @JvmField
+    val DEV_CHANNEL_BLOCK: DeferredBlock<DevChannelBlock> = BLOCKS.registerBlock("dev_channel", ::DevChannelBlock)
+
+    @JvmField
+    val DEV_CHANNEL_BLOCK_ENTITY: DeferredHolder<BlockEntityType<*>, BlockEntityType<DevChannelBlockEntity>> =
+        BLOCK_ENTITY_TYPES.register("dev_channel") { -> BlockEntityType(::DevChannelBlockEntity, DEV_CHANNEL_BLOCK.get()) }
+
+    @JvmField
     val DEV_WRENCH = ITEMS.registerSimpleItem("dev_wrench")
 
     @JvmField
@@ -113,6 +121,8 @@ object DevContent {
     }
 
     fun register(modBus: IEventBus) {
+        com.itszuvalex.itszulib.channel.ChannelResources.register(DevChannelBlockEntity.POWER, Component.literal("Power"))
+        com.itszuvalex.itszulib.channel.ChannelResources.register(DevChannelBlockEntity.ITEMS, Component.literal("Items"))
         BLOCKS.register(modBus)
         ITEMS.register(modBus)
         BLOCK_ENTITY_TYPES.register(modBus)
@@ -125,6 +135,7 @@ object DevContent {
             ModuleCapabilities.registerBlockEntity(event, DEV_MULTIBLOCK_BLOCK_ENTITY.get())
             ModuleCapabilities.registerBlockEntity(event, DEV_CHEST_BLOCK_ENTITY.get())
             ModuleCapabilities.registerBlockEntity(event, DEV_KEEPER_BLOCK_ENTITY.get())
+            ModuleCapabilities.registerBlockEntity(event, DEV_CHANNEL_BLOCK_ENTITY.get())
         }
     }
 }

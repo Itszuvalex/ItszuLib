@@ -88,7 +88,10 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │                          (FragItem/Fluid/EnergyStorage, FragSidedConfiguration, FragItem/Fluid/EnergyAutoIO); multiblock fragments
 │                          (FragMultiblockPart, FragMultiblockTickable); FragMenu;
 │                          FragConnectable, FragNetworkedWire
-├── menu/                  MenuCore (slots, shift-click, syncs, syncEnergy/EnergyView, enableSideConfig), MenuSync/MenuSyncs,
+├── channel/               Channels (DECISIONS D21): Channel, ChannelScope, ChannelState (pure rules), ChannelManager/Store/Events
+│                          (ItszuLib.CHANNELS), ChannelResources, FragChannel (a block's joins, module Modules.CHANNELS), ChannelUsers
+├── menu/                  MenuCore (slots, shift-click, syncs, syncEnergy/EnergyView, enableSideConfig, enableChannels), MenuSync/MenuSyncs,
+│                          MenuChannels (channel tab logic and view), MenuTextActionPayload,
 │                          MenuSyncPayload, MenuActionPayload, MenuSideConfig (SideConfigMode/Modes/Cyclers),
 │                          IMenuHost, BlockMenus, StorageTerminal (enableStorageTerminal: searchable view of an ItemStorageIndex)
 ├── network/               PacketHandler, ItszuLibNetwork (registers ItszuLib's payloads)

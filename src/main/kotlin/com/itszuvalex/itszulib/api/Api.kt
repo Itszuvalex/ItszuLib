@@ -98,6 +98,12 @@ object Modules {
     @JvmField
     val MENU: IModule<IMenuHost> = Module.registerModule(id("menu"), null)
 
+    /**
+     * A block that can join channels ([com.itszuvalex.itszulib.channel.FragChannel]).
+     */
+    @JvmField
+    val CHANNELS: IModule<com.itszuvalex.itszulib.channel.IChannelHost> = Module.registerModule(id("channels"), null)
+
     private fun id(path: String): Identifier = Identifier.fromNamespaceAndPath(ItszuLib.ID, path)
 
     /**

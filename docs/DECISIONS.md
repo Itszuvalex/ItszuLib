@@ -501,3 +501,43 @@ what drops, what the tooltip says, and placing the dropped item with a player.
 an item in the tag on an `EntityBlockCore` block breaks it at once, as if mined (`destroyBlock` with drops: kept
 contents on the item, a multiblock drops as it does when broken, whatever the tool rules or mining time). Mods add
 their wrench to the tag in their own data. The dev content has a `dev_wrench` and a game test.
+
+## D21. Channels — DECIDED (maintainer, 2026-10-05)
+
+Channels are named, per resource, so blocks can send and receive a resource (power, items, fluid, nanites, anything a
+mod names with an id) between them without being connected. This is the framework only (`channel/`, `MenuChannels`,
+`ChannelPanel`); the blocks that move resources over channels come later. The logistics chips do not use it: the point
+of the conduit is to do the transfer, and conduit-wide channels are left for later.
+
+- **Whose.** A channel is a player's (`ChannelScope.PLAYER`: only they see, use and delete it) or a team's
+  (`TEAM`: any member may see, use, make and delete it). Team channels belong to the team's id and go when the team
+  does (`ChannelState.withoutTeamsNotIn`, on every team change); leaving a team does not take them along, joining does not
+  bring the old solo team's.
+- **Identity.** Names are unique per owner, scope and resource (ignoring case; 1-32 characters, no control
+  characters), and blocks join **by name** (maintainer, 2026-10-05, replacing a first version that joined by id): a channel
+  that is deleted and made again under the same name takes its blocks back, so an accidental delete can be undone and a
+  naming pattern can join blocks as they load and unload. Each channel still has a UUID, for requests from a screen.
+- **Binding.** A block's join is `ChannelBinding(player, scope, name)` (`FragChannel`, one per resource it offers, saved
+  with it, module `Modules.CHANNELS` = `IChannelHost`). It reaches the channel of that name among the player's own
+  channels, or among the channels of the team the player is in now (`ChannelState.resolve`); if there is none (deleted, or
+  the player left the team that had it) the block has no channel (`IChannelHost.channel` is null) and moves nothing. The
+  binding is kept, not cleared: the block joins again when a channel of that name appears, loaded or not, and the screen
+  shows it as waiting. Because a team binding follows the player's current team, a player who joins another team that
+  has a channel of the same name reaches that one.
+- **Counts.** `ChannelUsers` keeps the loaded blocks that are joined (server side), so a screen shows how many loaded
+  blocks are on each channel. Blocks register when added to a level (`rehydrateFrags`; `onLoad` is not called for a block
+  placed at runtime) and leave when removed or unloaded.
+- **Data.** `ChannelState` is an immutable value with the rules (pure, unit-tested); the server's copy is
+  `ItszuLib.CHANNELS` (`ChannelManager`, a `StoreManager`), saved by `ChannelStore` (`<world>/data/itszulib/channels.dat`,
+  strict decoding like the team data) and wired by `ChannelEvents`. `ChannelResources` names the kinds of resource for
+  screens.
+- **Menu.** `MenuCore.enableChannels(host)` adds a channel tab beside the screen (`ChannelPanel`, a default panel like the
+  IO tab). The server holds what is being looked at (resource, scope), checks every request and syncs a `ChannelView`
+  (resources, channels with counts, what the block is on now, the last refusal); the screen draws it and sends requests:
+  select (a channel id, or empty to leave), delete, create (a name; the block joins the new channel), resource and
+  scope. Text goes in the new `MenuTextActionPayload` (the payload version is now 2). Deleting asks first: the panel says
+  whether loaded blocks are using the channel and how many, and that they will have no channel until one of that name is
+  made again.
+- The dev channel block (`dev_channel`, power and items) exercises it; six game tests cover making, joining and counting,
+  deleting and making it again, team changes and disbanding, permissions, saving and loading, and the view. The panel itself has not been
+  looked at in a client.

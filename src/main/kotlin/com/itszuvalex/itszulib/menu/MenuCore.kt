@@ -1,6 +1,7 @@
 package com.itszuvalex.itszulib.menu
 
 import com.itszuvalex.itszulib.api.adapters.IItemStack
+import com.itszuvalex.itszulib.channel.IChannelHost
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.storage.ItemStorageIndex
 import com.itszuvalex.itszulib.api.wrappers.WrapperContainerIItemStorage
@@ -149,8 +150,45 @@ abstract class MenuCore(type: MenuType<*>?, containerId: Int, @JvmField val play
     fun dispatchAction(player: Player, action: Int, data: Int): Boolean = when {
         action == ACTION_SIDE_CONFIG -> sideConfig?.handle(data) ?: false
         action in StorageTerminal.ACTIONS -> terminal?.handleAction(player, action, data) ?: false
+        action in MenuChannels.ACTIONS -> channels?.handle(action, data) ?: false
         action < 0 -> false
         else -> handleAction(player, action, data)
+    }
+
+    /**
+     * Server side: routes a text action from [MenuTextActionPayload]. ItszuLib's own (negative ids, the channel actions)
+     * are handled here; every other action goes to [handleText].
+     */
+    fun dispatchText(player: Player, action: Int, text: String): Boolean = when {
+        action in MenuChannels.TEXT_ACTIONS -> channels?.handleText(action, text) ?: false
+        action < 0 -> false
+        else -> handleText(player, action, text)
+    }
+
+    /**
+     * Server side: a control that carries text was used (see [MenuTextActionPayload]). Only called while the menu is
+     * open and valid for [player].
+     *
+     * @return True if handled.
+     */
+    open fun handleText(player: Player, action: Int, text: String): Boolean = false
+
+    /**
+     * Channel support, if [enableChannels] was called.
+     */
+    var channels: MenuChannels? = null
+        private set
+
+    /**
+     * Lets this menu's screen join the block behind [host] to channels (see [MenuChannels]): a channel panel opens beside
+     * the screen by default ([com.itszuvalex.itszulib.client.screen.ComponentScreen.defaultPanels]). Call on both sides;
+     * the client's [host] may return null. The menu's [player] is who joins, creates and deletes.
+     */
+    fun enableChannels(host: () -> IChannelHost?): MenuChannels {
+        val created = MenuChannels(player, host)
+        channels = created
+        addSync(created.sync)
+        return created
     }
 
     /**

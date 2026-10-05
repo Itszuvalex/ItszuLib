@@ -54,6 +54,7 @@ class DevMenu(containerId: Int, inventory: Inventory, @JvmField val blockEntity:
                 addSync(MenuSyncs.int({ blockEntity.counter()?.count ?: 0 }, { ticks = it }))
                 enableSideConfig(blockEntity)
             }
+            is DevChannelBlockEntity -> enableChannels { blockEntity.getModule(Modules.CHANNELS, null) }
             else -> {}
         }
         addPlayerInventorySlots(inventory)

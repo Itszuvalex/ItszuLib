@@ -16,6 +16,8 @@ import com.itszuvalex.itszulib.research.TechTree
 import com.itszuvalex.itszulib.util.DevEnvironmentCondition
 import com.itszuvalex.itszulib.team.Research
 import com.itszuvalex.itszulib.team.TeamDataTypes
+import com.itszuvalex.itszulib.channel.ChannelEvents
+import com.itszuvalex.itszulib.channel.ChannelManager
 import com.itszuvalex.itszulib.team.TeamEvents
 import com.itszuvalex.itszulib.team.TeamManager
 import com.mojang.logging.LogUtils
@@ -53,6 +55,13 @@ object ItszuLib {
     @JvmField
     val TEAMS = TeamManager()
 
+    /**
+     * Named channels for sending and receiving resources between blocks, per player and per team, loaded with the server. See
+     * [ChannelManager].
+     */
+    @JvmField
+    val CHANNELS = ChannelManager()
+
     init {
         // Built-in modules must exist before RegisterCapabilitiesEvent
         Modules.init()
@@ -61,6 +70,7 @@ object ItszuLib {
         VanillaChunkTickets.register(MOD_BUS)
         TeamDataTypes.register(Research.TYPE)
         TeamEvents.register()
+        ChannelEvents.register()
         TechTree.register(MOD_BUS)
         DevEnvironmentCondition.register(MOD_BUS)
 

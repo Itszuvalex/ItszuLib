@@ -136,8 +136,15 @@ abstract class ComponentScreen<M : AbstractContainerMenu> @JvmOverloads construc
      * configuration.
      */
     protected open fun defaultPanels(): List<SidePanel> {
-        val side = (menu as? MenuCore)?.sideConfig ?: return emptyList()
-        return listOf(SidePanel(Component.translatable("gui.itszulib.side_config.tab"), Component.translatable("gui.itszulib.side_config.title"), SideConfigPanel(side, menu.containerId), accent = ButtonAccents.IO))
+        val core = menu as? MenuCore ?: return emptyList()
+        val panels = ArrayList<SidePanel>()
+        core.sideConfig?.let {
+            panels += SidePanel(Component.translatable("gui.itszulib.side_config.tab"), Component.translatable("gui.itszulib.side_config.title"), SideConfigPanel(it, menu.containerId), accent = ButtonAccents.IO)
+        }
+        core.channels?.let {
+            panels += SidePanel(Component.translatable("gui.itszulib.channels.tab"), Component.translatable("gui.itszulib.channels.title"), ChannelPanel(it, menu.containerId), accent = ButtonAccents.INFO)
+        }
+        return panels
     }
 
     /**
