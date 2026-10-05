@@ -12,6 +12,8 @@ import com.itszuvalex.itszulib.api.utility.Loc4
 import com.itszuvalex.itszulib.api.wrappers.WrapperBlockEntity
 import com.itszuvalex.itszulib.api.wrappers.WrapperResourceHandlerIItemStorage
 import com.itszuvalex.itszulib.util.Color
+import com.itszuvalex.itszulib.verify.BlockEntityRoundTrip
+import com.itszuvalex.itszulib.verify.ContentIntegrity
 import net.minecraft.core.BlockPos
 import net.minecraft.core.component.DataComponentPatch
 import net.minecraft.core.registries.Registries
@@ -76,6 +78,8 @@ object DevGameTests {
             helper.assertTrue(ModList.get().isLoaded(ItszuLib.ID), "ItszuLib is not in the mod list")
             helper.succeed()
         }
+        test("content_integrity", ::contentIntegrity)
+        test("block_entities_save_load_and_sync", ::blockEntityRoundTrips)
         test("colorable_capability", ::colorableCapability)
         test("level_save_load", ::levelSaveLoad)
         test("client_update_tag", ::clientUpdateTag)
@@ -109,6 +113,16 @@ object DevGameTests {
     private fun place(helper: GameTestHelper): DevFragBlockEntity {
         helper.setBlock(POS, DevContent.DEV_FRAG_BLOCK.get())
         return helper.getBlockEntity(POS, DevFragBlockEntity::class.java)
+    }
+
+    private fun blockEntityRoundTrips(helper: GameTestHelper) {
+        helper.assertValueEqual(BlockEntityRoundTrip.problems(helper.level, helper.absolutePos(POS), ItszuLib.ID), emptyList<String>(), "round trip problems")
+        helper.succeed()
+    }
+
+    private fun contentIntegrity(helper: GameTestHelper) {
+        helper.assertValueEqual(ContentIntegrity.blockEntityProblems(ItszuLib.ID), emptyList<String>(), "block entity problems")
+        helper.succeed()
     }
 
     private fun colorableCapability(helper: GameTestHelper) {

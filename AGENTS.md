@@ -102,8 +102,11 @@ src/main/kotlin/com/itszuvalex/itszulib/
 ├── compat/jei/            Optional JEI plugin: keeps JEI's overlays clear of ComponentScreen side panels (loads only
 │                          with JEI)
 ├── dev/                   Dev-only blocks, menu, screen and game tests (never registered in production)
-└── util/                  Color, InventoryUtils (item dropping), StorageUtils (item counting/removal), FaceBitSet, Task,
+├── util/                  Color, InventoryUtils (item dropping), StorageUtils (item counting/removal), FaceBitSet, Task,
                            Singleton, DevEnvironmentCondition (load condition itszulib:dev_environment)
+└── verify/                ContentIntegrity (a mod's registered blocks, items and block entities have their blockstates, item
+                           definitions, models, textures, translations, loot tables) and BlockEntityRoundTrip (every block entity saves,
+                           loads and syncs to a client copy intact), both for a mod's own game tests
 src/main/resources/        assets/itszulib/lang/en_us.json (screen helper strings), data/itszulib/structure/dev_5x3x5.nbt,
                            data/itszulib/itszulib/technology/dev_*.json (dev-only test technologies)
 src/test/kotlin/...        JUnit tests + Testable* fakes that avoid vanilla objects (TestHelpers.kt, CoreTests.kt)
