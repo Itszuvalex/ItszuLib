@@ -496,3 +496,8 @@ needs `IBreakContents` fragments to find contents, so contents held outside a fr
 `ContentBlockItem` is a block item whose tooltip shows what its block keeps, used out of capacity (`IBreakContents.describe`).
 The dev content has a chest (`DROP`) and a keeper (`KEEP`: items, fluid, energy) to exercise the plumbing, with game tests for
 what drops, what the tooltip says, and placing the dropped item with a player.
+
+**Addendum: wrenches (maintainer, 2026-10-05).** `ItszuLibTags.WRENCHES` (`itszulib:wrenches`): a sneaking player using
+an item in the tag on an `EntityBlockCore` block breaks it at once, as if mined (`destroyBlock` with drops: kept
+contents on the item, a multiblock drops as it does when broken, whatever the tool rules or mining time). Mods add
+their wrench to the tag in their own data. The dev content has a `dev_wrench` and a game test.

@@ -38,6 +38,7 @@ import net.minecraft.world.level.storage.TagValueOutput
 import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.redstone.Orientation
@@ -223,6 +224,19 @@ abstract class EntityBlockCore<T : BlockEntity>(
         val menu = (level.getBlockEntity(pos) as? IBlockEntity)?.getModule(Modules.MENU, hitResult.direction)
             ?: return super.useWithoutItem(state, level, pos, player, hitResult)
         if (player is ServerPlayer) player.openMenu(menu, menu.menuPos())
+        return InteractionResult.SUCCESS
+    }
+
+    /**
+     * A sneaking player using an item in [ItszuLibTags.WRENCHES] on the block breaks it at once, as if mined: the drops
+     * (kept contents included) appear, and a multiblock drops as it does when broken. Anything else uses the block as
+     * before.
+     */
+    override fun useItemOn(
+        stack: ItemStack, state: BlockState, level: Level, pos: BlockPos, player: Player, hand: InteractionHand, hit: BlockHitResult,
+    ): InteractionResult {
+        if (!player.isShiftKeyDown || !stack.`is`(ItszuLibTags.WRENCHES)) return super.useItemOn(stack, state, level, pos, player, hand, hit)
+        if (!level.isClientSide) level.destroyBlock(pos, true, player)
         return InteractionResult.SUCCESS
     }
 

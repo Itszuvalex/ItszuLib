@@ -90,6 +90,9 @@ object DevContent {
         BLOCK_ENTITY_TYPES.register("dev_keeper") { -> BlockEntityType(::DevKeeperBlockEntity, DEV_KEEPER_BLOCK.get()) }
 
     @JvmField
+    val DEV_WRENCH = ITEMS.registerSimpleItem("dev_wrench")
+
+    @JvmField
     val DEV_CHEST_ITEM = ITEMS.registerSimpleBlockItem("dev_chest", DEV_CHEST_BLOCK)
 
     @JvmField

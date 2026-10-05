@@ -28,6 +28,7 @@ object DevBreakGameTests {
         test("keeper_item_shows_what_it_can_hold_and_what_it_holds", DevGameTests.EMPTY_5X3X5, ::tooltip)
         test("keeper_contents_survive_breaking_and_placing_its_item", DevGameTests.EMPTY_5X3X5, ::placing)
         test("chest_drops_its_items_and_keeps_none", DevGameTests.EMPTY_5X3X5, ::chest)
+        test("wrench_breaks_a_block_at_once", DevGameTests.EMPTY_5X3X5, ::wrench)
     }
 
     private fun lines(helper: GameTestHelper, stack: ItemStack): List<String> =
@@ -69,6 +70,29 @@ object DevBreakGameTests {
         helper.assertTrue(result.consumesAction(), "the item places: $result")
         val placed = helper.getBlockEntity(AT, DevKeeperBlockEntity::class.java)
         helper.assertValueEqual(BlockEntityContents.tally(placed as BlockEntityCore), before, "contents after placing the item")
+        helper.succeed()
+    }
+
+    /** A sneaking player using a wrench breaks the block at once and it drops as when mined; without sneaking, nothing. */
+    private fun wrench(helper: GameTestHelper) {
+        helper.setBlock(AT, DevContent.DEV_KEEPER_BLOCK.get())
+        BlockEntityContents.fill(helper.getBlockEntity(AT, DevKeeperBlockEntity::class.java))
+        val player = helper.makeMockServerPlayerInLevel()
+        val wrench = ItemStack(DevContent.DEV_WRENCH.get())
+        val pos = helper.absolutePos(AT)
+        val hit = BlockHitResult(pos.center, Direction.UP, pos, false)
+
+        player.isShiftKeyDown = false
+        helper.level.getBlockState(pos).useItemOn(wrench, helper.level, player, InteractionHand.MAIN_HAND, hit)
+        helper.assertTrue(helper.level.getBlockState(pos).`is`(DevContent.DEV_KEEPER_BLOCK.get()), "a wrench that is not sneaking leaves the block")
+
+        player.isShiftKeyDown = true
+        val result = helper.level.getBlockState(pos).useItemOn(wrench, helper.level, player, InteractionHand.MAIN_HAND, hit)
+        helper.assertTrue(result.consumesAction(), "sneaking with a wrench uses it: $result")
+        helper.assertTrue(helper.level.getBlockState(pos).isAir, "the block is gone")
+        val drops = dropsAt(helper)
+        helper.assertValueEqual(drops.size, 1, "one item drops: $drops")
+        helper.assertTrue(drops[0].has(Components.FRAGMENT_DATA.get()), "carrying the contents")
         helper.succeed()
     }
 
