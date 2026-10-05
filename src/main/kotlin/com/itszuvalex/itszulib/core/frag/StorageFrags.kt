@@ -3,6 +3,7 @@ package com.itszuvalex.itszulib.core.frag
 import com.itszuvalex.itszulib.api.Modules
 import com.itszuvalex.itszulib.api.adapters.IBattery
 import com.itszuvalex.itszulib.api.adapters.IBlockEntity
+import com.itszuvalex.itszulib.api.adapters.IItemStack
 import com.itszuvalex.itszulib.api.adapters.ILevel
 import com.itszuvalex.itszulib.api.adapters.IModule
 import com.itszuvalex.itszulib.api.storage.IFluidStorage
@@ -11,7 +12,10 @@ import com.itszuvalex.itszulib.api.utility.NBTSerializationScope
 import com.itszuvalex.itszulib.api.wrappers.WrapperEnergyHandlerIBattery
 import com.itszuvalex.itszulib.api.wrappers.WrapperResourceHandlerIFluidStorage
 import com.itszuvalex.itszulib.api.wrappers.WrapperResourceHandlerIItemStorage
+import com.itszuvalex.itszulib.util.IInventoryUtils
 import com.itszuvalex.itszulib.core.BlockEntityFragmentCollection
+import com.itszuvalex.itszulib.core.BreakBehavior
+import com.itszuvalex.itszulib.core.IBreakContents
 import com.itszuvalex.itszulib.core.EnumAutomaticIO
 import com.itszuvalex.itszulib.core.IBlockEntityTickable
 import com.itszuvalex.itszulib.core.SidedStorageConfiguration
@@ -42,13 +46,16 @@ import net.neoforged.neoforge.capabilities.Capabilities as NeoCapabilities
  *
  * @param persist Whether to save [storage] (LEVEL scope). False for views of storage owned elsewhere, e.g. a multiblock
  * part forwarding to its controller.
+ * @param breakBehavior What breaking the block does with the contents ([BreakBehavior]). [BreakBehavior.KEEP] also saves
+ * the storage in the ITEM scope, so the dropped block item carries it and placing it restores it.
  */
 abstract class FragStorage<S : Any, R : Resource>(
     private val name: String,
     val storage: S,
     private val configModule: IModule<out SidedStorageConfiguration<S>>,
-    private val persist: Boolean,
-) : BlockEntityFragment<S>() {
+    val persist: Boolean,
+    final override val breakBehavior: BreakBehavior = BreakBehavior.DISCARD,
+) : BlockEntityFragment<S>(), IBreakContents {
     private val handlers = IdentityHashMap<S, ResourceHandler<R>>()
 
     /**
@@ -76,16 +83,35 @@ abstract class FragStorage<S : Any, R : Resource>(
 
     override fun faceToModuleMapper(be: IBlockEntity): (Direction?) -> S? = ::storageFor
 
-    override fun handlesScope(scope: NBTSerializationScope): Boolean = persist && scope == NBTSerializationScope.LEVEL
+    override fun handlesScope(scope: NBTSerializationScope): Boolean =
+        persist && (scope == NBTSerializationScope.LEVEL || (scope == NBTSerializationScope.ITEM && breakBehavior == BreakBehavior.KEEP))
 
     override fun serializeTo(scope: NBTSerializationScope, output: ValueOutput) = serializeStorage(output)
 
     override fun deserialize(input: ValueInput, scope: NBTSerializationScope) = deserializeStorage(input)
 }
 
-class FragItemStorage @JvmOverloads constructor(storage: IItemStorage, name: String = NAME, persist: Boolean = true) :
-    FragStorage<IItemStorage, ItemResource>(name, storage, Modules.ITEM_STORAGE_CONFIGURABLE, persist) {
+/**
+ * Item storage as a module and capability.
+ *
+ * @param breakBehavior Defaults to [BreakBehavior.DROP] for storage the block entity owns ([persist]), like a vanilla
+ * chest, and [BreakBehavior.DISCARD] for views.
+ */
+class FragItemStorage @JvmOverloads constructor(
+    storage: IItemStorage,
+    name: String = NAME,
+    persist: Boolean = true,
+    breakBehavior: BreakBehavior = if (persist) BreakBehavior.DROP else BreakBehavior.DISCARD,
+) : FragStorage<IItemStorage, ItemResource>(name, storage, Modules.ITEM_STORAGE_CONFIGURABLE, persist, breakBehavior) {
     override fun module(): IModule<IItemStorage> = Modules.ITEM_STORAGE
+
+    override fun isContentEmpty(): Boolean = (0 until storage.size()).all { storage.get(it).isEmpty() }
+
+    override fun onRemove(level: ILevel, pos: BlockPos, blockStatePrev: BlockState) {
+        if (breakBehavior != BreakBehavior.DROP) return
+        IInventoryUtils.instance.get().dropStorage(level, pos, storage)
+        for (i in 0 until storage.size()) storage.setSlot(i, IItemStack.Empty)
+    }
 
     override fun wrap(storage: IItemStorage): ResourceHandler<ItemResource> = WrapperResourceHandlerIItemStorage.of(storage)
 
@@ -98,9 +124,23 @@ class FragItemStorage @JvmOverloads constructor(storage: IItemStorage, name: Str
     }
 }
 
-class FragFluidStorage @JvmOverloads constructor(storage: IFluidStorage, name: String = NAME, persist: Boolean = true) :
-    FragStorage<IFluidStorage, FluidResource>(name, storage, Modules.FLUID_STORAGE_CONFIGURABLE, persist) {
+/**
+ * Fluid storage as a module and capability. Fluids cannot spill, so [breakBehavior] is [BreakBehavior.KEEP] or (the
+ * default) [BreakBehavior.DISCARD].
+ */
+class FragFluidStorage @JvmOverloads constructor(
+    storage: IFluidStorage,
+    name: String = NAME,
+    persist: Boolean = true,
+    breakBehavior: BreakBehavior = BreakBehavior.DISCARD,
+) : FragStorage<IFluidStorage, FluidResource>(name, storage, Modules.FLUID_STORAGE_CONFIGURABLE, persist, breakBehavior) {
+    init {
+        require(breakBehavior != BreakBehavior.DROP) { "Fluids cannot be dropped; use KEEP or DISCARD" }
+    }
+
     override fun module(): IModule<IFluidStorage> = Modules.FLUID_STORAGE
+
+    override fun isContentEmpty(): Boolean = (0 until storage.size()).all { storage.get(it).isEmpty() }
 
     override fun wrap(storage: IFluidStorage): ResourceHandler<FluidResource> = WrapperResourceHandlerIFluidStorage.of(storage)
 
@@ -119,9 +159,20 @@ class FragFluidStorage @JvmOverloads constructor(storage: IFluidStorage, name: S
  * [Modules.ENERGY_STORAGE_CONFIGURABLE] assigns to that face, or [storage] without one.
  *
  * @param persist Whether to save [storage] (LEVEL scope).
+ * @param breakBehavior [BreakBehavior.KEEP] or (the default) [BreakBehavior.DISCARD]; energy cannot be dropped.
  */
-class FragEnergyStorage @JvmOverloads constructor(val storage: IBattery, private val name: String = NAME, private val persist: Boolean = true) :
-    BlockEntityFragment<IBattery>() {
+class FragEnergyStorage @JvmOverloads constructor(
+    val storage: IBattery,
+    private val name: String = NAME,
+    val persist: Boolean = true,
+    override val breakBehavior: BreakBehavior = BreakBehavior.DISCARD,
+) : BlockEntityFragment<IBattery>(), IBreakContents {
+    init {
+        require(breakBehavior != BreakBehavior.DROP) { "Energy cannot be dropped; use KEEP or DISCARD" }
+    }
+
+    override fun isContentEmpty(): Boolean = storage.storage() <= 0.0
+
     private val handlers = IdentityHashMap<IBattery, EnergyHandler>()
 
     /**
@@ -144,7 +195,8 @@ class FragEnergyStorage @JvmOverloads constructor(val storage: IBattery, private
 
     override fun faceToModuleMapper(be: IBlockEntity): (Direction?) -> IBattery? = ::storageFor
 
-    override fun handlesScope(scope: NBTSerializationScope): Boolean = persist && scope == NBTSerializationScope.LEVEL
+    override fun handlesScope(scope: NBTSerializationScope): Boolean =
+        persist && (scope == NBTSerializationScope.LEVEL || (scope == NBTSerializationScope.ITEM && breakBehavior == BreakBehavior.KEEP))
 
     override fun serializeTo(scope: NBTSerializationScope, output: ValueOutput) = storage.serialize(output)
 

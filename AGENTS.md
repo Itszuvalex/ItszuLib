@@ -84,7 +84,7 @@ src/main/kotlin/com/itszuvalex/itszulib/
 │   │                      HorizontalFacing (+ Horizontal/TickableHorizontal block cores), fragment interfaces
 │   │                      (Fragments.kt), networks (Networks.kt), producer/consumer distribution (Distribution.kt),
 │   │                      Sided{Item,Fluid}StorageConfiguration
-│   └── frag/              Fragment base classes; FragColorable, FragDropInventory; storage fragments
+│   └── frag/              Fragment base classes (BreakBehavior.kt: DROP/KEEP/DISCARD and IBreakContents); FragColorable, FragDropInventory; storage fragments
 │                          (FragItem/Fluid/EnergyStorage, FragSidedConfiguration, FragItem/Fluid/EnergyAutoIO); multiblock fragments
 │                          (FragMultiblockPart, FragMultiblockTickable); FragMenu;
 │                          FragConnectable, FragNetworkedWire
@@ -104,9 +104,9 @@ src/main/kotlin/com/itszuvalex/itszulib/
 ├── dev/                   Dev-only blocks, menu, screen and game tests (never registered in production)
 ├── util/                  Color, InventoryUtils (item dropping), StorageUtils (item counting/removal), FaceBitSet, Task,
                            Singleton, DevEnvironmentCondition (load condition itszulib:dev_environment)
-└── verify/                ContentIntegrity (a mod's registered blocks, items and block entities have their blockstates, item
-                           definitions, models, textures, translations, loot tables) and BlockEntityRoundTrip (every block entity saves,
-                           loads and syncs to a client copy intact), both for a mod's own game tests
+└── verify/                Checks for a mod's own game tests (DECISIONS D20): ContentIntegrity (assets, models, textures, translations, loot
+                           tables), BlockEntityRoundTrip, BreakChecks, TickChecks, MenuChecks, CapabilityChecks, Reachability (pure),
+                           BlockEntityContents (fills and measures contents)
 src/main/resources/        assets/itszulib/lang/en_us.json (screen helper strings), data/itszulib/structure/dev_5x3x5.nbt,
                            data/itszulib/itszulib/technology/dev_*.json (dev-only test technologies)
 src/test/kotlin/...        JUnit tests + Testable* fakes that avoid vanilla objects (TestHelpers.kt, CoreTests.kt)
@@ -123,6 +123,7 @@ A `BlockEntityCore` owns a `BlockEntityFragmentCollection` (`fragList`). Compose
 
 - `fragList.addFragment(IBlockEntityFragment<T>)`: a fragment that exposes a module `T` (e.g. `FragColorable` exposes itself as `IColorable`). `faceToModuleMapper(be)` maps a nullable `Direction` to the live instance (or null). Expose an interface whose mutators save/sync, never a mutable value object.
 - `fragList.addInternalFragment(IInternalBlockEntityFragment)`: hooks without an exposed module (serialization, `onRemove`, e.g. `FragDropInventory`).
+- Break behaviour: fragments that hold contents implement `IBreakContents` and say what breaking the block does with them (`BreakBehavior`: `DROP` like a chest, `KEEP` on the item like a shulker box, `DISCARD`); the storage fragments take it as `breakBehavior` (DECISIONS D20).
 - Fragment `name()`s must be unique per block entity (they key saved data) and each module may be exposed by one fragment only; both throw `IllegalArgumentException`.
 - Fragments get an `IFragmentHost` in `onAttach`. `InternalBlockEntityFragment`/`BlockEntityFragment` subclasses call `markDirty()` after changing saved state and `markDirtyAndSync()` after changing client-visible (DESCRIPTION) state.
 - Storages report their own changes: pass an `onChanged` runnable (e.g. `{ markDirty() }`) to `ItemStorageArray`/`ItemStorageNBT`/`PowerBattery`. `setSlotQuietly`/`setStorageQuietly` skip it; the NeoForge adapters use them inside transactions and call `setChanged()` once on root commit.

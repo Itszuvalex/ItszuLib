@@ -1,5 +1,6 @@
 package com.itszuvalex.itszulib.verify
 
+import com.itszuvalex.itszulib.core.BlockEntityCore
 import net.minecraft.core.BlockPos
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.level.ServerLevel
@@ -26,12 +27,12 @@ import net.minecraft.world.level.storage.TagValueInput
 object BlockEntityRoundTrip {
     /**
      * @param pos A position in [level] with room for a block, which is overwritten and left empty.
-     * @param prepare Called with each block entity after it is placed, to give it contents worth saving (the
-     *   default block entity is empty, which proves little).
+     * @param prepare Called with each block entity after it is placed, to give it contents worth saving; by default
+     *   [BlockEntityContents.fill]. The loaded copy must then hold the same ([BlockEntityContents.tally]).
      */
     @JvmStatic
     @JvmOverloads
-    fun problems(level: ServerLevel, pos: BlockPos, namespace: String, prepare: (BlockEntity) -> Unit = {}): List<String> {
+    fun problems(level: ServerLevel, pos: BlockPos, namespace: String, prepare: (BlockEntity) -> Unit = { if (it is BlockEntityCore) BlockEntityContents.fill(it) }): List<String> {
         val problems = ArrayList<String>()
         val registries = level.registryAccess()
         val blocks = BuiltInRegistries.BLOCK.entrySet()
@@ -47,11 +48,14 @@ object BlockEntityRoundTrip {
                     continue
                 }
                 prepare(be)
+                val before = (be as? BlockEntityCore)?.let { BlockEntityContents.tally(it) }
 
                 val saved = be.saveWithFullMetadata(registries)
                 val loaded = BlockEntity.loadStatic(pos, be.blockState, saved, registries)
                 if (loaded == null || loaded.type != be.type) {
                     problems += "$name saved as $saved loads as $loaded"
+                } else if (before != null && BlockEntityContents.tally(loaded as BlockEntityCore) != before) {
+                    problems += "$name holds $before but its loaded copy holds ${BlockEntityContents.tally(loaded)}"
                 } else if (loaded.saveWithFullMetadata(registries) != saved) {
                     problems += "$name changes when saved, loaded and saved again: $saved, then ${loaded.saveWithFullMetadata(registries)}"
                 }

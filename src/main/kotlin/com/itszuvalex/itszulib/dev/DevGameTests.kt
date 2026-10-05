@@ -13,6 +13,10 @@ import com.itszuvalex.itszulib.api.wrappers.WrapperBlockEntity
 import com.itszuvalex.itszulib.api.wrappers.WrapperResourceHandlerIItemStorage
 import com.itszuvalex.itszulib.util.Color
 import com.itszuvalex.itszulib.verify.BlockEntityRoundTrip
+import com.itszuvalex.itszulib.verify.BreakChecks
+import com.itszuvalex.itszulib.verify.CapabilityChecks
+import com.itszuvalex.itszulib.verify.MenuChecks
+import com.itszuvalex.itszulib.verify.TickChecks
 import com.itszuvalex.itszulib.verify.ContentIntegrity
 import net.minecraft.core.BlockPos
 import net.minecraft.core.component.DataComponentPatch
@@ -80,6 +84,10 @@ object DevGameTests {
         }
         test("content_integrity", ::contentIntegrity)
         test("block_entities_save_load_and_sync", ::blockEntityRoundTrips)
+        test("block_entities_break_as_they_declare", ::breakChecks)
+        test("block_entities_run_without_failing", ::tickChecks)
+        test("capabilities_match_modules", ::capabilityChecks)
+        test("menus_neither_lose_nor_make_items", ::menuChecks)
         test("colorable_capability", ::colorableCapability)
         test("level_save_load", ::levelSaveLoad)
         test("client_update_tag", ::clientUpdateTag)
@@ -113,6 +121,26 @@ object DevGameTests {
     private fun place(helper: GameTestHelper): DevFragBlockEntity {
         helper.setBlock(POS, DevContent.DEV_FRAG_BLOCK.get())
         return helper.getBlockEntity(POS, DevFragBlockEntity::class.java)
+    }
+
+    private fun menuChecks(helper: GameTestHelper) {
+        helper.assertValueEqual(MenuChecks.problems(helper.level, helper.absolutePos(POS), ItszuLib.ID, helper.makeMockServerPlayerInLevel()), emptyList<String>(), "menu problems")
+        helper.succeed()
+    }
+
+    private fun capabilityChecks(helper: GameTestHelper) {
+        helper.assertValueEqual(CapabilityChecks.problems(helper.level, helper.absolutePos(POS), ItszuLib.ID), emptyList<String>(), "capability problems")
+        helper.succeed()
+    }
+
+    private fun tickChecks(helper: GameTestHelper) {
+        helper.assertValueEqual(TickChecks.problems(helper.level, helper.absolutePos(POS), ItszuLib.ID), emptyList<String>(), "tick problems")
+        helper.succeed()
+    }
+
+    private fun breakChecks(helper: GameTestHelper) {
+        helper.assertValueEqual(BreakChecks.problems(helper.level, helper.absolutePos(POS), ItszuLib.ID), emptyList<String>(), "break problems")
+        helper.succeed()
     }
 
     private fun blockEntityRoundTrips(helper: GameTestHelper) {

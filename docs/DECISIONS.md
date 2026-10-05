@@ -455,3 +455,42 @@ each mod's tabs look and work alike:
 
 Tabs stay added the existing way (`addPanel`, or `defaultPanels()` for every screen of a kind); no registry is needed
 yet.
+
+## D20. Break behaviour, and checks over everything a mod registers — DECIDED (maintainer, 2026-10-05)
+
+The maintainer asked for plumbing so some block entities drop their contents into the world when broken, like a
+vanilla chest, and others keep them until the block is placed again, like a shulker box; and for systematic checks
+over a mod's registered content.
+
+- **`BreakBehavior`** (`core/BreakBehavior.kt`): `DROP` (contents spill as item entities; items only), `KEEP` (contents
+  travel on the dropped block item and are restored when it is placed) and `DISCARD` (lost). A fragment that holds
+  contents implements `IBreakContents` (`breakBehavior`, `isContentEmpty()`): `FragItemStorage` (default `DROP` for
+  storage it owns, `DISCARD` for views), `FragFluidStorage` and `FragEnergyStorage` (`KEEP` or `DISCARD`, default
+  `DISCARD`), and `FragDropInventory` (`DROP`, or `DISCARD` with `shouldDrop = false`). Mods add their own contents the
+  same way (Femtocraft's `FragNaniteTank`).
+- **How `KEEP` works.** The storage fragment also saves in the ITEM scope, which `BlockEntityCore` already carried on the
+  item as `itszulib:fragment_data` (`collectImplicitComponents`/`applyImplicitComponents`, so pick-block and loot
+  `copy_components` work too). `EntityBlockCore.getDrops` puts that data on the block's own item whatever the loot
+  table says, so a block cannot forget to; `BlockEntityCore.collectImplicitComponents` leaves it off when nothing is
+  kept, so an empty block drops a plain item and stacks. Only a block broken so that it drops keeps its contents:
+  creative breaking, replacing it, or `/setblock` lose them, as with a shulker box.
+- **Per fragment, not per block.** A machine can keep its battery and drop its inputs. `BlockEntityCore.contentFragments()`
+  and `keepsContents()` summarise it.
+- **Multiblocks** keep their contents in shared state (`IMultiblockState.onBreak`), not here.
+
+Checks (`verify/`, for a mod's own game tests; each returns readable problems, empty when sound, and each was shown to
+fail when its rule was broken on purpose):
+
+| Check | Finds |
+|---|---|
+| `ContentIntegrity` | blocks and items without blockstate or item definition, models, textures, translations or loot tables; block entity types without blocks, entity blocks without a type |
+| `BlockEntityRoundTrip` | a block entity that cannot be saved and loaded (holding contents, `BlockEntityContents.fill`), or whose client copy differs from what the server sent |
+| `BreakChecks` | contents that are dropped, kept or lost differently from what each fragment declares; items in an exposed item storage that no fragment drops, keeps or discards |
+| `TickChecks` | a block entity that throws from its ticker, alone or beside chests; a battery out of range; contents that no longer save |
+| `MenuChecks` | a click (left, right, shift, swap, throw, double) on any slot of any menu that makes items appear or vanish |
+| `CapabilityChecks` | a module that is not reachable as its NeoForge capability (a block entity type never registered with `ModuleCapabilities`), a storage module without its handler |
+| `Reachability` | pure: what can be obtained from base items through producers (recipes from `recipeProducers`, machines, drops); a mod collects its own producers |
+
+`BlockEntityContents` fills and measures what a block entity holds (items, fluids, energy; mods add a `Probe`). It
+needs `IBreakContents` fragments to find contents, so contents held outside a fragment of that kind are not checked.
+The dev content has a chest (`DROP`) and a keeper (`KEEP`: items, fluid, energy) to exercise the plumbing.

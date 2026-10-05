@@ -111,6 +111,11 @@ class BlockEntityFragmentCollection(private val host: IFragmentHost) :
     private val exposedModules = HashSet<IModule<*>>()
 
     /**
+     * Every fragment added so far, in the order they were added.
+     */
+    fun fragments(): List<IInternalBlockEntityFragment> = modList.toList()
+
+    /**
      * @throws IllegalArgumentException if a fragment with the same [IInternalBlockEntityFragment.name] was already
      * added; names key each fragment's saved data, so duplicates would overwrite each other.
      */

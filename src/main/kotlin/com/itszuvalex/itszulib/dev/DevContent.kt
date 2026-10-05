@@ -45,6 +45,9 @@ object DevContent {
     val BLOCK_ENTITY_TYPES: DeferredRegister<BlockEntityType<*>> = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ItszuLib.ID)
 
     @JvmField
+    val ITEMS: DeferredRegister.Items = DeferredRegister.createItems(ItszuLib.ID)
+
+    @JvmField
     val DEV_FRAG_BLOCK: DeferredBlock<DevFragBlock> = BLOCKS.registerBlock("dev_frag_block", ::DevFragBlock)
 
     @JvmField
@@ -72,6 +75,26 @@ object DevContent {
     val DEV_WIRE_BLOCK_ENTITY: DeferredHolder<BlockEntityType<*>, BlockEntityType<DevWireBlockEntity>> =
         BLOCK_ENTITY_TYPES.register("dev_wire") { -> BlockEntityType(::DevWireBlockEntity, DEV_WIRE_BLOCK.get()) }
 
+    @JvmField
+    val DEV_CHEST_BLOCK: DeferredBlock<DevChestBlock> = BLOCKS.registerBlock("dev_chest", ::DevChestBlock)
+
+    @JvmField
+    val DEV_CHEST_BLOCK_ENTITY: DeferredHolder<BlockEntityType<*>, BlockEntityType<DevChestBlockEntity>> =
+        BLOCK_ENTITY_TYPES.register("dev_chest") { -> BlockEntityType(::DevChestBlockEntity, DEV_CHEST_BLOCK.get()) }
+
+    @JvmField
+    val DEV_KEEPER_BLOCK: DeferredBlock<DevKeeperBlock> = BLOCKS.registerBlock("dev_keeper", ::DevKeeperBlock)
+
+    @JvmField
+    val DEV_KEEPER_BLOCK_ENTITY: DeferredHolder<BlockEntityType<*>, BlockEntityType<DevKeeperBlockEntity>> =
+        BLOCK_ENTITY_TYPES.register("dev_keeper") { -> BlockEntityType(::DevKeeperBlockEntity, DEV_KEEPER_BLOCK.get()) }
+
+    @JvmField
+    val DEV_CHEST_ITEM = ITEMS.registerSimpleBlockItem("dev_chest", DEV_CHEST_BLOCK)
+
+    @JvmField
+    val DEV_KEEPER_ITEM = ITEMS.registerSimpleBlockItem("dev_keeper", DEV_KEEPER_BLOCK)
+
     /**
      * Network node module of [DevWire].
      */
@@ -88,6 +111,7 @@ object DevContent {
 
     fun register(modBus: IEventBus) {
         BLOCKS.register(modBus)
+        ITEMS.register(modBus)
         BLOCK_ENTITY_TYPES.register(modBus)
         MENUS.register(modBus)
         if (FMLEnvironment.getDist() == Dist.CLIENT) DevClient.register(modBus)
@@ -96,6 +120,8 @@ object DevContent {
             ModuleCapabilities.registerBlockEntity(event, DEV_FRAG_BLOCK_ENTITY.get())
             ModuleCapabilities.registerBlockEntity(event, DEV_MACHINE_BLOCK_ENTITY.get())
             ModuleCapabilities.registerBlockEntity(event, DEV_MULTIBLOCK_BLOCK_ENTITY.get())
+            ModuleCapabilities.registerBlockEntity(event, DEV_CHEST_BLOCK_ENTITY.get())
+            ModuleCapabilities.registerBlockEntity(event, DEV_KEEPER_BLOCK_ENTITY.get())
         }
     }
 }

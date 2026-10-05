@@ -9,6 +9,8 @@ import com.itszuvalex.itszulib.api.adapters.IModule
 import com.itszuvalex.itszulib.api.storage.IItemStorage
 import com.itszuvalex.itszulib.api.utility.NBTSerializationScope
 import com.itszuvalex.itszulib.util.Color
+import com.itszuvalex.itszulib.core.BreakBehavior
+import com.itszuvalex.itszulib.core.IBreakContents
 import com.itszuvalex.itszulib.util.IInventoryUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -53,9 +55,13 @@ class FragColorable @JvmOverloads constructor(private var color: Color = Color.T
  * Drops [storage]'s contents when the block is removed (server side, only when the block actually changes), then
  * clears it.
  */
-class FragDropInventory(private val storage: IItemStorage) : InternalBlockEntityFragment() {
+class FragDropInventory(val storage: IItemStorage) : InternalBlockEntityFragment(), IBreakContents {
     @JvmField
     var shouldDrop = true
+
+    override val breakBehavior: BreakBehavior get() = if (shouldDrop) BreakBehavior.DROP else BreakBehavior.DISCARD
+
+    override fun isContentEmpty(): Boolean = (0 until storage.size()).all { storage.get(it).isEmpty() }
 
     override fun name(): String = NAME
 

@@ -21,7 +21,10 @@ import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientGamePacketListener
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
 import net.minecraft.util.ProblemReporter
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
+import net.minecraft.world.level.storage.loot.LootParams
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.EntityBlock
@@ -131,6 +134,9 @@ open class BlockEntityCore(type: BlockEntityType<*>, pos: BlockPos, state: Block
     override fun collectImplicitComponents(components: DataComponentMap.Builder) {
         super.collectImplicitComponents(components)
         if (!handlesScope(NBTSerializationScope.ITEM)) return
+        // Nothing to carry: leave the item plain, so empty blocks stack with fresh ones.
+        val others = fragList.fragments().any { it.handlesScope(NBTSerializationScope.ITEM) && it !is IBreakContents }
+        if (!others && !keepsContents()) return
         ProblemReporter.ScopedCollector(problemPath(), LOGGER).use { reporter ->
             val output = TagValueOutput.createWithContext(reporter, registries())
             serializeTo(NBTSerializationScope.ITEM, output)
@@ -151,6 +157,17 @@ open class BlockEntityCore(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     private fun registries(): HolderLookup.Provider = level?.registryAccess() ?: RegistryAccess.EMPTY
+
+    /**
+     * The fragments that hold contents and say what breaking the block does with them ([BreakBehavior]).
+     */
+    fun contentFragments(): List<IBreakContents> = fragList.fragments().filterIsInstance<IBreakContents>()
+
+    /**
+     * Whether breaking this block now would carry contents on the dropped item: some fragment keeps its contents
+     * ([BreakBehavior.KEEP]) and holds something.
+     */
+    fun keepsContents(): Boolean = contentFragments().any { it.breakBehavior == BreakBehavior.KEEP && !it.isContentEmpty() }
 
     override fun preRemoveSideEffects(pos: BlockPos, state: BlockState) {
         super.preRemoveSideEffects(pos, state)
@@ -199,6 +216,20 @@ abstract class EntityBlockCore<T : BlockEntity>(
             ?: return super.useWithoutItem(state, level, pos, player, hitResult)
         if (player is ServerPlayer) player.openMenu(menu, menu.menuPos())
         return InteractionResult.SUCCESS
+    }
+
+    /**
+     * Puts the block entity's kept contents ([BreakBehavior.KEEP]) on the dropped block item, whatever the block's loot
+     * table says, so a block cannot forget to; the block entity's [BlockEntityCore.collectImplicitComponents] decides
+     * whether there is anything to carry.
+     */
+    override fun getDrops(state: BlockState, params: LootParams.Builder): List<ItemStack> {
+        val drops = super.getDrops(state, params)
+        val be = params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) as? BlockEntityCore ?: return drops
+        val data = be.collectComponents().get(Components.FRAGMENT_DATA.get()) ?: return drops
+        return drops.map { stack ->
+            if (stack.`is`(asItem()) && !stack.has(Components.FRAGMENT_DATA.get())) stack.copy().also { it.set(Components.FRAGMENT_DATA.get(), data) } else stack
+        }
     }
 
     /**
