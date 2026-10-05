@@ -93,7 +93,7 @@ object DevContent {
     val DEV_CHEST_ITEM = ITEMS.registerSimpleBlockItem("dev_chest", DEV_CHEST_BLOCK)
 
     @JvmField
-    val DEV_KEEPER_ITEM = ITEMS.registerSimpleBlockItem("dev_keeper", DEV_KEEPER_BLOCK)
+    val DEV_KEEPER_ITEM = ITEMS.registerItem("dev_keeper", { com.itszuvalex.itszulib.core.ContentBlockItem(DEV_KEEPER_BLOCK.get(), it.useBlockDescriptionPrefix()) })
 
     /**
      * Network node module of [DevWire].

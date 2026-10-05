@@ -149,10 +149,18 @@ open class BlockEntityCore(type: BlockEntityType<*>, pos: BlockPos, state: Block
      */
     override fun applyImplicitComponents(components: DataComponentGetter) {
         super.applyImplicitComponents(components)
-        val data = components.get(Components.FRAGMENT_DATA.get())
-        if (data == null || !handlesScope(NBTSerializationScope.ITEM)) return
+        val data = components.get(Components.FRAGMENT_DATA.get()) ?: return
+        applyItemData(data, registries())
+    }
+
+    /**
+     * Restores ITEM-scope fragment data from [data] (an item's `itszulib:fragment_data`), reading with [registries]. For
+     * a block entity that is not in a level, e.g. one made to show what an item holds in its tooltip.
+     */
+    fun applyItemData(data: CustomData, registries: HolderLookup.Provider) {
+        if (!handlesScope(NBTSerializationScope.ITEM)) return
         ProblemReporter.ScopedCollector(problemPath(), LOGGER).use { reporter ->
-            deserialize(TagValueInput.create(reporter, registries(), data.copyTag()), NBTSerializationScope.ITEM)
+            deserialize(TagValueInput.create(reporter, registries, data.copyTag()), NBTSerializationScope.ITEM)
         }
     }
 

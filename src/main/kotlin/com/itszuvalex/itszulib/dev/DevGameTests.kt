@@ -101,6 +101,7 @@ object DevGameTests {
         DevStorageGameTests.register(::test)
         DevMenuGameTests.register(::test)
         DevResearchGameTests.register(::test)
+        DevBreakGameTests.register(::test)
     }
 
     fun register(modBus: IEventBus) {

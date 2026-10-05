@@ -493,4 +493,6 @@ fail when its rule was broken on purpose):
 
 `BlockEntityContents` fills and measures what a block entity holds (items, fluids, energy; mods add a `Probe`). It
 needs `IBreakContents` fragments to find contents, so contents held outside a fragment of that kind are not checked.
-The dev content has a chest (`DROP`) and a keeper (`KEEP`: items, fluid, energy) to exercise the plumbing.
+`ContentBlockItem` is a block item whose tooltip shows what its block keeps, used out of capacity (`IBreakContents.describe`).
+The dev content has a chest (`DROP`) and a keeper (`KEEP`: items, fluid, energy) to exercise the plumbing, with game tests for
+what drops, what the tooltip says, and placing the dropped item with a player.

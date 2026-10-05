@@ -66,5 +66,8 @@
   "gui.itszulib.filter.empty": "Empty",
   "gui.itszulib.filter.set": "Click holding something to list it, empty-handed to clear",
   "gui.itszulib.filter.nothing": "Nothing listed: everything passes",
-  "gui.itszulib.filter.none_here": "Nothing to filter here"
+  "gui.itszulib.filter.none_here": "Nothing to filter here",
+  "tooltip.itszulib.contents.items": "Items: %s / %s slots used (%s items)",
+  "tooltip.itszulib.contents.fluid": "%s: %s / %s mB",
+  "tooltip.itszulib.contents.energy": "Energy: %s / %s"
 }

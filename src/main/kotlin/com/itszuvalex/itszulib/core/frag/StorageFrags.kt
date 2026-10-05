@@ -21,6 +21,7 @@ import com.itszuvalex.itszulib.core.IBlockEntityTickable
 import com.itszuvalex.itszulib.core.SidedStorageConfiguration
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
@@ -107,6 +108,12 @@ class FragItemStorage @JvmOverloads constructor(
 
     override fun isContentEmpty(): Boolean = (0 until storage.size()).all { storage.get(it).isEmpty() }
 
+    override fun describe(): List<Component> {
+        val used = (0 until storage.size()).count { !storage.get(it).isEmpty() }
+        val total = (0 until storage.size()).sumOf { storage.get(it).stackSize().toLong() }
+        return listOf(Component.translatable("tooltip.itszulib.contents.items", amount(used.toLong()), amount(storage.size().toLong()), amount(total)))
+    }
+
     override fun onRemove(level: ILevel, pos: BlockPos, blockStatePrev: BlockState) {
         if (breakBehavior != BreakBehavior.DROP) return
         IInventoryUtils.instance.get().dropStorage(level, pos, storage)
@@ -142,6 +149,15 @@ class FragFluidStorage @JvmOverloads constructor(
 
     override fun isContentEmpty(): Boolean = (0 until storage.size()).all { storage.get(it).isEmpty() }
 
+    override fun describe(): List<Component> = (0 until storage.size()).map { i ->
+        val stack = storage.get(i).toMinecraft()
+        Component.translatable(
+            "tooltip.itszulib.contents.fluid",
+            if (stack.isEmpty) Component.translatable("gui.itszulib.tank.empty") else stack.hoverName,
+            amount(stack.amount.toLong()), amount(storage.capacity(i).toLong()),
+        )
+    }
+
     override fun wrap(storage: IFluidStorage): ResourceHandler<FluidResource> = WrapperResourceHandlerIFluidStorage.of(storage)
 
     override fun serializeStorage(output: ValueOutput) = storage.serialize(output)
@@ -172,6 +188,9 @@ class FragEnergyStorage @JvmOverloads constructor(
     }
 
     override fun isContentEmpty(): Boolean = storage.storage() <= 0.0
+
+    override fun describe(): List<Component> =
+        listOf(Component.translatable("tooltip.itszulib.contents.energy", amount(Math.round(storage.storage())), amount(Math.round(storage.maxStorage()))))
 
     private val handlers = IdentityHashMap<IBattery, EnergyHandler>()
 
@@ -456,3 +475,5 @@ class FragEnergyAutoIO @JvmOverloads constructor(
         const val AMOUNT_DEFAULT = 100
     }
 }
+
+private fun amount(n: Long): String = "%,d".format(java.util.Locale.ROOT, n)

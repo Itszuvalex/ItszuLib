@@ -1,5 +1,7 @@
 package com.itszuvalex.itszulib.core
 
+import net.minecraft.network.chat.Component
+
 /**
  * What breaking a block does with the contents a fragment holds.
  *
@@ -26,4 +28,10 @@ interface IBreakContents {
 
     /** Whether there is nothing to keep or drop. */
     fun isContentEmpty(): Boolean
+
+    /**
+     * Lines saying how much is used of how much it can hold (for an item's tooltip, see [ContentBlockItem]), such as
+     * "Items: 3 / 54 slots". Empty for contents with nothing to say.
+     */
+    fun describe(): List<Component> = emptyList()
 }
