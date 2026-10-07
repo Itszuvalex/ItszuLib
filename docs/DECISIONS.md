@@ -541,3 +541,18 @@ of the conduit is to do the transfer, and conduit-wide channels are left for lat
 - The dev channel block (`dev_channel`, power and items) exercises it; six game tests cover making, joining and counting,
   deleting and making it again, team changes and disbanding, permissions, saving and loading, and the view. The panel itself has not been
   looked at in a client.
+
+## D22. Any tree in the tech tree's view — DECIDED (maintainer, 2026-10-07)
+
+Mods have trees that are not research (a player's skills or talents) and want them drawn like the tech tree. The tech
+tree view's drawing and input (frames by state, icons, progress, badges, links, pan, select) and its layout did not
+depend on technologies, only the node looks and tooltips did, so they are split out:
+
+- `TechTreeLayout.layoutGraph(prerequisites, fixed)` lays out any graph; `layout(technologies)` is that graph of their
+  prerequisites and positions.
+- `NodeTreeView` draws a `NodeTreeModel` (a layout, a `NodeLook` per node: icon, `NodeState` done/available/locked,
+  progress, badge, or null to hide it; tooltips). `recentre()` reopens it on its selection, for views that switch
+  trees.
+- `TechTreeView` is a `NodeTreeView` over a tech tree (`TechTreeView.model(tree, research)`), with the same
+  constructor and behaviour as before.
+

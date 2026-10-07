@@ -146,6 +146,19 @@ class TechTreeTests {
     }
 
     @Test
+    fun LayoutGraph_MatchesTheTechnologyLayout_AndDropsLinksOutsideTheGraph() {
+        val fixed = TechTreeLayout.Point(5f, 7f)
+        val t = techs("a" to tech(), "b" to tech("a"), "c" to tech("a", "b", position = fixed), "d" to tech("c"))
+        val graph = TechTreeLayout.layoutGraph(
+            mapOf(id("a") to listOf(), id("b") to listOf(id("a")), id("c") to listOf(id("a"), id("b")), id("d") to listOf(id("c"), id("elsewhere"))),
+            mapOf(id("c") to fixed),
+        )
+        Assertions.assertEquals(TechTreeLayout.layout(t.all), graph, "a technology layout is the graph layout of its prerequisites")
+        Assertions.assertTrue(graph.edges.none { it.from == id("elsewhere") }, "links from nodes outside the graph are not drawn")
+        Assertions.assertTrue(TechTreeLayout.layoutGraph(emptyMap()).positions.isEmpty())
+    }
+
+    @Test
     fun Layout_Cycle_StillPlacesEveryNode() {
         val t = techs("a" to tech("b"), "b" to tech("a"), "c" to tech("a"))
         Assertions.assertEquals(3, TechTreeLayout.layout(t.all).positions.size)

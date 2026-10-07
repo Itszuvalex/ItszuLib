@@ -41,10 +41,21 @@ object TechTreeLayout {
     }
 
     @JvmStatic
-    fun layout(technologies: Map<Identifier, Technology>): Result {
-        if (technologies.isEmpty()) return Result(emptyMap(), emptyList())
-        val ids = technologies.keys.sorted()
-        val parents = ids.associateWith { id -> technologies.getValue(id).prerequisites.filter { it in technologies && it != id }.distinct().sorted() }
+    fun layout(technologies: Map<Identifier, Technology>): Result = layoutGraph(
+        technologies.mapValues { it.value.prerequisites },
+        technologies.mapNotNull { (id, t) -> t.position.orElse(null)?.let { id to it } }.toMap(),
+    )
+
+    /**
+     * The same layout for any graph (e.g. talent trees): [prerequisites] maps every node to the nodes it needs (those
+     * not in the map are not drawn), and nodes in [fixed] are drawn at their position.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun layoutGraph(prerequisites: Map<Identifier, List<Identifier>>, fixed: Map<Identifier, Point> = emptyMap()): Result {
+        if (prerequisites.isEmpty()) return Result(emptyMap(), emptyList())
+        val ids = prerequisites.keys.sorted()
+        val parents = ids.associateWith { id -> prerequisites.getValue(id).filter { it in prerequisites && it != id }.distinct().sorted() }
         val column = columns(ids, parents)
 
         val nodes = ids.associateWith { Node(it, column.getValue(it)) }
@@ -76,13 +87,13 @@ object TechTreeLayout {
         val minRow = all.minOf { it.row }
         fun point(n: Node) = Point(n.column.toFloat(), (n.row - minRow).toFloat())
         val positions = LinkedHashMap<Identifier, Point>()
-        for (id in ids) positions[id] = technologies.getValue(id).position.orElse(point(nodes.getValue(id)))
+        for (id in ids) positions[id] = fixed[id] ?: point(nodes.getValue(id))
         val edges = ArrayList<Edge>()
         for (id in ids) {
             for (p in parents.getValue(id)) {
                 val chain = chains[p to id] ?: continue
-                val fixed = technologies.getValue(id).position.isPresent || technologies.getValue(p).position.isPresent
-                edges += Edge(p, id, if (fixed) emptyList() else chain.map(::point))
+                val pinned = id in fixed || p in fixed
+                edges += Edge(p, id, if (pinned) emptyList() else chain.map(::point))
             }
         }
         return Result(positions, edges)

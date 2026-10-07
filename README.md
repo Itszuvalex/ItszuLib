@@ -123,7 +123,7 @@ Technologies are datapack entries (tree, prerequisites, cost, icon, optional pos
 their cost they may need other resources and items to hand in, and give item rewards to each team member. Research
 belongs to teams, with partial progress and a research queue whose first available entry is the team's focus; mods
 decide what produces progress and gate content with one call on either side. A layered layout places each tree automatically, and `TechTreeView` draws it in any screen with tooltips,
-panning and selection.
+panning and selection. The same view (`NodeTreeView`) draws any other tree a mod has, such as skills or talents.
 
 *For:* research and progression that pack makers can edit.
 
